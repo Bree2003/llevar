@@ -8,7 +8,8 @@ import { closeSnackbarAction } from "constants/helpers";
 import Loading from "components/Global/Loading/Loading";
 import Footer from "components/Footer/Footer";
 import Navbar from "components/Navbar/Navbar";
-
+import QuickAccess from "components/QuickAccess/QuickAccess";
+import DataProduct from "components/DataProduct/DataProduct";
 
 const MainScreen = ({
   model,
@@ -34,22 +35,15 @@ const MainScreen = ({
       }
     }
     return false;
-  }
+  };
 
   return (
-    <main className="flex flex-col w-full max-md:max-w-full">
-      {
-        handleLoading() ? (
-          <Loading
-            message="Cargando la información"
-          />
-        ) : (
-          <></>
-        )
-      }
-      <Navbar/>
-      <div>
-        React Example
+    <main className="flex flex-col w-full min-h-screen">
+      {handleLoading() ? <Loading message="Cargando la información" /> : <></>}
+      <Navbar />
+      <div className="flex-grow w-full flex">
+        <DataProduct />
+        <QuickAccess />
       </div>
       <Footer />
     </main>
