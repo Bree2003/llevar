@@ -31,6 +31,8 @@ import {
   AuthenticatedTemplate,
   UnauthenticatedTemplate,
 } from "@azure/msal-react";
+import FabricacionController from "controllers/Productodato/fabricacion";
+import AppLayout from "AppLayout";
 
 const msalInstance = new PublicClientApplication(msalConfig as Configuration);
 
@@ -47,16 +49,16 @@ const ProtectedRoute = ({ perm }: { perm?: string }) => {
   const roles = user.roles;
   if (user !== undefined && roles.length > 0) {
     const isAppUser = roles.includes('user');
-    if(perm !== undefined){
+    if (perm !== undefined) {
       const isPerm = roles.includes(perm);
-      if(isAppUser === true && isPerm === true){
+      if (isAppUser === true && isPerm === true) {
         return <Outlet />;
       }
       else {
         return <Navigate to="/401" />;
       }
     }
-    if(isAppUser === true){
+    if (isAppUser === true) {
       return <Outlet />;
     }
   }
@@ -66,49 +68,55 @@ const ProtectedRoute = ({ perm }: { perm?: string }) => {
 const Router = () => {
   return (
     // <MsalProvider instance={msalInstance}>
-      <ThemeProvider theme={commonTheme}>
-        {/* <AuthenticatedTemplate> */}
-          {/* <AcquireToken> */}
-            <Provider store={store}>
-              {/* <UserTokenPermission> */}
-                <BrowserRouter>
-                  <SnackbarProvider
-                    maxSnack={5}
-                    dense
-                    anchorOrigin={{ vertical: "top", horizontal: "right" }}
-                  >
-                    <div className="App App-background">
-                      <Routes>
-                        <Route path="401" element={<NotAuthorizedScreen />} />
-                        <Route path="404" element={<NotFoundScreen />} />
-                        {/* <Route
+    <ThemeProvider theme={commonTheme}>
+      {/* <AuthenticatedTemplate> */}
+      {/* <AcquireToken> */}
+      <Provider store={store}>
+        {/* <UserTokenPermission> */}
+        <BrowserRouter>
+          <SnackbarProvider
+            maxSnack={5}
+            dense
+            anchorOrigin={{ vertical: "top", horizontal: "right" }}
+          >
+            <div className="App App-background">
+              <Routes>
+                <Route path="401" element={<NotAuthorizedScreen />} />
+                <Route path="404" element={<NotFoundScreen />} />
+                {/* <Route
                           path="/"
                           element={<ProtectedRoute />}
                         > */}
-                          <Route
-                            path="/"
-                            element={<MainController />}
-                          />
-                        {/* </Route> */}
-                        <Route path="/logout" element={<Logout />} />
-                        <Route path="*" element={<NotFoundRedirectRoute />} />
-                      </Routes>
-                    </div>
-                  </SnackbarProvider>
-                </BrowserRouter>
-              {/* </UserTokenPermission> */}
-            </Provider>
-          {/* </AcquireToken> */}
-        {/* </AuthenticatedTemplate> */}
-        {/* <UnauthenticatedTemplate>
+                <Route element={<AppLayout />}>
+                  <Route
+                    path="/"
+                    element={<MainController />}
+                  />
+                  <Route
+                    path="/programa-fabricacion"
+                    element={<FabricacionController />}
+                  />
+                </Route>
+                {/* </Route> */}
+                <Route path="/logout" element={<Logout />} />
+                <Route path="*" element={<NotFoundRedirectRoute />} />
+              </Routes>
+            </div>
+          </SnackbarProvider>
+        </BrowserRouter>
+        {/* </UserTokenPermission> */}
+      </Provider>
+      {/* </AcquireToken> */}
+      {/* </AuthenticatedTemplate> */}
+      {/* <UnauthenticatedTemplate>
           <BrowserRouter>
             <Routes>
               <Route path="/loggedout" element={<LogoutScreen />} /> */}
-              {/* <Route path="*" element={<Login />} /> */}
-            {/* </Routes>
+      {/* <Route path="*" element={<Login />} /> */}
+      {/* </Routes>
           </BrowserRouter>
         </UnauthenticatedTemplate> */}
-      </ThemeProvider>
+    </ThemeProvider>
     // </MsalProvider>
   );
 }

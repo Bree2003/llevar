@@ -6,8 +6,6 @@ import {
 import { useSnackbar, VariantType } from "notistack";
 import { closeSnackbarAction } from "constants/helpers";
 import Loading from "components/Global/Loading/Loading";
-import Footer from "components/Footer/Footer";
-import Navbar from "components/Navbar/Navbar";
 import QuickAccess from "components/QuickAccess/QuickAccess";
 import DataProduct from "components/DataProduct/DataProduct";
 
@@ -38,14 +36,12 @@ const MainScreen = ({
   };
 
   return (
-    <main className="flex flex-col w-full min-h-screen">
+    <main className="flex flex-col w-full">
       {handleLoading() ? <Loading message="Cargando la información" /> : <></>}
-      <Navbar />
       <div className="flex-grow w-full flex">
         <DataProduct />
         <QuickAccess />
       </div>
-      <Footer />
     </main>
   );
 };
