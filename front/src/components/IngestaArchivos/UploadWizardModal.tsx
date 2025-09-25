@@ -34,7 +34,9 @@ export default function UploadWizardModal({
 
   const sendLog = async (
     level: "info" | "error" | "warning",
-    message: string
+    message: string,
+    fileName?: string,
+    dataset?: string
   ) => {
     try {
       await fetch(`http://127.0.0.1:5000/api/logs/${level}`, {
@@ -42,15 +44,93 @@ export default function UploadWizardModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message,
-          user: "breeale2003@gmail.com", // <-- Usuario real o token auth
-          service: "cloud_storage",
-          product: "ingesta_archivos",
+          user: "bsandovalh",
+          product: "programa_fabricación",
+          file_name: fileName,
+          dataset: "COOIS",
         }),
       });
     } catch (err) {
       console.error("Error enviando log:", err);
     }
   };
+
+  const fetchLogsByUser = async (user = "bsandovalh") => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:5000/api/logs/user/${user}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Error al obtener logs por usuario: ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      console.log(`Logs del usuario "${user}":`, data.logs);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  fetchLogsByUser();
+
+  const fetchLogsByProduct = async (product = "Programa de Fabricación") => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:5000/api/logs/product/${product}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Error al obtener logs por producto: ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      console.log(`Logs del producto "${product}":`, data.logs);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  fetchLogsByProduct();
+
+  const fetchAllLogs = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:5000/api/logs/all", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error al obtener logs: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("Todos los logs:", data.logs);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  // Llamar a la función para mostrar logs
+  fetchAllLogs();
 
   const fetchStepData = async (step: number) => {
     if (!file) return;
@@ -108,7 +188,11 @@ export default function UploadWizardModal({
       setFinalMessage(result.message);
 
       // 👇 Enviar log a backend
-      await sendLog("info", `El archivo ${file.name} fue cargado exitosamente`);
+      await sendLog(
+        "info",
+        `El archivo ${file.name} fue cargado exitosamente`,
+        file.name
+      );
 
       // Opcional: Cerrar automáticamente después de unos segundos
       setTimeout(() => onClose(), 3000);
@@ -128,16 +212,16 @@ export default function UploadWizardModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl p-6 md:p-8 w-full max-w-3xl">
+      <div className="bg-[--color-gris-claro] rounded-xl shadow-2xl p-8 w-full max-w-3xl h-[540px] flex flex-col">
         <Stepper currentStep={currentStep} />
-        <hr className="my-4" />
 
-        <div className="min-h-[250px]">
+        <div className="flex-grow mt-4">
           {currentStep === 1 && <Step1Confirmation data={stepData[1]} />}
           {currentStep === 2 && <Step2Structure data={stepData[2]} />}
           {currentStep === 3 && <Step3Validation data={stepData[3]} />}
         </div>
 
+        <hr className="border-black" />
         <div className="flex justify-between items-center mt-6">
           <button
             onClick={onClose}
@@ -174,11 +258,11 @@ export default function UploadWizardModal({
             )}
           </div>
         </div>
-        {finalMessage && (
+        {/* {finalMessage && (
           <div className="mt-4 text-center text-sm p-2 bg-gray-100 rounded">
             {finalMessage}
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );

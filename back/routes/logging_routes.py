@@ -1,40 +1,60 @@
 from flask import Blueprint, request, jsonify
-from services.gcp_logging import log_info, log_error, log_warning
+from services.gcp_logging import (
+    log_info, log_error, log_warning,
+    get_logs_by_user, get_logs_by_product,
+    get_all_logs_service
+)
 
 logging_bp = Blueprint("logging", __name__)
 
 
-@logging_bp.route("/info", methods=["POST"])
-def log_info_api():
+@logging_bp.route("/<level>", methods=["POST"])
+def log_api(level: str):
     payload = request.get_json()
     message = payload.get("message")
     user = payload.get("user")
-    service = payload.get("service")
     product = payload.get("product")
+    file_name = payload.get("file_name")
+    dataset = payload.get("dataset")
 
-    log_info(message, user=user, service=service, product=product)
-    return jsonify({"status": "logged info"})
+    level = level.lower()
+    if level == "info":
+        log_info(message, user=user, product=product,
+                 file_name=file_name, dataset=dataset)
+    elif level == "warning":
+        log_warning(message, user=user, product=product,
+                    file_name=file_name, dataset=dataset)
+    elif level == "error":
+        log_error(message, user=user, product=product,
+                  file_name=file_name, dataset=dataset)
+    else:
+        return jsonify({"error": "Invalid log level"}), 400
+
+    return jsonify({"status": "logged", "level": level})
 
 
-@logging_bp.route("/error", methods=["POST"])
-def log_error_api():
-    payload = request.get_json()
-    message = payload.get("message")
-    user = payload.get("user")
-    service = payload.get("service")
-    product = payload.get("product")
-
-    log_error(message, user=user, service=service, product=product)
-    return jsonify({"status": "logged error"})
+@logging_bp.route("/user/<string:user>", methods=["GET"])
+def get_logs_user(user: str):
+    try:
+        logs = get_logs_by_user(user)
+        return jsonify({"logs": logs}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
-@logging_bp.route("/warning", methods=["POST"])
-def log_warning_api():
-    payload = request.get_json()
-    message = payload.get("message")
-    user = payload.get("user")
-    service = payload.get("service")
-    product = payload.get("product")
+@logging_bp.route("/product/<string:product>", methods=["GET"])
+def get_logs_product(product: str):
+    try:
+        logs = get_logs_by_product(product)
+        return jsonify({"logs": logs}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-    log_warning(message, user=user, service=service, product=product)
-    return jsonify({"status": "logged warning"})
+
+@logging_bp.route("/all", methods=["GET"])
+def get_all_logs():
+    try:
+        logs = get_all_logs_service()
+        return jsonify({"logs": logs}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

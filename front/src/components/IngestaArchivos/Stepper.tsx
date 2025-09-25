@@ -10,25 +10,18 @@ export default function Stepper({ currentStep }: { currentStep: number }) {
         return (
           <div key={label} className="flex items-center">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-white ${
+              className={`w-6 h-6 rounded-full flex items-center justify-center text-white ${
                 isCompleted
-                  ? "bg-green-500"
+                  ? "bg-[--color-naranjo]"
                   : isActive
-                  ? "bg-orange-500"
+                  ? "bg-[--color-naranjo]"
                   : "bg-gray-300"
               }`}
             >
               {stepNumber}
             </div>
-            <span
-              className={`ml-2 text-sm ${
-                isActive ? "font-bold text-orange-500" : "text-gray-500"
-              }`}
-            >
-              {label}
-            </span>
             {stepNumber < steps.length && (
-              <div className="w-16 h-0.5 bg-gray-200 mx-4"></div>
+              <div className="w-8 h-0.5 bg-[--color-gris-oscuro] mx-4"></div>
             )}
           </div>
         );

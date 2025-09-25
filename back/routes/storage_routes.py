@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from services.file_converter import convert_to_parquet
 import os
 import pandas as pd
+import numpy as np
 import io
 
 load_dotenv()
@@ -33,7 +34,7 @@ def read_file_to_dataframe(file_storage):
         if df is None:
             return None, f"Formato de archivo no soportado: {ext}"
 
-        df = df.where(pd.notnull(df), None)
+        df = df.where(pd.notnull(df), None)  # Convertir NaN a None
         return df, None
     except Exception as e:
         return None, f"Error al leer el archivo: {str(e)}"
@@ -59,7 +60,6 @@ def analyze_file_api():
             return jsonify({"error": "El archivo enviado no tiene nombre."}), 400
 
         if step == "1":
-            # ✅ CALCULO SEGURO DEL TAMAÑO
             file.seek(0)
             tamano = round(len(file.read()) / 1024, 2)
             file.seek(0)
@@ -77,13 +77,26 @@ def analyze_file_api():
             return jsonify(metadata), 200
 
         elif step == "2":
+            def map_dtype(dtype):
+                if pd.api.types.is_integer_dtype(dtype) or pd.api.types.is_float_dtype(dtype):
+                    return "Number"
+                elif pd.api.types.is_datetime64_any_dtype(dtype):
+                    return "Date"
+                else:
+                    return "Text"
+
+            df = df.where(pd.notnull(df), None)  # Evitar NaN en JSON
+            columnas = [
+                {"nombre": col, "tipo": map_dtype(dtype)} for col, dtype in df.dtypes.items()
+            ]
+            vista_previa = df.head(5).replace(
+                {np.nan: None}).to_dict(orient='records')
+
             structure_data = {
                 "numero_columnas": len(df.columns),
                 "numero_registros": len(df),
-                "columnas_encontradas": [
-                    {"nombre": col, "tipo": str(dtype)} for col, dtype in df.dtypes.items()
-                ],
-                "vista_previa": df.head(5).to_dict(orient='records')
+                "columnas_encontradas": columnas,
+                "vista_previa": vista_previa
             }
             return jsonify(structure_data), 200
 
