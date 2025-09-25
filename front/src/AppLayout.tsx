@@ -1,7 +1,7 @@
 // src/components/Layout/AppLayout.tsx
-import { Outlet } from 'react-router-dom';
-import Navbar from 'components/Navbar/Navbar'; // Asegúrate de que la ruta sea correcta
-import Footer from 'components/Footer/Footer'; // Asegúrate de que la ruta sea correcta
+import { Outlet } from "react-router-dom";
+import Navbar from "components/Navbar/Navbar"; // Asegúrate de que la ruta sea correcta
+import Footer from "components/Footer/Footer"; // Asegúrate de que la ruta sea correcta
 
 const AppLayout = () => {
   return (
@@ -10,7 +10,7 @@ const AppLayout = () => {
       <Navbar />
 
       {/* El <main> es el contenido principal que cambiará en cada ruta */}
-      <main className="flex-grow w-full">
+      <main className="flex flex-grow w-full">
         {/* Aquí es donde React Router renderizará los componentes de las rutas hijas */}
         <Outlet />
       </main>

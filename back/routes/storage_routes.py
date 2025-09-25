@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from services.file_converter import convert_to_parquet
 import os
 import pandas as pd
-import io  # <-- CORRECCIÓN: Importamos el módulo 'io' para manejar streams en memoria
+import io
 
 load_dotenv()
 
@@ -12,17 +12,12 @@ storage_bp = Blueprint("storage", __name__)
 
 BUCKET_NAME = os.environ.get('GCS_BUCKET_NAME')
 
+
 def read_file_to_dataframe(file_storage):
-    """
-    Lee un objeto de archivo de Flask (CSV o Excel) de forma robusta y lo 
-    convierte en un DataFrame de pandas, limpiando los valores nulos para
-    que sea compatible con JSON.
-    Devuelve una tupla: (DataFrame, error_string).
-    """
     try:
         file_storage.seek(0)
         filename = file_storage.filename
-        ext = filename.split('.')[-1].lower() if filename else '' # <-- CORRECCIÓN: Verificación de seguridad
+        ext = filename.split('.')[-1].lower() if filename else ''
         df = None
 
         if ext == 'csv':
@@ -30,15 +25,15 @@ def read_file_to_dataframe(file_storage):
                 df = pd.read_csv(file_storage, sep=None, engine='python')
             except UnicodeDecodeError:
                 file_storage.seek(0)
-                df = pd.read_csv(file_storage, encoding='latin-1', sep=None, engine='python')
+                df = pd.read_csv(file_storage, encoding='latin-1',
+                                 sep=None, engine='python')
         elif ext in ['xlsx', 'xls']:
             df = pd.read_excel(file_storage)
-        
+
         if df is None:
             return None, f"Formato de archivo no soportado: {ext}"
 
         df = df.where(pd.notnull(df), None)
-
         return df, None
     except Exception as e:
         return None, f"Error al leer el archivo: {str(e)}"
@@ -48,7 +43,7 @@ def read_file_to_dataframe(file_storage):
 def analyze_file_api():
     if "file" not in request.files:
         return jsonify({"error": "No se proporcionó ningún archivo"}), 400
-    
+
     file = request.files["file"]
     step = request.form.get("step", "1")
 
@@ -60,17 +55,24 @@ def analyze_file_api():
         if df is None:
             return jsonify({"error": "No se pudo procesar el DataFrame."}), 500
 
-        # <-- CORRECCIÓN: Verificamos que file.filename existe antes de usarlo
         if not file.filename:
             return jsonify({"error": "El archivo enviado no tiene nombre."}), 400
 
         if step == "1":
+            # ✅ CALCULO SEGURO DEL TAMAÑO
+            file.seek(0)
+            tamano = round(len(file.read()) / 1024, 2)
+            file.seek(0)
+
             metadata = {
+                "producto_dato": "Ingesta Archivos",
+                "dataset_destino": os.path.splitext(file.filename)[0],
                 "nombre_archivo": file.filename,
-                "tamano": f"{round(file.content_length / 1024, 2)} KB" if file.content_length else "N/A",
-                "tipo_archivo": file.filename.split('.')[-1].upper(),
+                "usuario": "breeale2003@gmail.com",  # cambiar por usuario real
+                "tamano": f"{tamano} KB",
                 "fecha_de_carga": pd.Timestamp.now().strftime('%d-%m-%Y'),
                 "hora_de_carga": pd.Timestamp.now().strftime('%H:%M horas'),
+                "tipo_archivo": file.filename.split('.')[-1].upper(),
             }
             return jsonify(metadata), 200
 
@@ -78,30 +80,37 @@ def analyze_file_api():
             structure_data = {
                 "numero_columnas": len(df.columns),
                 "numero_registros": len(df),
-                "columnas_encontradas": [{"nombre": col, "tipo": str(dtype)} for col, dtype in df.dtypes.items()],
+                "columnas_encontradas": [
+                    {"nombre": col, "tipo": str(dtype)} for col, dtype in df.dtypes.items()
+                ],
                 "vista_previa": df.head(5).to_dict(orient='records')
             }
             return jsonify(structure_data), 200
 
-        # ... (resto del endpoint /analyze sin cambios) ...
         elif step == "3":
             alerts = []
-            columnas_esperadas = {'CuartoFiltro', 'Material', 'Descripción', 'BOT', 'Fecha'}
+            columnas_esperadas = {'CuartoFiltro',
+                                  'Material', 'Descripción', 'BOT', 'Fecha'}
             columnas_actuales = set(df.columns)
             columnas_adicionales = list(columnas_actuales - columnas_esperadas)
-            
-            if 'CuartoFiltro' in df.columns and df['CuartoFiltro'].isnull().sum() > 0:
-                alerts.append(f"Alerta: La columna 'CuartoFiltro' tiene {df['CuartoFiltro'].isnull().sum()} registros nulos.")
-            
-            if 'BOT' in df.columns and not pd.api.types.is_numeric_dtype(df['BOT']):
-                 alerts.append("Alerta: La columna 'BOT' contiene valores no numéricos y se esperaba un decimal.")
-            
-            if columnas_adicionales:
-                alerts.append(f"Se detectaron columnas adicionales no esperadas: {', '.join(columnas_adicionales)}")
 
-            validation_data = {"alertas": alerts}
-            return jsonify(validation_data), 200
-        
+            if 'CuartoFiltro' in df.columns and df['CuartoFiltro'].isnull().sum() > 0:
+                alerts.append(
+                    f"Alerta: La columna 'CuartoFiltro' tiene {df['CuartoFiltro'].isnull().sum()} registros nulos."
+                )
+
+            if 'BOT' in df.columns and not pd.api.types.is_numeric_dtype(df['BOT']):
+                alerts.append(
+                    "Alerta: La columna 'BOT' contiene valores no numéricos y se esperaba un decimal."
+                )
+
+            if columnas_adicionales:
+                alerts.append(
+                    f"Se detectaron columnas adicionales no esperadas: {', '.join(columnas_adicionales)}"
+                )
+
+            return jsonify({"alertas": alerts}), 200
+
         else:
             return jsonify({"error": f"Paso desconocido: {step}"}), 400
 
@@ -124,13 +133,13 @@ def upload_file_api():
         return jsonify({"error": "No file provided"}), 400
 
     file = request.files["file"]
-    
-    # <-- CORRECCIÓN: Verificamos el nombre del archivo de forma segura
+
     if not file.filename:
         return jsonify({"error": "El archivo enviado no tiene nombre."}), 400
-    
-    # Obtenemos el nombre de destino de forma segura
-    destination = request.form.get("destination", os.path.splitext(file.filename)[0])
+
+    destination = request.form.get(
+        "destination", os.path.splitext(file.filename)[0]
+    )
 
     try:
         parquet_path = convert_to_parquet(file, file.filename)
@@ -145,13 +154,11 @@ def upload_file_api():
 def download_file_api(filename):
     try:
         content = download_file(BUCKET_NAME, filename)
-        
-        # <-- CORRECCIÓN: Convertimos los bytes en un stream en memoria que send_file entiende
         return send_file(
             io.BytesIO(content),
             as_attachment=True,
             download_name=filename,
-            mimetype='application/octet-stream'  # Añadimos un tipo de contenido genérico
+            mimetype='application/octet-stream'
         )
     except Exception as e:
         return jsonify({"error": str(e)}), 500

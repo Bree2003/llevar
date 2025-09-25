@@ -6,20 +6,35 @@ logging_bp = Blueprint("logging", __name__)
 
 @logging_bp.route("/info", methods=["POST"])
 def log_info_api():
-    data = request.json.get("message")
-    log_info(data)
+    payload = request.get_json()
+    message = payload.get("message")
+    user = payload.get("user")
+    service = payload.get("service")
+    product = payload.get("product")
+
+    log_info(message, user=user, service=service, product=product)
     return jsonify({"status": "logged info"})
 
 
 @logging_bp.route("/error", methods=["POST"])
 def log_error_api():
-    data = request.json.get("message")
-    log_error(data)
+    payload = request.get_json()
+    message = payload.get("message")
+    user = payload.get("user")
+    service = payload.get("service")
+    product = payload.get("product")
+
+    log_error(message, user=user, service=service, product=product)
     return jsonify({"status": "logged error"})
 
 
 @logging_bp.route("/warning", methods=["POST"])
 def log_warning_api():
-    data = request.json.get("message")
-    log_warning(data)
+    payload = request.get_json()
+    message = payload.get("message")
+    user = payload.get("user")
+    service = payload.get("service")
+    product = payload.get("product")
+
+    log_warning(message, user=user, service=service, product=product)
     return jsonify({"status": "logged warning"})
