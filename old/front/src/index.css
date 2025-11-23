@@ -1,0 +1,14 @@
+body {
+  margin: 0;
+  font-family: 'Lato', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: 'Lato';
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

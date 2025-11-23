@@ -1,0 +1,66 @@
+stages:
+  - build
+
+image: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+
+variables:
+  GOOGLE_APPLICATION_CREDENTIALS: "$CI_PROJECT_DIR/wif-cred.json"
+  CI_WIF_PROJECT_NUMBER: "${WIF_PROJECT_NUMBER}"
+  CI_WIF_POOL_ID: "${WIF_POOL_ID}"
+  CI_WIF_PROVIDER_ID: "${WIF_PROVIDER_ID}"
+  CI_WIF_SERVICE_ACCOUNT: "${WIF_SERVICE_ACCOUNT}"
+  CI_REGION: "${GCP_REGION}"
+  REACT_APP_BACKEND_URL: "${BACKEND_URL}"
+  CLOUDSDK_CORE_DISABLE_PROMPTS: "1"
+  STAGING_DIR: "gs://${GCP_STAGING_BUCKET}/source"
+
+default:
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: "https://gitlab.com"
+
+submit-cloud-build:
+  stage: build
+  environment:
+    name: $CI_COMMIT_REF_NAME
+
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      variables:
+        REGION: "${CI_REGION}"
+        PROJECT_TARGET_ID: "cyt-prd-tec-gcp"
+        AR_REPO_NAME: "containers"
+        SERVICE_NAME: "data-products-frontend"
+        ENV: "prd"
+
+    - if: '$CI_COMMIT_BRANCH == "DEV"'
+      variables:
+        REGION: "${CI_REGION}"
+        PROJECT_TARGET_ID: "cyt-dev-tec-gcp"
+        AR_REPO_NAME: "containers"
+        SERVICE_NAME: "data-products-frontend"
+        ENV: "dev"
+
+  script:
+    - echo -n "$GITLAB_OIDC_TOKEN" > "$CI_PROJECT_DIR/oidc_token.jwt"
+
+    - export WIF_PROVIDER_RESOURCE="projects/${CI_WIF_PROJECT_NUMBER}/locations/global/workloadIdentityPools/${CI_WIF_POOL_ID}/providers/${CI_WIF_PROVIDER_ID}"
+
+    - |
+      gcloud iam workload-identity-pools create-cred-config \
+        "$WIF_PROVIDER_RESOURCE" \
+        --service-account="$CI_WIF_SERVICE_ACCOUNT" \
+        --credential-source-file="$CI_PROJECT_DIR/oidc_token.jwt" \
+        --output-file="$GOOGLE_APPLICATION_CREDENTIALS"
+
+    - gcloud auth login --brief --cred-file="$GOOGLE_APPLICATION_CREDENTIALS"
+
+    - gcloud config set project "$GCP_PROJECT_ID"
+
+    - |
+      gcloud builds submit . \
+        --region="$CI_REGION" \
+        --gcs-source-staging-dir="$STAGING_DIR" \
+        --config="gcp/cloudbuild.yaml" \
+        --substitutions=_PROJECT_ID="$GCP_PROJECT_ID",_PROJECT_TARGET_ID="$PROJECT_TARGET_ID",_CI_WIF_SERVICE_ACCOUNT="$CI_WIF_SERVICE_ACCOUNT",_ENV="$ENV",_REACT_APP_BACKEND_URL="$REACT_APP_BACKEND_URL",_AR_REPO_NAME="$AR_REPO_NAME",_SERVICE_NAME="$SERVICE_NAME",_REGION="$CI_REGION",_TAG="$CI_COMMIT_SHORT_SHA"
+  

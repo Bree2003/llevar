@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <!-- 
+    Capa 1: El fondo del reloj.
+    Utiliza fill="currentColor" para heredar el color naranja de tu tema.
+    Esta capa se dibuja primero.
+  -->
+  <path 
+    fill="currentColor" 
+    d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2z"
+  />
+
+  <!-- 
+    Capa 2: Las manecillas del reloj.
+    Utiliza fill="white" para asegurar el contraste.
+    Esta capa se dibuja encima de la primera.
+  -->
+  <path 
+    fill="white" 
+    d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"
+  />
+</svg>

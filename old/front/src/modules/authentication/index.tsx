@@ -1,0 +1,1 @@
+export { default as AcquireToken } from "./components/acquireToken";

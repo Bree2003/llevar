@@ -1,0 +1,70 @@
+stages:
+  - build
+
+image: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+
+variables:
+  GOOGLE_APPLICATION_CREDENTIALS: "$CI_PROJECT_DIR/wif-cred.json"
+  CI_WIF_PROJECT_NUMBER: "${WIF_PROJECT_NUMBER}"
+  CI_WIF_POOL_ID: "${WIF_POOL_ID}"
+  CI_WIF_PROVIDER_ID: "${WIF_PROVIDER_ID}"
+  GCP_SA_EMAIL: "${SA_GCP}"
+  GCP_REGION: "${REGION}"
+  CLOUDSDK_CORE_DISABLE_PROMPTS: "1"
+  STAGING_DIR: "gs://${GCP_STAGING_BUCKET}/source"
+
+default:
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: "https://gitlab.com"
+
+submit-cloud-build:
+  stage: build
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      variables:
+        REGION: "${GCP_REGION}"
+        PROJECT_ID: "${GCP_PROJECT_ID}"
+        AR_REPO_NAME: "containers"
+        SERVICE_NAME: "data-products-frontend"
+        ENV: "prod"
+
+    - if: '$CI_COMMIT_BRANCH == "DEV"'
+      variables:
+        REGION: "${GCP_REGION}"
+        PROJECT_ID: "${GCP_PROJECT_ID}"
+        AR_REPO_NAME: "containers"
+        SERVICE_NAME: "data-products-frontend"
+        ENV: "dev"
+
+  script:
+    - echo "Branch:" ${CI_COMMIT_BRANCH}
+    - echo "Environment:" ${ENV}
+    - echo "TF State Bucket:" ${TF_BUCKET}
+    - echo "Service Account:" ${GCP_SA_EMAIL}
+    - echo "Project ID:" ${GCP_PROJECT_ID}
+    - echo "WIF Pool ID:" ${CI_WIF_POOL_ID}
+    - echo "WIF Provider ID:" ${CI_WIF_PROVIDER_ID}
+
+    - echo -n "$GITLAB_OIDC_TOKEN" > "$CI_PROJECT_DIR/oidc_token.jwt"
+
+    - export WIF_PROVIDER_RESOURCE="projects/${CI_WIF_PROJECT_NUMBER}/locations/global/workloadIdentityPools/${CI_WIF_POOL_ID}/providers/${CI_WIF_PROVIDER_ID}"
+
+    - |
+      gcloud iam workload-identity-pools create-cred-config \
+        "$WIF_PROVIDER_RESOURCE" \
+        --service-account="$GCP_SA_EMAIL" \
+        --credential-source-file="$CI_PROJECT_DIR/oidc_token.jwt" \
+        --output-file="$GOOGLE_APPLICATION_CREDENTIALS"
+
+    - gcloud auth login --brief --cred-file="$GOOGLE_APPLICATION_CREDENTIALS"
+
+    - gcloud config set project "$GCP_PROJECT_ID"
+
+    - |
+      gcloud builds submit . \
+        --region="$GCP_REGION" \
+        --gcs-source-staging-dir="$STAGING_DIR" \
+        --config="gcp/cloudbuild.yaml" \
+        --substitutions=_PROJECT_ID="$GCP_PROJECT_ID",_GCP_SA_EMAIL="$GCP_SA_EMAIL",_ENV="$ENV",_AR_REPO_NAME="$AR_REPO_NAME",_SERVICE_NAME="$SERVICE_NAME",_REGION="$GCP_REGION",_TAG="$CI_COMMIT_SHORT_SHA"
+  

@@ -1,0 +1,44 @@
+substitutions:
+  _TAG: "latest"
+  _ENV: "dev"
+  _AR_REPO_NAME: "containers"
+  _SERVICE_NAME: "data-products-frontend"
+  _PROJECT_ID: "cyt-dev-tec-gcp"
+  _REGION: "us-east4"
+
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'build',
+        '-t',
+        '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_AR_REPO_NAME}/${_SERVICE_NAME}:${_TAG}',
+        '.'
+      ]
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'push',
+        '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_AR_REPO_NAME}/${_SERVICE_NAME}:${_TAG}'
+      ]
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      [
+        'run', 'deploy', '${_SERVICE_NAME}',
+        '--image', '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_AR_REPO_NAME}/${_SERVICE_NAME}:${_TAG}',
+        '--region', '${_REGION}',
+        '--platform', 'managed',
+        '--allow-unauthenticated',
+        '--set-env-vars', 'ENV=${_ENV}'
+      ]
+
+images:
+  - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_AR_REPO_NAME}/${_SERVICE_NAME}:${_TAG}'
+
+serviceAccount: "projects/${_PROJECT_ID}/serviceAccounts/${_GCP_SA_EMAIL}"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
