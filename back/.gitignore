@@ -1,0 +1,4 @@
+.env
+/venv
+**/__pycache__
+cyt-dev-tec-gcp-d05e9148a5ea.json

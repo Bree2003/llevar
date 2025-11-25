@@ -1,0 +1,31 @@
+[
+    {
+        "id": "sap",
+        "name": "Dominio de Origen",
+        "project_id": "cyt-dev-ddo-gcp",
+        "buckets": [
+            "raw-dev-ddo-bc-bucket",
+            "raw-dev-ddo-co-bucket",
+            "raw-dev-ddo-cs-bucket",
+            "raw-dev-ddo-fi-bucket",
+            "raw-dev-ddo-hr-bucket",
+            "raw-dev-ddo-le-bucket",
+            "raw-dev-ddo-mm-bucket",
+            "raw-dev-ddo-pm-bucket",
+            "raw-dev-ddo-pp-bucket",
+            "raw-dev-ddo-ps-bucket",
+            "raw-dev-ddo-qm-bucket",
+            "raw-dev-ddo-sd-bucket",
+            "raw-dev-ddo-tm-bucket",
+            "raw-dev-ddo-wm-bucket"
+        ]
+    },
+    {
+        "id": "pd",
+        "name": "Dominio de Negocio",
+        "project_id": "cyt-dev-hq-osc-gcp",
+        "buckets": [
+            "raw-dev-osc-manual-bucket"
+        ]
+    }
+]
