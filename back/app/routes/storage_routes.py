@@ -1,10 +1,11 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify, send_file
 from app.config import Config
-from app.services import storage_service, logging_service
+from app.services import storage_service, logging_service, bq_service
 from app.utils.gcp_utils import get_project_id_for_bucket
 from app.utils.file_processing import read_file_to_dataframe
 from app.utils.file_converter import dataframe_to_parquet_tempfile
+from app.utils.bq_mapping import resolve_bq_coordinates
 from app.utils.exceptions import InvalidUsage
 import pandas as pd
 import numpy as np
@@ -157,8 +158,7 @@ def initiate_resumable_upload_api():
 @storage_bp.route("/analyze", methods=["POST"])
 def analyze_file_api():
     """
-    Analiza un archivo en varios pasos sin subirlo a GCS.
-    Esta ruta no necesita validación de entorno ya que no interactúa con GCS.
+    Analiza un archivo en varios pasos.
     """
     if "file" not in request.files:
         raise InvalidUsage(
@@ -172,8 +172,10 @@ def analyze_file_api():
             "El archivo enviado no tiene nombre.", status_code=400)
 
     try:
+        # Leemos el archivo una sola vez
         df = read_file_to_dataframe(file)
 
+        # --- PASO 1: Metadata ---
         if step == "1":
             file.seek(0)
             tamano = round(len(file.read()) / 1024, 2)
@@ -185,6 +187,8 @@ def analyze_file_api():
                 "hora_de_carga": pd.Timestamp.now().strftime('%H:%M horas'),
             }
             return jsonify(metadata)
+
+        # --- PASO 2: Estructura y Previsualización ---
         elif step == "2":
             def map_dtype(dtype):
                 if pd.api.types.is_numeric_dtype(dtype):
@@ -197,6 +201,7 @@ def analyze_file_api():
                 dtype)} for col, dtype in df.dtypes.items()]
             vista_previa = df.head(5).replace(
                 {np.nan: None}).to_dict(orient='records')
+
             structure_data = {
                 "numero_columnas": len(df.columns),
                 "numero_registros": len(df),
@@ -204,14 +209,62 @@ def analyze_file_api():
                 "vista_previa": vista_previa
             }
             return jsonify(structure_data)
+
+        # --- PASO 3: Validación contra BigQuery (DINÁMICO) ---
         elif step == "3":
-            alerts = []
-            if 'columna_esperada' not in df.columns:
-                alerts.append(
-                    "Alerta: La columna 'columna_esperada' no se encontró.")
-            return jsonify({"alertas": alerts})
+            # 1. Recibimos los parámetros de contexto del frontend
+            env_id = request.form.get('env_id')
+            bucket_name = request.form.get('bucket_name')
+            destination = request.form.get('destination')  # Ej: "manual/brisa"
+
+            if not all([env_id, bucket_name, destination]):
+                return jsonify({
+                    "bloqueantes": [],
+                    "alertas": ["No se pudo validar contra BigQuery: Faltan parámetros de entorno (env_id, bucket)."]
+                })
+
+            try:
+                # 2. Obtenemos el Project ID dinámicamente (Igual que en los otros endpoints)
+                # Esto asegura que si env_id='sap', usemos 'cyt-dev-ddo-gcp'
+                project_id = get_project_id_for_bucket(env_id, bucket_name)
+
+                # 3. Parseamos el destino para sacar dataset y tabla
+                # destination suele ser "producto/tabla" -> "manual/brisa"
+                parts = destination.split('/')
+                if len(parts) < 2:
+                    return jsonify({"bloqueantes": [], "alertas": ["Ruta de destino inválida para validación."]})
+
+                product_name = parts[0]
+                table_name = parts[1]
+
+                # 4. Resolvemos nombres de BQ (limpieza de caracteres)
+                bq_project, bq_dataset, bq_table = resolve_bq_coordinates(
+                    project_id, product_name, table_name)
+
+                # 5. Consultamos BQ
+                bq_schema = bq_service.get_table_schema(
+                    bq_project, bq_dataset, bq_table)
+
+                # 6. Validamos DF vs Schema
+                errores, alertas = bq_service.validate_dataframe_against_schema(
+                    df, bq_schema)
+
+                return jsonify({
+                    "validado_contra": f"{bq_project}.{bq_dataset}.{bq_table}",
+                    "bloqueantes": errores,
+                    "alertas": alertas
+                })
+
+            except Exception as e:
+                # Error de conexión a BQ no debe romper la app, solo avisar
+                return jsonify({
+                    "bloqueantes": [],
+                    "alertas": [f"Advertencia: No se pudo conectar con BigQuery ({str(e)})"]
+                })
+
         else:
             raise InvalidUsage(f"Paso desconocido: {step}", status_code=400)
+
     except (ValueError, Exception) as e:
         raise InvalidUsage(str(e))
 

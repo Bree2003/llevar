@@ -1,58 +1,37 @@
-# app/utils/file_processing.py
 import pandas as pd
-import os
+import io
 
 
-def read_file_to_dataframe(file_storage):
+def read_file_to_dataframe(file):
     """
-    Lee un archivo en memoria y lo devuelve como DataFrame (dtype=str).
+    Lee un archivo (CSV, Excel, Parquet) y devuelve un DataFrame.
+    Maneja automáticamente el BOM de Excel.
     """
+    # Guardamos la posición actual por si hay que rebobinar (si fallara un intento)
+    file.seek(0)
+    filename = file.filename.lower()
+
     try:
-        filename = getattr(file_storage, 'filename', 'unknown_file')
-        ext = os.path.splitext(filename)[1].lower().lstrip('.')
-
-        df = None
-
-        if ext == 'csv':
-            file_storage.seek(0)
+        if filename.endswith('.csv'):
+            # --- EL CAMBIO CLAVE ESTÁ AQUÍ ---
+            # 'utf-8-sig' maneja archivos CON y SIN BOM correctamente.
+            # Es la opción más segura para archivos subidos por usuarios.
             try:
-                # Intento 1: Auto-detección de separador (más robusto)
-                df = pd.read_csv(
-                    file_storage,
-                    sep=None,
-                    engine='python',
-                    encoding='latin1',
-                    dtype=str,
-                    keep_default_na=False
-                )
-                print("[INFO] CSV leído con engine='python' (auto-sep).")
-            except Exception:
-                file_storage.seek(0)
-                try:
-                    # Intento 2: UTF-8 explícito
-                    df = pd.read_csv(
-                        file_storage,
-                        sep=None,
-                        engine='python',
-                        encoding='utf-8',
-                        dtype=str,
-                        keep_default_na=False
-                    )
-                except Exception as e:
-                    raise ValueError(
-                        f"No se pudo leer CSV '{filename}'. Error: {e}")
+                return pd.read_csv(file, encoding='utf-8-sig')
+            except UnicodeDecodeError:
+                # Fallback: Si falla utf-8, intentamos con latin-1 (común en Windows antiguos)
+                file.seek(0)
+                return pd.read_csv(file, encoding='latin-1')
 
-        elif ext in ['xlsx', 'xls']:
-            file_storage.seek(0)
-            df = pd.read_excel(file_storage, dtype=str)
+        elif filename.endswith(('.xls', '.xlsx')):
+            return pd.read_excel(file)
+
+        elif filename.endswith('.parquet'):
+            return pd.read_parquet(file)
 
         else:
-            raise ValueError(f"Formato '{ext}' no soportado.")
-
-        # Convertimos NaN a None (string vacío o null según prefieras)
-        # Como usamos dtype=str y keep_default_na=False,
-        # los vacíos suelen ser strings vacíos "".
-        return df
+            raise ValueError(
+                "Formato de archivo no soportado. Use CSV, Excel o Parquet.")
 
     except Exception as e:
-        raise ValueError(f"Error procesando '{filename}': {e}")
+        raise ValueError(f"Error procesando el archivo: {str(e)}")
