@@ -9,3 +9,4 @@ pyarrow==21.0.0
 openpyxl==3.1.2
 numpy==2.3.3
 cachetools==5.5.2
+google-cloud-bigquery==3.38.0
