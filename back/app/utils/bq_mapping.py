@@ -1,4 +1,4 @@
-def resolve_bq_coordinates(project_id, product_name, table_name):
+def resolve_bq_coordinates(project_id, product_name, table_name, bucket_name):
     """
     Transforma los nombres de carpetas de GCS a referencias válidas de BigQuery.
     BigQuery usa guiones bajos (_), GCS suele usar guiones medios (-).
@@ -12,5 +12,8 @@ def resolve_bq_coordinates(project_id, product_name, table_name):
 
     # 3. La Tabla es el nombre de la subcarpeta
     table_id = table_name.replace("-", "_")
+    
+    # 3. El Bucket
+    bucket_id = bucket_name.replace("-", "_")
 
-    return bq_project_id, dataset_id, table_id
+    return bq_project_id, dataset_id, table_id, bucket_id

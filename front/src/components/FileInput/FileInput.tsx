@@ -1,24 +1,26 @@
 // src/components/Forms/CustomFileInput.tsx
 
-import { useState, useRef } from 'react';
+import { useState, useRef } from "react";
 
 // 1. Definimos las props que el componente aceptará
 interface CustomFileInputProps {
   onFileSelect: (file: File | null) => void;
 }
 
-export default function CustomFileInput({ onFileSelect }: CustomFileInputProps) {
-  const [fileName, setFileName] = useState('');
+export default function CustomFileInput({
+  onFileSelect,
+}: CustomFileInputProps) {
+  const [fileName, setFileName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null;
-    
+
     // 2. Usamos la prop para enviar el objeto File completo (o null) al padre
-    onFileSelect(file); 
-    
+    onFileSelect(file);
+
     // Actualizamos el nombre del archivo solo para la UI
-    setFileName(file ? file.name : '');
+    setFileName(file ? file.name : "");
   };
 
   const handleButtonClick = () => {
@@ -28,7 +30,7 @@ export default function CustomFileInput({ onFileSelect }: CustomFileInputProps) 
   return (
     <div className="flex-grow flex items-center gap-3">
       <div className="flex-grow flex items-center w-full rounded-md border border-gray-300 bg-gray-100 shadow-sm sm:text-sm h-10 px-3 text-gray-500 truncate">
-        {fileName || 'Ningún archivo seleccionado'}
+        {fileName || "Ningún archivo seleccionado"}
       </div>
 
       <button
@@ -41,6 +43,7 @@ export default function CustomFileInput({ onFileSelect }: CustomFileInputProps) 
 
       <input
         type="file"
+        accept=".csv, .xlsx, .xls, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, text/csv"
         ref={fileInputRef}
         onChange={handleFileChange}
         className="hidden"

@@ -137,6 +137,7 @@ def initiate_resumable_upload_api():
             user=user,
             product=product,         # <--- CAMPO AÑADIDO
             dataset=dataset,         # <--- CAMPO AÑADIDO
+            bucket=bucket_name,
             file_name=file_name,     # Usamos el nombre original del archivo
             gcs_path=final_blob_path  # Guardamos la ruta completa también
         )
@@ -154,34 +155,52 @@ def initiate_resumable_upload_api():
             "Fallo al iniciar sesión de subida", user=user, error=str(e))
         raise InvalidUsage(f"Error al iniciar la subida: {e}", status_code=500)
 
-
+        
 @storage_bp.route("/analyze", methods=["POST"])
 def analyze_file_api():
     """
     Analiza un archivo en varios pasos.
     """
     if "file" not in request.files:
-        raise InvalidUsage(
-            "No se proporcionó ningún archivo.", status_code=400)
+        raise InvalidUsage("No se proporcionó ningún archivo.", status_code=400)
 
     file = request.files["file"]
     step = request.form.get("step", "1")
 
     if not file.filename:
-        raise InvalidUsage(
-            "El archivo enviado no tiene nombre.", status_code=400)
+        raise InvalidUsage("El archivo enviado no tiene nombre.", status_code=400)
+
+    # --- FUNCIÓN DE LIMPIEZA UNIFICADA ---
+    def clean_col_name(col_name):
+        if not col_name: return ""
+        c = str(col_name).lower()
+        c = c.replace('ñ', 'ni')
+        c = c.replace(' ', '_') 
+        replacements = (("á", "a"), ("é", "e"), ("í", "i"), ("ó", "o"), ("ú", "u"), ("ü", "u"))
+        for old, new in replacements:
+            c = c.replace(old, new)
+        return c.strip()
 
     try:
-        # Leemos el archivo una sola vez
+        # 1. Leemos el archivo
         df = read_file_to_dataframe(file)
+
+        # ==============================================================================
+        # LIMPIEZA GLOBAL DE COLUMNAS (Para Paso 2 y Paso 3)
+        # ==============================================================================
+        if step != "1":
+            df.columns = [clean_col_name(col) for col in df.columns]
+        # ==============================================================================
 
         # --- PASO 1: Metadata ---
         if step == "1":
             file.seek(0)
-            tamano = round(len(file.read()) / 1024, 2)
+            # Dividimos por (1024 * 1024) para obtener MB
+            tamano = round(len(file.read()) / (1024 * 1024), 2)
+            
             metadata = {
                 "nombre_archivo": file.filename,
-                "tamano": f"{tamano} KB",
+                "tamano": f"{tamano} MB",
                 "tipo_archivo": file.filename.split('.')[-1].upper(),
                 "fecha_de_carga": pd.Timestamp.now().strftime('%d-%m-%Y'),
                 "hora_de_carga": pd.Timestamp.now().strftime('%H:%M horas'),
@@ -197,10 +216,8 @@ def analyze_file_api():
                     return "Date"
                 return "Text"
 
-            columnas = [{"nombre": col, "tipo": map_dtype(
-                dtype)} for col, dtype in df.dtypes.items()]
-            vista_previa = df.head(5).replace(
-                {np.nan: None}).to_dict(orient='records')
+            columnas = [{"nombre": col, "tipo": map_dtype(dtype)} for col, dtype in df.dtypes.items()]
+            vista_previa = df.head(5).replace({np.nan: None}).to_dict(orient='records')
 
             structure_data = {
                 "numero_columnas": len(df.columns),
@@ -210,56 +227,126 @@ def analyze_file_api():
             }
             return jsonify(structure_data)
 
-        # --- PASO 3: Validación contra BigQuery (DINÁMICO) ---
+        # --- PASO 3: Validación contra BigQuery ---
         elif step == "3":
-            # 1. Recibimos los parámetros de contexto del frontend
             env_id = request.form.get('env_id')
             bucket_name = request.form.get('bucket_name')
-            destination = request.form.get('destination')  # Ej: "manual/brisa"
+            destination = request.form.get('destination', "")
 
             if not all([env_id, bucket_name, destination]):
                 return jsonify({
                     "bloqueantes": [],
-                    "alertas": ["No se pudo validar contra BigQuery: Faltan parámetros de entorno (env_id, bucket)."]
+                    "alertas": ["No se pudo validar: Faltan parámetros."]
                 })
 
             try:
-                # 2. Obtenemos el Project ID dinámicamente (Igual que en los otros endpoints)
-                # Esto asegura que si env_id='sap', usemos 'cyt-dev-ddo-gcp'
                 project_id = get_project_id_for_bucket(env_id, bucket_name)
-
-                # 3. Parseamos el destino para sacar dataset y tabla
-                # destination suele ser "producto/tabla" -> "manual/brisa"
                 parts = destination.split('/')
                 if len(parts) < 2:
-                    return jsonify({"bloqueantes": [], "alertas": ["Ruta de destino inválida para validación."]})
+                    return jsonify({"bloqueantes": [], "alertas": ["Ruta de destino inválida."]})
 
                 product_name = parts[0]
                 table_name = parts[1]
 
-                # 4. Resolvemos nombres de BQ (limpieza de caracteres)
-                bq_project, bq_dataset, bq_table = resolve_bq_coordinates(
-                    project_id, product_name, table_name)
+                bq_project, bq_dataset, bq_table, bq_bucket = resolve_bq_coordinates(
+                    project_id, product_name, table_name, bucket_name)
 
-                # 5. Consultamos BQ
-                bq_schema = bq_service.get_table_schema(
-                    bq_project, bq_dataset, bq_table)
+                target_dataset = ""
+                target_table_name = ""
 
-                # 6. Validamos DF vs Schema
-                errores, alertas = bq_service.validate_dataframe_against_schema(
-                    df, bq_schema)
+                if env_id == 'sap':
+                    try:
+                        partes = bq_bucket.split('_')
+                        modulo = partes[3]
+                        target_dataset = f"sdp_{modulo}_ddo"
+                        target_table_name = f"tbl_{bq_table}"
+                    except IndexError:
+                         return jsonify({"bloqueantes": ["Error formato bucket SAP."], "alertas": []})
+                elif env_id == 'pd':
+                    target_dataset = f"sdp_{bq_dataset}"
+                    target_table_name = f"tbl_{bq_table}"
+                else:
+                    return jsonify({"bloqueantes": [f"Entorno '{env_id}' no configurado."], "alertas": []})
+
+                # 1. Obtenemos el esquema ORIGINAL de BigQuery
+                bq_schema_original = bq_service.get_table_schema(bq_project, target_dataset, target_table_name)
+                
+                # Validaciones de seguridad sobre la respuesta
+                if isinstance(bq_schema_original, str):
+                     return jsonify({"bloqueantes": [], "alertas": [f"BigQuery respondió: {bq_schema_original}"]})
+                if bq_schema_original is None:
+                     return jsonify({"bloqueantes": [], "alertas": ["No se encontró el esquema en BigQuery."]})
+
+                # 2. PREPARAR ESQUEMA DE VALIDACIÓN (COMO DICCIONARIO)
+                # CAMBIO IMPORTANTE: Usamos un Diccionario {} en lugar de Lista []
+                validation_schema = {}
+                cols_to_ignore = {'year', 'month', 'day'} 
+
+                for field in bq_schema_original:
+                    original_name = ""
+                    f_dict = {}
+
+                    # Extracción segura
+                    if hasattr(field, 'name'): # Es objeto SchemaField
+                        original_name = field.name
+                        f_dict = field.to_api_repr() if hasattr(field, 'to_api_repr') else field.__dict__.copy()
+                    elif isinstance(field, dict): # Es Dict
+                        original_name = field.get('name', '')
+                        f_dict = field
+                    elif isinstance(field, str): # Es String
+                        original_name = field
+                        f_dict = {'name': field, 'type': 'STRING', 'mode': 'NULLABLE'}
+
+                    if not original_name: continue
+
+                    # Ignorar columnas de partición
+                    if original_name.lower() in cols_to_ignore:
+                        continue
+
+                    # Limpiar nombre
+                    clean_name = clean_col_name(original_name)
+                    f_dict['name'] = clean_name # Actualizamos el nombre dentro del objeto también
+                    
+                    # Agregamos al diccionario usando el nombre limpio como Clave
+                    validation_schema[clean_name] = f_dict
+
+                # 3. VALIDACIÓN MANUAL DE ESTRUCTURA (BLOQUEANTE)
+                bloqueantes = []
+                alertas = []
+
+                df_cols = set(df.columns)
+                # Ahora obtenemos las claves del diccionario
+                bq_cols = set(validation_schema.keys())
+
+                extra_cols = df_cols - bq_cols
+                if extra_cols:
+                    bloqueantes.append(f"El archivo contiene columnas que no existen en BigQuery: {', '.join(extra_cols)}")
+
+                missing_cols = bq_cols - df_cols
+                if missing_cols:
+                    bloqueantes.append(f"Faltan columnas requeridas por el esquema de BigQuery: {', '.join(missing_cols)}")
+
+                # 4. LLAMAR AL SERVICIO
+                if not bloqueantes:
+                    # El servicio probablemente hace 'for col, props in schema.items()'
+                    # Ahora 'validation_schema' es un dict, así que funcionará.
+                    svc_errores, svc_alertas = bq_service.validate_dataframe_against_schema(df, validation_schema)
+                    bloqueantes.extend(svc_errores)
+                    alertas.extend(svc_alertas)
 
                 return jsonify({
                     "validado_contra": f"{bq_project}.{bq_dataset}.{bq_table}",
-                    "bloqueantes": errores,
+                    "bloqueantes": bloqueantes,
                     "alertas": alertas
                 })
 
             except Exception as e:
-                # Error de conexión a BQ no debe romper la app, solo avisar
+                print(f"Error en validación BQ: {e}")
+                import traceback
+                traceback.print_exc() # Esto te ayudará a ver exactamente dónde falla en consola
                 return jsonify({
                     "bloqueantes": [],
-                    "alertas": [f"Advertencia: No se pudo conectar con BigQuery ({str(e)})"]
+                    "alertas": [f"Advertencia: Excepción al validar BigQuery ({str(e)})"]
                 })
 
         else:
@@ -278,6 +365,7 @@ def upload_file_api():
     env_id = request.form.get('env_id')
     bucket_name = request.form.get('bucket_name')
     # 'destination' ahora es la ruta de la tabla, ej: "sap/stxh"
+    print(env_id, bucket_name)
     destination = request.form.get("destination")
     user = request.form.get("user", "anonymous")
 

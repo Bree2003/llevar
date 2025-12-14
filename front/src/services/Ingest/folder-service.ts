@@ -64,15 +64,48 @@ export const uploadSmallFileService = async (
   file: File,
   onProgress: (percent: number) => void
 ): Promise<AxiosResponse> => {
-  // Creamos un FormData porque el endpoint /upload espera multipart/form-data
   const formData = new FormData();
   formData.append("file", file);
   formData.append("env_id", envId);
   formData.append("bucket_name", bucketName);
   formData.append("destination", destinationPath);
-  formData.append("user", "frontend-user"); // Opcional
+  formData.append("user", "frontend-user");
 
-  // Usamos AxiosPostForm que creamos en utils.ts (revisa que lo tengas)
-  // Si no tienes AxiosPostForm, usa AxiosPost pero asegúrate de los headers
-  return await AxiosPostForm('/api/storage/upload', formData);
+  // AHORA SÍ CONECTAMOS EL PROGRESO
+  return await AxiosPostForm('/api/storage/upload', formData, {
+    onUploadProgress: (progressEvent) => {
+      if (progressEvent.total) {
+        const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        onProgress(percent); // Actualizamos la UI
+      }
+    }
+  });
+};
+
+export const analyzeFileService = async (
+  file: File,
+  step: number,
+  // 👇 1. AGREGAMOS ESTOS ARGUMENTOS OBLIGATORIOS
+  envId: string,
+  bucketName: string,
+  destination: string,
+  onProgress?: (percent: number) => void
+): Promise<AxiosResponse> => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("step", step.toString());
+  
+  // 👇 2. AGREGAMOS EL CONTEXTO AL FORM DATA
+  formData.append("env_id", envId);
+  formData.append("bucket_name", bucketName);
+  formData.append("destination", destination); // Esto será "producto/tabla"
+
+  return await AxiosPostForm('/api/storage/analyze', formData, {
+    onUploadProgress: (progressEvent) => {
+      if (progressEvent.total && onProgress) {
+        const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        onProgress(percent);
+      }
+    }
+  });
 };

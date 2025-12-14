@@ -41,6 +41,23 @@ export default function ProductCardGrid({ title, items, loading, onItemClick }: 
     //     return text.replace(/[_-]+/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     // };
 
+    // Esta función extrae las siglas del módulo (ej: "mm") y las formatea
+const getSapModuleLabel = (bucketName: string): string => {
+  // Asumiendo formato: raw-dev-ddo-[MODULO]-bucket
+  const parts = bucketName.split('-');
+  
+  // El código suele estar en la posición 3 (índice 3)
+  // raw(0) - dev(1) - ddo(2) - mm(3) - bucket(4)
+  const code = parts[3]; 
+
+  if (code && code.length === 2) {
+    return `Módulo ${code.toUpperCase()}`;
+  }
+  
+  // Si no cumple el formato, devolvemos el nombre original o una limpieza básica
+  return bucketName;
+};
+
     return (
         <div className="w-full text-left p-10">
             <h1 className="text-3xl text-[--color-naranjo] font-bold mb-10">
@@ -56,7 +73,7 @@ export default function ProductCardGrid({ title, items, loading, onItemClick }: 
                         const name = isString ? item : item.name;
                         // const label = isString ? formatItemName(item) : (item.label || formatItemName(item.name));
                         const label = name;
-                        const description = isString ? "Contenedor de productos de datos." : (item.description || "Descripción no disponible.");
+                        const description = isString ? "Módulo de SAP." : (item.description || "Descripción no disponible.");
                         const iconType = isString ? 'bucket' : (item.icon || 'product');
 
                         const IconComponent = iconType === 'bucket' ? BucketIcon : ProductIcon;
@@ -70,7 +87,7 @@ export default function ProductCardGrid({ title, items, loading, onItemClick }: 
                                 <div className="flex items-center gap-5 mb-2 h-16">
                                     <IconComponent />
                                     <h2 className="text-2xl font-semibold transition-colors group-hover:text-[--color-naranjo]">
-                                        {label}
+                                        {getSapModuleLabel(label)}
                                     </h2>
                                 </div>
                                 <p className="text-[--color-gris-oscuro]">{description}</p>

@@ -56,6 +56,32 @@ const ProductCardSkeleton = () => (
 
 // --- CAMBIO 2: Movemos el header y el contenedor principal aquí ---
 export default function ProductDisplayGrid({ products, loading, onProductClick, bucketName }: ProductDisplayGridProps) {
+  const formatLabel = (text: string): string => {
+  if (!text) return "";
+
+  // 1. Regla: Si tiene exactamente 3 letras, todo a mayúsculas (ej: MTS, SAP)
+  if (text.length === 3) {
+    return text.toUpperCase();
+  }
+
+  // 2. Reemplazamos guiones por espacios
+  const cleanText = text.replace(/-/g, ' ');
+
+  // 3. Convertimos a Title Case (respetando conectores en minúscula)
+  const connectors = ['de', 'del', 'el', 'la', 'los', 'las', 'en', 'y', 'o'];
+  
+  return cleanText
+    .split(' ')
+    .map((word, index) => {
+      // Siempre capitalizar la primera palabra, ignorar conectores en las siguientes
+      if (index > 0 && connectors.includes(word.toLowerCase())) {
+        return word.toLowerCase();
+      }
+      // Capitalizar primera letra y el resto minúscula
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(' ');
+};
   return (
     <div className="w-full text-left p-10">
       {/* El header ahora vive dentro de este componente */}
@@ -63,14 +89,7 @@ export default function ProductDisplayGrid({ products, loading, onProductClick, 
         <h1 className="text-3xl text-[--color-naranjo] font-bold">
           {loading ? <Skeleton width={400} /> : "Productos de Datos"}
         </h1>
-        <p className="text-sm text-gray-500 mt-2">
-          Bucket:{" "}
-          {loading ? <Skeleton width={250} /> : (
-            <span className="font-mono bg-gray-100 px-2 py-0.5 rounded text-gray-700">
-              {bucketName}
-            </span>
-          )}
-        </p>
+
       </div>
 
       <div className="flex flex-wrap gap-5">
@@ -92,7 +111,7 @@ export default function ProductDisplayGrid({ products, loading, onProductClick, 
                 <div className="flex items-center gap-5 mb-2 h-16">
                   <IconComponent className="w-8 h-8 text-[--color-naranjo]" />
                   <h2 className="text-2xl font-semibold transition-colors group-hover:text-[--color-naranjo]">
-                    {product.label}
+                    {formatLabel(product.label)}
                   </h2>
                 </div>
                 <p className="text-[--color-gris-oscuro]">{description}</p>

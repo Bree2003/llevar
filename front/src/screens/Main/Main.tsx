@@ -52,36 +52,36 @@ const MainScreen = () => {
         </p>
 
         {/* Título de la sección de características */}
-        <h2 className="mt-20 text-3xl font-bold text-gray-800">
+        <h2 className="mt-10 text-3xl font-bold text-gray-800">
           ¿Qué puedes hacer aquí?
         </h2>
 
         {/* Contenedor de las tarjetas de características */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-5">
           
           {/* Card 1 */}
-          <div className="bg-white p-8 rounded-2xl shadow-md border border-gray-100 flex flex-col items-center">
+          <div className="bg-white py-8 rounded-2xl shadow-md border border-gray-100 flex flex-col items-center">
             <IconGestiona />
             <h3 className="mt-4 text-xl font-semibold text-gray-900">Gestiona tus productos</h3>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm text-gray-600 mx-3">
               Accede a diversas tablas según tus tipos de ingestas.
             </p>
           </div>
 
           {/* Card 2 */}
-          <div className="bg-white p-8 rounded-2xl shadow-md border border-gray-100 flex flex-col items-center">
+          <div className="bg-white py-8 rounded-2xl shadow-md border border-gray-100 flex flex-col items-center">
             <IconIngesta />
             <h3 className="mt-4 text-xl font-semibold text-gray-900">Ingesta tus tablas</h3>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm text-gray-600 mx-3">
               Puedes ingestar tus archivos a las diversas tablas existentes.
             </p>
           </div>
 
           {/* Card 3 */}
-          <div className="bg-white p-8 rounded-2xl shadow-md border border-gray-100 flex flex-col items-center">
+          <div className="bg-white py-8 rounded-2xl shadow-md border border-gray-100 flex flex-col items-center">
             <IconModifica />
             <h3 className="mt-4 text-xl font-semibold text-gray-900">Modifica al momento</h3>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm text-gray-600 mx-3">
               Puedes editar las tablas allí mismo, para agregar y eliminar.
             </p>
           </div>
@@ -90,7 +90,7 @@ const MainScreen = () => {
         {/* Botón de Llamada a la Acción (CTA) */}
         <button
           onClick={handleExploreClick}
-          className="mt-20 bg-[--color-naranjo] text-white font-bold py-3 px-10 rounded-lg text-lg shadow-lg hover:bg-opacity-90 transition-transform transform hover:scale-105"
+          className="mt-10 bg-[--color-naranjo] text-white font-bold py-3 px-10 rounded-lg text-lg shadow-lg hover:bg-opacity-90 transition-transform transform hover:scale-105"
         >
           Empezar a explorar
         </button>

@@ -43,10 +43,29 @@ const IngestController = () => {
     loadEnvironments();
   }, []);
 
-  // --- LÓGICA DE NAVEGACIÓN ---
+// --- LÓGICA DE NAVEGACIÓN ---
   const handleSelectEnvironment = (envId: string) => {
-    // Navegamos a la URL dinámica, ej: /sap/buckets
-    navigate(`/${envId}`);
+    if (envId === "pd") {
+      const hostname = window.location.hostname;
+      
+      console.log("[DEBUG] Hostname detectado:", hostname);
+
+      // 1. Asumimos "dev" por defecto (para localhost, dev cloud, etc.)
+      let envSuffix = "dev";
+
+      // 2. Solo si la URL dice explícitamente "-prd-", cambiamos a "prd"
+      if (hostname.includes("-prd-")) {
+          envSuffix = "prd";
+      }
+
+      console.log("[DEBUG] Bucket seleccionado:", `raw-${envSuffix}-osc-manual-bucket`);
+
+      const bucketName = `raw-${envSuffix}-osc-manual-bucket`;
+      navigate(`/dashboard/${envId}/${bucketName}/products`);
+      
+    } else {
+      navigate(`/dashboard/${envId}`);
+    }
   };
 
   // --- HELPERS DE ESTADO (Patrón idéntico a tu ejemplo) ---

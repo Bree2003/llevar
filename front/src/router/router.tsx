@@ -40,6 +40,7 @@ import ProductListController from "controllers/Ingest/ProductListController";
 import FolderListController from "controllers/Ingest/FolderListController";
 import PreviewController from "controllers/Ingest/PreviewController";
 import LoginController from "controllers/Login/LoginController";
+import DataPlatform from "screens/Redisenio/DataPlatform";
 
 const msalInstance = new PublicClientApplication(msalConfig as Configuration);
 
@@ -99,6 +100,7 @@ const Router = () => {
                           element={<ProtectedRoute />}
                         > */}
                 <Route path="/login" element={<LoginController />} />
+                <Route path="/rediseno" element={<DataPlatform />} />
                 <Route element={<AppLayout />}>
 
                 <Route path="/" element={<MainController />} />

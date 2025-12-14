@@ -37,15 +37,12 @@ def log_error(message: str, **kwargs):
     log_structured("ERROR", message, **kwargs)
 
 
-@cached(log_cache)
 def _query_logs(query: str, limit: int):
     """
     Función interna que realiza la consulta real a la API de Google Cloud Logging.
     Los resultados de esta función son cacheados.
     """
-    print(
-        f"CACHE MISS: Realizando llamada a la API de GCP para la query='{query}' y limit={limit}")
-
+    print(query)
     entries = logging_client.list_entries(
         order_by=DESCENDING, filter_=query, page_size=limit)
     logs = []
@@ -62,6 +59,7 @@ def _query_logs(query: str, limit: int):
             "user": payload.get("user"),
             "product": payload.get("product"),
             "file_name": payload.get("file_name"),
+            "bucket": payload.get("bucket"),
             "dataset": payload.get("dataset"),
             "error": payload.get("error"),
             "severity": entry.severity,
@@ -92,7 +90,21 @@ def get_logs_by_user(user: str, limit: int = 5):
 def get_logs_by_product(product: str, limit: int = 50):
     """
     Obtiene los logs más recientes para un producto específico.
-    Utiliza la función cacheada _query_logs.
+    - Si el nombre empieza con "raw", busca por jsonPayload.bucket.
+    - En caso contrario, busca por jsonPayload.product.
     """
-    query_filter = f'logName="projects/{Config.GCP_PROJECT_ID}/logs/{Config.GCP_LOGGER_NAME}" AND jsonPayload.product="{product}"'
+    # 1. Base del log
+    base_log = f'logName="projects/{Config.GCP_PROJECT_ID}/logs/{Config.GCP_LOGGER_NAME}"'
+    
+    # 2. Condicional: Si empieza con "raw" es un bucket, si no, es un producto
+    if product.startswith("raw"):
+        field_filter = f'jsonPayload.bucket="{product}"'
+    else:
+        field_filter = f'jsonPayload.product="{product}"'
+        
+    print("field_filter",field_filter)
+
+    # 3. Construcción final de la query
+    query_filter = f'{base_log} AND {field_filter}'
+    
     return _query_logs(query=query_filter, limit=limit)

@@ -79,10 +79,16 @@ const BucketListController = () => {
 
   // --- NUEVO: Función para navegar al siguiente nivel ---
   const handleSelectBucket = (bucketName: string) => {
-    // Construimos la ruta dinámica: /sap/raw-bucket/products
-    if (envId) {
-      navigate(`/${envId}/${bucketName}/products`);
+    if (!envId) return; // Guard clause para asegurar que envId existe
+
+    if (envId === "sap") {
+      // Ruta específica para SAP
+      navigate(`/dashboard/${envId}/${bucketName}/manual/folders`);
+    } else if (envId === "pd") {
+      // Ruta específica para PD
+      navigate(`/dashboard/${envId}/${bucketName}/products`);
     }
+    // Opcional: Puedes agregar un else final por si envId es otra cosa
   };
 
   return (

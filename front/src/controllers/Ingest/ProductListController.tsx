@@ -83,7 +83,7 @@ const ProductListController = () => {
   const handleSelectProduct = (productName: string) => {
     // Navegamos a la siguiente vista: Lista de carpetas dentro del producto
     // Ruta sugerida: /sap/bucket-raw/producto-x/folders
-    navigate(`/${envId}/${bucketName}/${productName}/folders`);
+    navigate(`/dashboard/${envId}/${bucketName}/${productName}/folders`);
   };
 
   const handleBack = () => navigate(-1);

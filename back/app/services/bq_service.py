@@ -32,7 +32,7 @@ def validate_dataframe_against_schema(df, bq_schema):
     alertas = []  # No bloqueantes
 
     if not bq_schema:
-        return [], ["No se encontró la tabla en BigQuery o no tiene esquema. Se creará una nueva (si aplica)."]
+        return [], ["No se encontró la tabla en BigQuery o no tiene esquema. Por favor, verifica que el destino sea correcto o intenta con otra tabla"]
 
     # Normalizamos a minúsculas para evitar problemas de case-sensitivity
     df_cols = set(x.lower() for x in df.columns)

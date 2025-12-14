@@ -30,7 +30,8 @@ export default function QuickAccess() {
     setLoading(true);
     try {
       const response = await fetch(
-        "https://data-products-backend-dev-697719423009.us-east4.run.app/api/logs/user/frontend-user",
+        `${process.env.REACT_APP_BACKEND_URL}/api/logs/user/frontend-user`,
+        // "https://data-products-backend-dev-697719423009.us-east4.run.app/api/logs/user/frontend-user",
         {
           method: "GET",
           headers: { "Content-Type": "application/json" },
@@ -59,14 +60,11 @@ export default function QuickAccess() {
 
   return (
     <div className="w-[420px] bg-[--color-gris-claro] p-5 text-left h-full">
-
+<h3 className="text-xl font-semibold mb-4">Tus últimas modificaciones</h3>
       {/* --- NOVEDAD: Renderizado condicional para la sección de modificaciones --- */}
       {loading ? (
         // 1. Muestra los esqueletos mientras carga
         <>
-          <h3 className="text-xl font-semibold mb-4">
-            <Skeleton width={250} />
-          </h3>
           <div className="p-2 bg-white rounded-xl flex flex-col gap-2">
             {/* Repetimos el esqueleto 5 veces para simular la lista */}
             {Array.from({ length: 5 }).map((_, index) => (
@@ -77,7 +75,6 @@ export default function QuickAccess() {
       ) : (
         // 2. Muestra el contenido real cuando la carga ha terminado
         <>
-          <h3 className="text-xl font-semibold mb-4">Tus últimas modificaciones</h3>
           <div className="p-2 bg-white rounded-xl flex flex-col gap-2">
             {userLogs.length === 0 ? (
               // Mensaje si no hay logs después de cargar

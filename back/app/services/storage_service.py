@@ -69,10 +69,9 @@ def list_subfolders_in_path(project_id, bucket_name, path):
     # Necesitamos limpiarlas para obtener solo 'tabla1'
     subfolders = []
     for p in blobs_iterator.prefixes:
+        folder_name = p.split("/")[1]
         # Quitamos el prefijo que ya conocemos y el slash final
-        folder_name = p.replace(prefix, "").strip('/')
         subfolders.append(folder_name)
-
     return subfolders
 
 

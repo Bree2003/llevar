@@ -10,6 +10,7 @@ class Config:
     """
     Clase de configuración para cargar las variables de entorno
     """
+    ENV = os.environ.get("ENV", "dev")
     SECRET_KEY = os.environ.get("SECRET_KEY")
     GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID")
     GOOGLE_APPLICATION_CREDENTIALS = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
@@ -25,8 +26,11 @@ class Config:
     try:
         #    abrir y leer el archivo.
         with open(config_file_path, 'r') as f:
-            GCP_ENVIRONMENTS = json.load(f)
-            
+            environment_file = json.load(f)
+            if not ENV in environment_file:
+                raise ValueError(f"El entorno '{ENV}' no está definido en el archivo '{config_filename}'")
+            GCP_ENVIRONMENTS = environment_file[ENV]
+
     except FileNotFoundError:
         print(f"ERROR: El archivo de configuración '{config_file_path}' no se encontró.")
         GCP_ENVIRONMENTS = []
