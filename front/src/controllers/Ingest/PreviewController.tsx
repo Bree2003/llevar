@@ -1,8 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useSnackbar } from "notistack"; // Importamos notistack para feedback visual
 
 import DatasetAdapter, { DatasetModel } from "models/Ingest/dataset-model";
-import { getLatestDatasetPreviewService } from "services/Ingest/dataset-service";
+import {
+  getLatestDatasetPreviewService,
+  saveDatasetDataService,
+} from "services/Ingest/dataset-service";
 import PreviewScreen from "screens/Ingest/PreviewScreen";
 
 export interface EndpointStatus {
@@ -10,10 +14,10 @@ export interface EndpointStatus {
   error?: boolean;
 }
 
-export type EndpointName = "GetLatestDataset";
+export type EndpointName = "GetLatestDataset" | "SaveDataset"; // Agregamos SaveDataset
 
 export interface UploadStateModel {
-  currentFile: DatasetModel; // Usamos el modelo actualizado
+  currentFile: DatasetModel;
   envId: string;
   bucketName: string;
   productName: string;
@@ -23,6 +27,7 @@ export interface UploadStateModel {
 const PreviewController = () => {
   const { envId, bucketName, productName, tableName } = useParams();
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar(); // Hook para notificaciones
 
   const [model, setModel] = useState<Partial<UploadStateModel>>({
     envId,
@@ -60,30 +65,67 @@ const PreviewController = () => {
     setEndpointStatus("GetLatestDataset", { loading: true, error: false });
 
     try {
-      // 1. Llamada al servicio
       const response = await getLatestDatasetPreviewService(
         envId,
         bucketName,
         productName,
         tableName
       );
-
-      // 2. Adaptador (Ahora maneja filas y columnas)
       const cleanData = DatasetAdapter(response);
-
       updateModel({ currentFile: cleanData });
     } catch (e) {
       console.error(e);
       setEndpointStatus("GetLatestDataset", { error: true });
+      enqueueSnackbar("Error al cargar los datos.", { variant: "error" });
     } finally {
       setEndpointStatus("GetLatestDataset", { loading: false });
+    }
+  };
+
+  // --- NUEVA LÓGICA: GUARDAR DATOS ---
+  const handleSaveData = async (newRows: any[]) => {
+    if (!envId || !bucketName || !productName || !tableName) return;
+
+    setEndpointStatus("SaveDataset", { loading: true, error: false });
+
+    try {
+      // 1. Llamada al servicio de guardado
+      await saveDatasetDataService(
+        envId,
+        bucketName,
+        productName,
+        tableName,
+        newRows
+      );
+
+      // 2. Feedback al usuario
+      enqueueSnackbar("Datos guardados y dataset actualizado exitosamente.", {
+        variant: "success",
+      });
+
+      // Opcional: Podríamos recargar la data para asegurar sincronía,
+      // pero como el front ya tiene los datos actualizados, no es estrictamente necesario.
+      // loadData();
+    } catch (e) {
+      console.error("Error saving data:", e);
+      setEndpointStatus("SaveDataset", { error: true });
+      enqueueSnackbar("Error al guardar los cambios en la nube.", {
+        variant: "error",
+      });
+    } finally {
+      setEndpointStatus("SaveDataset", { loading: false });
     }
   };
 
   const handleBack = () => navigate(-1);
 
   return (
-    <PreviewScreen model={model} endpoints={endpoints} onBack={handleBack} />
+    <PreviewScreen
+      model={model}
+      endpoints={endpoints}
+      onBack={handleBack}
+      onSave={handleSaveData} // Pasamos la función al screen
+    />
   );
 };
 

@@ -1,7 +1,9 @@
 from app.core.gcp import get_storage_client
-from datetime import datetime, timedelta
+from datetime import datetime
+from app.utils.file_converter import dataframe_to_parquet_tempfile
 import pandas as pd
 import io
+import os
 
 
 def list_data_products(project_id, bucket_name):
@@ -170,66 +172,87 @@ def upload_file(project_id, bucket_name, local_path, table_path):
     return destination_blob_name
 
 
-def read_latest_dataset_preview(project_id, bucket_name, product_path, rows=20):
+def read_latest_dataset_content(project_id, bucket_name, product_path):
     """
-    Busca el archivo más reciente, lee su contenido (Parquet, CSV o Excel) 
-    y devuelve un DataFrame con las primeras N filas.
+    Busca el archivo más reciente y devuelve SU CONTENIDO COMPLETO.
     """
     storage_client = get_storage_client(project_id)
     bucket = storage_client.bucket(bucket_name)
 
-    # 1. Reutilizamos la lógica para encontrar el blob más reciente
     prefix = f"{product_path}/"
     blobs_iterator = bucket.list_blobs(prefix=prefix)
     all_files = [
         blob for blob in blobs_iterator if not blob.name.endswith('/')]
 
     if not all_files:
-        return None, None  # No file found
+        return None, None
 
-    # Encontramos el objeto blob completo más reciente
     latest_blob = max(all_files, key=lambda blob: blob.time_created)
     filename = latest_blob.name.split('/')[-1]
 
-    # 2. Descargamos el archivo a memoria (sin guardar en disco)
     data_bytes = latest_blob.download_as_bytes()
 
-    # 3. Leemos según la extensión
     try:
+        # Usamos engine='python' y dtype=str para leer todo como texto y evitar inferencias
         if filename.endswith('.parquet'):
             df = pd.read_parquet(io.BytesIO(data_bytes))
-
         elif filename.endswith('.csv'):
-            # --- LOGICA ROBUSTA PARA CSV ---
-            # Usamos BytesIO(data_bytes) en cada intento porque el stream se consume
+            # Reutilizamos tu lógica robusta de lectura, pero simplificada aquí para lectura
+            # Idealmente podrías importar read_file_to_dataframe si aceptara bytes en vez de file object
             try:
-                # Intento 1: UTF-8 y auto-detección de separador (, o ;)
-                df = pd.read_csv(
-                    io.BytesIO(data_bytes),
-                    sep=None,
-                    engine='python',
-                    encoding='utf-8',
-                    on_bad_lines='skip'
-                )
+                df = pd.read_csv(io.BytesIO(data_bytes), sep=None, engine='python',
+                                 encoding='utf-8', on_bad_lines='skip', dtype=str)
             except UnicodeDecodeError:
-                # Intento 2: Latin-1 (común en archivos con tildes/ñ de Excel)
-                df = pd.read_csv(
-                    io.BytesIO(data_bytes),
-                    sep=None,
-                    engine='python',
-                    encoding='latin-1',
-                    on_bad_lines='skip'
-                )
-
+                df = pd.read_csv(io.BytesIO(data_bytes), sep=None, engine='python',
+                                 encoding='latin-1', on_bad_lines='skip', dtype=str)
         elif filename.endswith('.xlsx'):
-            df = pd.read_excel(io.BytesIO(data_bytes))
+            df = pd.read_excel(io.BytesIO(data_bytes), dtype=str)
         else:
-            # Extensión no soportada
             return filename, None
 
-        # 4. Retornamos nombre y las primeras filas
-        return filename, df.head(rows)
+        return filename, df
 
     except Exception as e:
         print(f"Error leyendo archivo {filename}: {e}")
         return filename, None
+
+
+def save_full_dataset(project_id, bucket_name, product_path, rows):
+    """
+    Recibe TODAS las filas desde el front, las procesa con TU lógica de negocio
+    (todo a string, limpieza de caracteres) y sube el parquet resultante.
+    """
+    # 1. Crear DataFrame crudo desde el JSON
+    df = pd.DataFrame(rows)
+
+    # 2. PROCESAMIENTO Y LIMPIEZA
+    # Usamos tu utilidad existente. Esto asegura consistencia total.
+    # Esta función crea un archivo temporal en disco con la limpieza aplicada.
+    try:
+        temp_parquet_path = dataframe_to_parquet_tempfile(
+            df, "data_editada.parquet")
+    except Exception as e:
+        raise Exception(f"Error en la transformación de datos: {e}")
+
+    # 3. Calcular ruta de destino (Partitioning por fecha actual)
+    today = datetime.now()
+    year = today.strftime('%Y')
+    month = today.strftime('%m')
+    day = today.strftime('%d')
+
+    filename = "data.parquet"
+    destination_blob_name = f"{product_path}/year={year}/month={month}/day={day}/{filename}"
+
+    # 4. Subir a GCS desde el archivo temporal
+    storage_client = get_storage_client(project_id)
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(destination_blob_name)
+
+    # Subimos el archivo físico generado por tu utilidad
+    blob.upload_from_filename(temp_parquet_path)
+
+    # 5. Limpieza: Borramos el archivo temporal local
+    if os.path.exists(temp_parquet_path):
+        os.remove(temp_parquet_path)
+
+    return destination_blob_name

@@ -4,14 +4,14 @@ import { DatasetPreviewResponse } from "services/Ingest/dataset-service";
 export interface DatasetModel {
   exists: boolean;
   fileName: string;
-  headers: string[]; // Para la tabla
-  rows: any[];       // Para la tabla
+  headers: string[]; 
+  rows: any[];       
   isEmpty: boolean;
 }
 
 const DatasetAdapter = (data: DatasetPreviewResponse): DatasetModel => {
   // Caso 1: No existe archivo o hubo error
-  if (!data || !data.exists || !data.fileName) {
+  if (!data || !data.exists) {
     return {
       exists: false,
       fileName: "Sin archivos previos",
@@ -24,9 +24,12 @@ const DatasetAdapter = (data: DatasetPreviewResponse): DatasetModel => {
   // Caso 2: Existe archivo, mapeamos la data
   return {
     exists: true,
-    fileName: data.fileName,
-    headers: data.columns || [], // El backend nos manda "columns"
-    rows: data.data || [],       // El backend nos manda "data"
+    fileName: data.fileName || "Archivo",
+    headers: data.columns || [], 
+    // --- CORRECCIÓN AQUÍ ---
+    // El backend envía "rows", así que leemos "rows".
+    // Dejamos "data.data" como fallback por si acaso usas la versión vieja del back.
+    rows: data.rows || [], 
     isEmpty: false,
   };
 };

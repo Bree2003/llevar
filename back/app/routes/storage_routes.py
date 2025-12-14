@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import Blueprint, request, jsonify, send_file
+from flask import Blueprint, request, jsonify
 from app.config import Config
 from app.services import storage_service, logging_service, bq_service
 from app.utils.gcp_utils import get_project_id_for_bucket
@@ -9,7 +9,6 @@ from app.utils.bq_mapping import resolve_bq_coordinates
 from app.utils.exceptions import InvalidUsage
 import pandas as pd
 import numpy as np
-import io
 import os
 
 storage_bp = Blueprint("storage", __name__)
@@ -155,28 +154,32 @@ def initiate_resumable_upload_api():
             "Fallo al iniciar sesión de subida", user=user, error=str(e))
         raise InvalidUsage(f"Error al iniciar la subida: {e}", status_code=500)
 
-        
+
 @storage_bp.route("/analyze", methods=["POST"])
 def analyze_file_api():
     """
     Analiza un archivo en varios pasos.
     """
     if "file" not in request.files:
-        raise InvalidUsage("No se proporcionó ningún archivo.", status_code=400)
+        raise InvalidUsage(
+            "No se proporcionó ningún archivo.", status_code=400)
 
     file = request.files["file"]
     step = request.form.get("step", "1")
 
     if not file.filename:
-        raise InvalidUsage("El archivo enviado no tiene nombre.", status_code=400)
+        raise InvalidUsage(
+            "El archivo enviado no tiene nombre.", status_code=400)
 
     # --- FUNCIÓN DE LIMPIEZA UNIFICADA ---
     def clean_col_name(col_name):
-        if not col_name: return ""
+        if not col_name:
+            return ""
         c = str(col_name).lower()
         c = c.replace('ñ', 'ni')
-        c = c.replace(' ', '_') 
-        replacements = (("á", "a"), ("é", "e"), ("í", "i"), ("ó", "o"), ("ú", "u"), ("ü", "u"))
+        c = c.replace(' ', '_')
+        replacements = (("á", "a"), ("é", "e"), ("í", "i"),
+                        ("ó", "o"), ("ú", "u"), ("ü", "u"))
         for old, new in replacements:
             c = c.replace(old, new)
         return c.strip()
@@ -197,7 +200,7 @@ def analyze_file_api():
             file.seek(0)
             # Dividimos por (1024 * 1024) para obtener MB
             tamano = round(len(file.read()) / (1024 * 1024), 2)
-            
+
             metadata = {
                 "nombre_archivo": file.filename,
                 "tamano": f"{tamano} MB",
@@ -216,8 +219,10 @@ def analyze_file_api():
                     return "Date"
                 return "Text"
 
-            columnas = [{"nombre": col, "tipo": map_dtype(dtype)} for col, dtype in df.dtypes.items()]
-            vista_previa = df.head(5).replace({np.nan: None}).to_dict(orient='records')
+            columnas = [{"nombre": col, "tipo": map_dtype(
+                dtype)} for col, dtype in df.dtypes.items()]
+            vista_previa = df.head(5).replace(
+                {np.nan: None}).to_dict(orient='records')
 
             structure_data = {
                 "numero_columnas": len(df.columns),
@@ -261,7 +266,7 @@ def analyze_file_api():
                         target_dataset = f"sdp_{modulo}_ddo"
                         target_table_name = f"tbl_{bq_table}"
                     except IndexError:
-                         return jsonify({"bloqueantes": ["Error formato bucket SAP."], "alertas": []})
+                        return jsonify({"bloqueantes": ["Error formato bucket SAP."], "alertas": []})
                 elif env_id == 'pd':
                     target_dataset = f"sdp_{bq_dataset}"
                     target_table_name = f"tbl_{bq_table}"
@@ -269,35 +274,39 @@ def analyze_file_api():
                     return jsonify({"bloqueantes": [f"Entorno '{env_id}' no configurado."], "alertas": []})
 
                 # 1. Obtenemos el esquema ORIGINAL de BigQuery
-                bq_schema_original = bq_service.get_table_schema(bq_project, target_dataset, target_table_name)
-                
+                bq_schema_original = bq_service.get_table_schema(
+                    bq_project, target_dataset, target_table_name)
+
                 # Validaciones de seguridad sobre la respuesta
                 if isinstance(bq_schema_original, str):
-                     return jsonify({"bloqueantes": [], "alertas": [f"BigQuery respondió: {bq_schema_original}"]})
+                    return jsonify({"bloqueantes": [], "alertas": [f"BigQuery respondió: {bq_schema_original}"]})
                 if bq_schema_original is None:
-                     return jsonify({"bloqueantes": [], "alertas": ["No se encontró el esquema en BigQuery."]})
+                    return jsonify({"bloqueantes": [], "alertas": ["No se encontró el esquema en BigQuery."]})
 
                 # 2. PREPARAR ESQUEMA DE VALIDACIÓN (COMO DICCIONARIO)
                 # CAMBIO IMPORTANTE: Usamos un Diccionario {} en lugar de Lista []
                 validation_schema = {}
-                cols_to_ignore = {'year', 'month', 'day'} 
+                cols_to_ignore = {'year', 'month', 'day'}
 
                 for field in bq_schema_original:
                     original_name = ""
                     f_dict = {}
 
                     # Extracción segura
-                    if hasattr(field, 'name'): # Es objeto SchemaField
+                    if hasattr(field, 'name'):  # Es objeto SchemaField
                         original_name = field.name
-                        f_dict = field.to_api_repr() if hasattr(field, 'to_api_repr') else field.__dict__.copy()
-                    elif isinstance(field, dict): # Es Dict
+                        f_dict = field.to_api_repr() if hasattr(
+                            field, 'to_api_repr') else field.__dict__.copy()
+                    elif isinstance(field, dict):  # Es Dict
                         original_name = field.get('name', '')
                         f_dict = field
-                    elif isinstance(field, str): # Es String
+                    elif isinstance(field, str):  # Es String
                         original_name = field
-                        f_dict = {'name': field, 'type': 'STRING', 'mode': 'NULLABLE'}
+                        f_dict = {'name': field,
+                                  'type': 'STRING', 'mode': 'NULLABLE'}
 
-                    if not original_name: continue
+                    if not original_name:
+                        continue
 
                     # Ignorar columnas de partición
                     if original_name.lower() in cols_to_ignore:
@@ -305,8 +314,9 @@ def analyze_file_api():
 
                     # Limpiar nombre
                     clean_name = clean_col_name(original_name)
-                    f_dict['name'] = clean_name # Actualizamos el nombre dentro del objeto también
-                    
+                    # Actualizamos el nombre dentro del objeto también
+                    f_dict['name'] = clean_name
+
                     # Agregamos al diccionario usando el nombre limpio como Clave
                     validation_schema[clean_name] = f_dict
 
@@ -320,17 +330,20 @@ def analyze_file_api():
 
                 extra_cols = df_cols - bq_cols
                 if extra_cols:
-                    bloqueantes.append(f"El archivo contiene columnas que no existen en BigQuery: {', '.join(extra_cols)}")
+                    bloqueantes.append(
+                        f"El archivo contiene columnas que no existen en BigQuery: {', '.join(extra_cols)}")
 
                 missing_cols = bq_cols - df_cols
                 if missing_cols:
-                    bloqueantes.append(f"Faltan columnas requeridas por el esquema de BigQuery: {', '.join(missing_cols)}")
+                    bloqueantes.append(
+                        f"Faltan columnas requeridas por el esquema de BigQuery: {', '.join(missing_cols)}")
 
                 # 4. LLAMAR AL SERVICIO
                 if not bloqueantes:
                     # El servicio probablemente hace 'for col, props in schema.items()'
                     # Ahora 'validation_schema' es un dict, así que funcionará.
-                    svc_errores, svc_alertas = bq_service.validate_dataframe_against_schema(df, validation_schema)
+                    svc_errores, svc_alertas = bq_service.validate_dataframe_against_schema(
+                        df, validation_schema)
                     bloqueantes.extend(svc_errores)
                     alertas.extend(svc_alertas)
 
@@ -343,7 +356,7 @@ def analyze_file_api():
             except Exception as e:
                 print(f"Error en validación BQ: {e}")
                 import traceback
-                traceback.print_exc() # Esto te ayudará a ver exactamente dónde falla en consola
+                traceback.print_exc()  # Esto te ayudará a ver exactamente dónde falla en consola
                 return jsonify({
                     "bloqueantes": [],
                     "alertas": [f"Advertencia: Excepción al validar BigQuery ({str(e)})"]
@@ -423,36 +436,34 @@ def upload_file_api():
         raise InvalidUsage(str(e))
 
 
+# --- MODIFICACIÓN DE LA RUTA EXISTENTE (READ) ---
 @storage_bp.route("/products/<path:product_path>/preview-latest", methods=["GET"])
 def get_latest_dataset_preview_api(product_path):
     """
-    Obtiene el contenido (vista previa) del dataset más reciente.
+    Obtiene el contenido COMPLETO del dataset más reciente para cargarlo en la grilla.
     """
     env_id = request.args.get('env_id')
     bucket_name = request.args.get('bucket_name')
 
     if not all([env_id, bucket_name]):
-        raise InvalidUsage(
-            "Los parámetros 'env_id' y 'bucket_name' son requeridos.", status_code=400)
+        raise InvalidUsage("Faltan parámetros.", status_code=400)
 
     try:
         project_id = get_project_id_for_bucket(env_id, bucket_name)
 
-        # Llamamos al nuevo servicio
-        filename, df = storage_service.read_latest_dataset_preview(
+        # Usamos la función modificada que trae TODO
+        filename, df = storage_service.read_latest_dataset_content(
             project_id, bucket_name, product_path)
 
         if filename is None:
             return jsonify({"exists": False, "message": "No se encontraron archivos."})
 
         if df is None:
-            return jsonify({
-                "exists": True,
-                "fileName": filename,
-                "error": "No se pudo leer el formato del archivo o está corrupto."
-            })
+            return jsonify({"exists": True, "fileName": filename, "error": "Formato ilegible."})
 
-        # Mapeo de tipos de datos (Igual que en tu /analyze)
+        # --- PREPARACIÓN DE DATOS MASIVOS ---
+
+        # 1. Obtener columnas y tipos
         def map_dtype(dtype):
             if pd.api.types.is_numeric_dtype(dtype):
                 return "Number"
@@ -463,19 +474,79 @@ def get_latest_dataset_preview_api(product_path):
         columnas = [{"nombre": col, "tipo": map_dtype(
             dtype)} for col, dtype in df.dtypes.items()]
 
-        # Convertimos NaN a None para que sea JSON válido
-        vista_previa = df.replace({np.nan: None}).to_dict(orient='records')
+        # 2. Convertir DataFrame completo a Diccionario
+        # IMPORTANTE: Reemplazar NaN por None es crucial para JSON válido
+        # orient='records' crea una lista de objetos: [{col1: val1}, {col1: val2}...]
+        full_data = df.replace({np.nan: None}).to_dict(orient='records')
 
         return jsonify({
             "exists": True,
             "fileName": filename,
-            # Lista simple de nombres para la tabla
+            # Lista simple de nombres
             "columns": [c['nombre'] for c in columnas],
-            "data": vista_previa,
-            "total_registros_preview": len(df)
+            "rows": full_data,                          # TODAS las filas
+            "total_registros": len(df)
         })
 
     except InvalidUsage as e:
         raise e
     except Exception as e:
-        raise InvalidUsage(f"Error al obtener preview: {e}", status_code=500)
+        # Importante loguear errores de memoria si el archivo es gigante
+        print(e)
+        raise InvalidUsage(
+            f"Error al leer dataset completo: {e}", status_code=500)
+
+
+# --- NUEVA RUTA (WRITE) ---
+@storage_bp.route("/products/save-data", methods=["POST"])
+def save_full_data_api():
+    """
+    Recibe el dataset completo desde el frontend y crea una nueva versión en GCS.
+    """
+    data = request.get_json()
+
+    # Validaciones básicas
+    if not data:
+        raise InvalidUsage("No payload received.", status_code=400)
+
+    required = ['env_id', 'bucket_name', 'product_name', 'table_name', 'rows']
+    if not all(k in data for k in required):
+        raise InvalidUsage(f"Faltan campos: {required}", status_code=400)
+
+    try:
+        env_id = data['env_id']
+        bucket_name = data['bucket_name']
+        product_name = data['product_name']
+        table_name = data['table_name']
+        rows = data['rows']  # Esta es la lista GIGANTE de diccionarios
+        user = data.get('user', 'anonymous')
+
+        project_id = get_project_id_for_bucket(env_id, bucket_name)
+        product_path = f"{product_name}/{table_name}"
+
+        # Llamamos al servicio de guardado
+        gcs_path = storage_service.save_full_dataset(
+            project_id, bucket_name, product_path, rows
+        )
+
+        # Logging
+        logging_service.log_info(
+            "Dataset completo actualizado manualmente",
+            user=user,
+            product=product_name,
+            dataset=table_name,
+            bucket=bucket_name,
+            gcs_path=gcs_path,
+            rows_count=len(rows)
+        )
+
+        return jsonify({
+            "success": True,
+            "message": "Archivo actualizado correctamente.",
+            "path": gcs_path
+        })
+
+    except Exception as e:
+        logging_service.log_error(
+            "Error saving data", user=data.get('user'), error=str(e))
+        raise InvalidUsage(f"Error guardando datos: {e}", status_code=500)
