@@ -1,31 +1,64 @@
-[
-    {
-        "id": "sap",
-        "name": "Dominio de Origen",
-        "project_id": "cyt-dev-ddo-gcp",
-        "buckets": [
-            "raw-dev-ddo-bc-bucket",
-            "raw-dev-ddo-co-bucket",
-            "raw-dev-ddo-cs-bucket",
-            "raw-dev-ddo-fi-bucket",
-            "raw-dev-ddo-hr-bucket",
-            "raw-dev-ddo-le-bucket",
-            "raw-dev-ddo-mm-bucket",
-            "raw-dev-ddo-pm-bucket",
-            "raw-dev-ddo-pp-bucket",
-            "raw-dev-ddo-ps-bucket",
-            "raw-dev-ddo-qm-bucket",
-            "raw-dev-ddo-sd-bucket",
-            "raw-dev-ddo-tm-bucket",
-            "raw-dev-ddo-wm-bucket"
-        ]
-    },
-    {
-        "id": "pd",
-        "name": "Dominio de Negocio",
-        "project_id": "cyt-dev-hq-osc-gcp",
-        "buckets": [
-            "raw-dev-osc-manual-bucket"
-        ]
-    }
-]
+{
+    "dev": [
+        {
+            "id": "sap",
+            "name": "Dominio de Origen",
+            "project_id": "cyt-dev-ddo-gcp",
+            "buckets": [
+                "raw-dev-ddo-bc-bucket",
+                "raw-dev-ddo-co-bucket",
+                "raw-dev-ddo-cs-bucket",
+                "raw-dev-ddo-fi-bucket",
+                "raw-dev-ddo-hr-bucket",
+                "raw-dev-ddo-le-bucket",
+                "raw-dev-ddo-mm-bucket",
+                "raw-dev-ddo-pm-bucket",
+                "raw-dev-ddo-pp-bucket",
+                "raw-dev-ddo-ps-bucket",
+                "raw-dev-ddo-qm-bucket",
+                "raw-dev-ddo-sd-bucket",
+                "raw-dev-ddo-tm-bucket",
+                "raw-dev-ddo-wm-bucket"
+            ]
+        },
+        {
+            "id": "pd",
+            "name": "Dominio de Negocio",
+            "project_id": "cyt-dev-hq-osc-gcp",
+            "buckets": [
+                "raw-dev-osc-manual-bucket"
+            ]
+        }
+    ],
+    "prd": [
+        {
+            "id": "sap",
+            "name": "Dominio de Origen",
+            "project_id": "cyt-prd-ddo-gcp",
+            "buckets": [
+                "raw-prd-ddo-bc-bucket",
+                "raw-prd-ddo-co-bucket",
+                "raw-prd-ddo-cs-bucket",
+                "raw-prd-ddo-fi-bucket",
+                "raw-prd-ddo-hr-bucket",
+                "raw-prd-ddo-le-bucket",
+                "raw-prd-ddo-mm-bucket",
+                "raw-prd-ddo-pm-bucket",
+                "raw-prd-ddo-pp-bucket",
+                "raw-prd-ddo-ps-bucket",
+                "raw-prd-ddo-qm-bucket",
+                "raw-prd-ddo-sd-bucket",
+                "raw-prd-ddo-tm-bucket",
+                "raw-prd-ddo-wm-bucket"
+            ]
+        },
+        {
+            "id": "pd",
+            "name": "Dominio de Negocio",
+            "project_id": "cyt-prd-hq-osc-gcp",
+            "buckets": [
+                "raw-prd-osc-manual-bucket"
+            ]
+        }
+    ]
+}
