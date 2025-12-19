@@ -1,4 +1,4 @@
-import DataGridEditor from "components/DataProduct/DataGridPreview"; // Asegúrate que el import apunte a tu archivo editado
+import DataGridEditor from "components/DataProduct/DataGridEditor";
 import {
   EndpointName,
   EndpointStatus,

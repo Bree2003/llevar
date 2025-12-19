@@ -5,25 +5,25 @@ import {
   Routes,
   Outlet,
   Navigate,
-  useNavigate
-} from 'react-router-dom';
+  useNavigate,
+} from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import { SnackbarProvider } from "notistack";
-import commonTheme from 'themes/common-theme';
+import commonTheme from "themes/common-theme";
 import { Provider } from "react-redux";
 import store from "../store/store";
-import UserTokenPermission from 'modules/tokenPermission/components/userTokenPermission';
+import UserTokenPermission from "modules/tokenPermission/components/userTokenPermission";
 import { useAppSelector } from "store/hooks/redux-hooks";
 
-import MainController from 'controllers/Main/controller';
+import MainController from "controllers/Main/controller";
 
 import NotAuthorizedScreen from "screens/Errors/401";
 import NotFoundScreen from "screens/Errors/404";
 
 import AcquireToken from "../modules/authentication/components/acquireToken";
 import Login from "modules/authentication/components/login";
-import Logout from 'modules/authentication/components/logout';
-import LogoutScreen from 'screens/Logout/Logout';
+import Logout from "modules/authentication/components/logout";
+import LogoutScreen from "screens/Logout/Logout";
 import { Configuration, PublicClientApplication } from "@azure/msal-browser";
 import { MsalProvider } from "@azure/msal-react";
 import { msalConfig } from "../services/sso-authentication";
@@ -56,13 +56,12 @@ const ProtectedRoute = ({ perm }: { perm?: string }) => {
   const { user } = useAppSelector((state) => state.UserPermissions);
   const roles = user.roles;
   if (user !== undefined && roles.length > 0) {
-    const isAppUser = roles.includes('user');
+    const isAppUser = roles.includes("user");
     if (perm !== undefined) {
       const isPerm = roles.includes(perm);
       if (isAppUser === true && isPerm === true) {
         return <Outlet />;
-      }
-      else {
+      } else {
         return <Navigate to="/401" />;
       }
     }
@@ -91,10 +90,7 @@ const Router = () => {
               <Routes>
                 <Route path="401" element={<NotAuthorizedScreen />} />
                 <Route path="404" element={<NotFoundScreen />} />
-                <Route
-                    path="/prueba-carga"
-                    element={<UploadController />}
-                  />
+                <Route path="/prueba-carga" element={<UploadController />} />
                 {/* <Route
                           path="/"
                           element={<ProtectedRoute />}
@@ -102,25 +98,24 @@ const Router = () => {
                 <Route path="/login" element={<LoginController />} />
                 <Route path="/rediseno" element={<DataPlatform />} />
                 <Route element={<AppLayout />}>
-
-                <Route path="/" element={<MainController />} />
-                <Route path="/dashboard" element={<IngestController />} />
-                <Route
-                  path="/dashboard/:envId"
-                  element={<BucketListController />}
-                />
-                <Route
-                  path="/dashboard/:envId/:bucketName/products"
-                  element={<ProductListController />}
-                />
-                <Route
-                  path="/dashboard/:envId/:bucketName/:productName/folders"
-                  element={<FolderListController />}
-                />
-                <Route
-                  path="/dashboard/:envId/:bucketName/:productName/:tableName/preview"
-                  element={<PreviewController />}
-                />
+                  <Route path="/" element={<MainController />} />
+                  <Route path="/dashboard" element={<IngestController />} />
+                  <Route
+                    path="/dashboard/:envId"
+                    element={<BucketListController />}
+                  />
+                  <Route
+                    path="/dashboard/:envId/:bucketName/products"
+                    element={<ProductListController />}
+                  />
+                  <Route
+                    path="/dashboard/:envId/:bucketName/:productName/folders"
+                    element={<FolderListController />}
+                  />
+                  <Route
+                    path="/dashboard/:envId/:bucketName/:productName/:tableName/table"
+                    element={<PreviewController />}
+                  />
                 </Route>
                 {/* </Route> */}
                 <Route path="/logout" element={<Logout />} />
@@ -144,6 +139,6 @@ const Router = () => {
     </ThemeProvider>
     // </MsalProvider>
   );
-}
+};
 
 export default Router;

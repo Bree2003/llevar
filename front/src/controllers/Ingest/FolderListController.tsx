@@ -110,7 +110,7 @@ const FolderListController = () => {
 
   const handleSelectTableForPreview = (tableName: string) => {
     navigate(
-      `/dashboard/${envId}/${bucketName}/${productName}/${tableName}/preview`
+      `/dashboard/${envId}/${bucketName}/${productName}/${tableName}/table`
     );
   };
 
