@@ -1,6 +1,5 @@
 import { SearchSuggestion } from "models/Global/search-model";
 import { ReactComponent as Search } from "components/Global/Icons/search-normal.svg";
-// Asegúrate de tener iconos importados
 import { ReactComponent as BucketIcon } from "components/Global/Icons/mantenimiento.svg";
 import { ReactComponent as ProductIcon } from "components/Global/Icons/category.svg";
 
@@ -79,7 +78,6 @@ const SearchBar = ({
                     <span className="text-sm font-medium text-gray-700">
                       {item.label}
                     </span>
-                    {/* Mostramos el subLabel si existe (ej: "en Módulo MM") */}
                     <span className="text-[10px] uppercase tracking-wide text-gray-400">
                       {item.type === "module"
                         ? "Módulo"

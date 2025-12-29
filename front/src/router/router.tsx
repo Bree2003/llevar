@@ -33,7 +33,6 @@ import {
 } from "@azure/msal-react";
 import AppLayout from "AppLayout";
 import ProductoController from "controllers/Productodato/controller";
-import UploadController from "controllers/Main/UploadController";
 import IngestController from "controllers/Ingest/controller";
 import BucketListController from "controllers/Ingest/BucketListController";
 import ProductListController from "controllers/Ingest/ProductListController";
@@ -90,15 +89,14 @@ const Router = () => {
               <Routes>
                 <Route path="401" element={<NotAuthorizedScreen />} />
                 <Route path="404" element={<NotFoundScreen />} />
-                <Route path="/prueba-carga" element={<UploadController />} />
                 {/* <Route
                           path="/"
                           element={<ProtectedRoute />}
                         > */}
-                <Route path="/login" element={<LoginController />} />
+                <Route path="/" element={<LoginController />} />
                 <Route path="/rediseno" element={<DataPlatform />} />
                 <Route element={<AppLayout />}>
-                  <Route path="/" element={<MainController />} />
+                  <Route path="/introduccion" element={<MainController />} />
                   <Route path="/dashboard" element={<IngestController />} />
                   <Route
                     path="/dashboard/:envId"

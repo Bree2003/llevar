@@ -10,7 +10,7 @@ interface DataGridTableProps {
   activeFilters: Record<string, string[]>;
   openFilterColumn: string | null;
   filterSearchTerm: string;
-  sortConfig: { key: string; direction: "asc" | "desc" } | null; // <--- NUEVO
+  sortConfig: { key: string; direction: "asc" | "desc" } | null;
 
   onToggleRowSelection: (index: number) => void;
   onToggleSelectAll: (indices: number[]) => void;
@@ -21,7 +21,7 @@ interface DataGridTableProps {
   onFilterValueChange: (col: string, val: string) => void;
   onSelectAllFilter: (col: string, select: boolean) => void;
   getUniqueValues: (col: string) => string[];
-  onSort: (col: string, direction: "asc" | "desc") => void; // <--- NUEVO
+  onSort: (col: string, direction: "asc" | "desc") => void;
 }
 
 export const DataGridTable = ({
@@ -63,7 +63,6 @@ export const DataGridTable = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [openFilterColumn, onOpenFilter, onFilterSearch]);
 
-  // --- MIN-HEIGHT AQUI PARA EVITAR QUE EL FOOTER TAPE EL DROPDOWN ---
   return (
     <div className="overflow-x-auto overflow-y-auto max-h-[70vh] min-h-[500px] relative">
       <table className="min-w-full divide-y divide-gray-200 text-sm text-left border-collapse">
@@ -167,7 +166,7 @@ export const DataGridTable = ({
                       className="absolute top-full left-0 mt-1 w-64 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 text-left font-normal"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {/* SECCION SORTING (NUEVA) */}
+                      {/* SECCION SORTING */}
                       <div className="flex border-b border-gray-100">
                         <button
                           onClick={() => onSort(col, "asc")}
@@ -249,7 +248,7 @@ export const DataGridTable = ({
           </tr>
         </thead>
 
-        {/* Body (Sin cambios) */}
+        {/* Body */}
         <tbody className="bg-white divide-y divide-gray-200">
           {paginatedRows.length > 0 ? (
             paginatedRows.map(({ data: row, originalIndex }, viewIndex) => {

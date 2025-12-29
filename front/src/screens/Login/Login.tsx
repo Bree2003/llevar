@@ -59,10 +59,12 @@ const LoginScreen = ({ isLoading, onLoginClick }: LoginScreenProps) => {
           </div>
 
           {/* Botón Microsoft */}
+            <a href="/introduccion">
           <button className="flex h-14 w-full items-center justify-center gap-3 rounded-lg bg-[#2F2F2F] text-base font-medium text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-[#111] hover:shadow-lg">
             <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft Logo" width="22" />
             Iniciar sesión con Microsoft
           </button>
+            </a>
 
           {/* Separador */}
           <div className="my-10 flex items-center text-center text-xs font-medium uppercase tracking-widest text-gray-400 before:mr-4 before:flex-1 before:border-b before:border-gray-200 after:ml-4 after:flex-1 after:border-b after:border-gray-200">

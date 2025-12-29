@@ -25,9 +25,9 @@ export const useDataGridLogic = (file: FileData | undefined, onSave?: (rows: any
   
   // Modals
   const [showDiscardModal, setShowDiscardModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false); // <--- NUEVO
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  // Sorting State <--- NUEVO
+  // Sorting State
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
 
   // --- INITIALIZATION ---
@@ -64,7 +64,7 @@ export const useDataGridLogic = (file: FileData | undefined, onSave?: (rows: any
         });
     });
 
-    // 3. Ordenar (Sorting) <--- NUEVO
+    // 3. Ordenar (Sorting)
     if (sortConfig) {
         result.sort((a, b) => {
             const valA = a.data[sortConfig.key];
@@ -98,8 +98,7 @@ export const useDataGridLogic = (file: FileData | undefined, onSave?: (rows: any
 
   // --- HANDLERS ---
   
-  // Sorting Handler <--- NUEVO
-
+  // Sorting Handler 
     const handleSort = (col: string, direction: 'asc' | 'desc') => {
       setSortConfig(current => {
         // Si ya estábamos ordenando por esta columna Y en esta dirección...

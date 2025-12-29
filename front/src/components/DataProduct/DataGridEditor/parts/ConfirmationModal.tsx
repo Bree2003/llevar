@@ -6,7 +6,6 @@ interface ConfirmationModalProps {
   message: string;
   onConfirm: () => void;
   onCancel: () => void;
-  // Nuevas props opcionales
   confirmText?: string;
   cancelText?: string;
   confirmButtonColor?: string; // Para ponerlo rojo al borrar
@@ -18,9 +17,9 @@ export const ConfirmationModal = ({
   onCancel,
   title,
   message,
-  confirmText = "Confirmar", // Valor por defecto
+  confirmText = "Confirmar",
   cancelText = "Cancelar",
-  confirmButtonColor = "bg-red-600 hover:bg-red-700", // Rojo por defecto (para acciones destructivas)
+  confirmButtonColor = "bg-red-600 hover:bg-red-700",
 }: ConfirmationModalProps) => {
   if (!isOpen) return null;
 

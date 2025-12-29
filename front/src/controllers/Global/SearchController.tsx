@@ -8,7 +8,7 @@ import ProductAdapter from "models/Ingest/product-model";
 
 import {
   SearchSuggestion,
-  SapBucketsToSearchAdapter, // <--- Usamos el adaptador estricto
+  SapBucketsToSearchAdapter,
   ProductsToSearchAdapter,
 } from "models/Global/search-model";
 
@@ -39,23 +39,18 @@ const SearchController = () => {
 
       let globalIndex: SearchSuggestion[] = [];
 
-      // --- 1. CARGAR MÓDULOS SAP ---
-      // Usamos el adaptador que filtra y solo deja "Módulo XX"
+      // CARGAR MÓDULOS SAP
       const sapSuggestions = SapBucketsToSearchAdapter(envs);
       globalIndex = [...sapSuggestions];
 
-      // --- 2. CARGAR PRODUCTOS (Solo para entorno PD) ---
-      // Identificamos el entorno de Productos de Datos
-      const pdEnv = envs.find((e) => e.id === "pd"); // Asegúrate que el ID sea 'pd' en tu config
+      // CARGAR PRODUCTOS (Solo para entorno PD)
+      const pdEnv = envs.find((e) => e.id === "pd");
 
       if (pdEnv) {
-        // Buscamos productos dentro de los buckets de PD
         const productPromises = pdEnv.buckets.map(async (bucket) => {
           try {
             const prodResponse = await getProductsService(pdEnv.id, bucket);
             const products = ProductAdapter(prodResponse);
-            // Aquí no filtramos "manual" o "mts" dentro del producto,
-            // pero sí formateamos el nombre bonito.
             return ProductsToSearchAdapter(products, pdEnv.id, bucket);
           } catch (err) {
             return [];
@@ -76,7 +71,6 @@ const SearchController = () => {
     }
   };
 
-  // --- FILTRADO (Igual que antes) ---
   useEffect(() => {
     if (searchTerm.trim() === "") {
       setFilteredSuggestions([]);

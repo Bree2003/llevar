@@ -1,16 +1,6 @@
-// src/utils/formatting-utils.ts
-
-/**
- * Intenta formatear un bucket de SAP. 
- * Si NO cumple el patrón estricto (raw-dev-ddo-XX-bucket), devuelve NULL.
- */
 export const getValidSapModuleLabel = (bucketName: string): string | null => {
   if (!bucketName) return null;
 
-  // Regex Estricto:
-  // ^raw-dev-ddo-  : Empieza exactamente así
-  // ([a-z]{2})     : Captura exactamente 2 letras (el código del módulo)
-  // -bucket$       : Termina exactamente así
   const regex = /^raw-dev-ddo-([a-z]{2})-bucket$/;
   const match = bucketName.match(regex);
 
@@ -22,9 +12,6 @@ export const getValidSapModuleLabel = (bucketName: string): string | null => {
   return null; 
 };
 
-/**
- * Formatea nombres de productos (ej: "programa-de-fabricacion" -> "Programa De Fabricación")
- */
 export const formatProductName = (productName: string): string => {
   if (!productName) return "";
   

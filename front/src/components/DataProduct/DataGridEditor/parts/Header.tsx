@@ -25,7 +25,6 @@ export const DataGridHeader = ({
   const sizeRef = useRef<HTMLDivElement>(null);
   const colRef = useRef<HTMLDivElement>(null);
 
-  // Click outside logic (simplificada para el ejemplo)
   useEffect(() => {
     const clickOut = (e: MouseEvent) => {
       if (sizeRef.current && !sizeRef.current.contains(e.target as Node))

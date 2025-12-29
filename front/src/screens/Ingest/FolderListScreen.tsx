@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom"; // 1. Importar el hook
+import { useParams } from "react-router-dom";
 import {
   EndpointName,
   EndpointStatus,
@@ -21,12 +21,14 @@ interface Props {
   onFileChange: (file: File | null) => void;
   onTableChange: (tableId: string) => void;
   onStartWizard: () => void;
+  
+  setIsNewTable: (isNew: boolean) => void; 
 
   // Wizard Actions
   onCloseWizard: () => void;
   onNextStep: () => void;
   onPrevStep: () => void;
-  onFinalUpload: () => void;
+  onFinalUpload: (metadata?: any) => void; 
 }
 
 const FolderListScreen = ({
@@ -38,23 +40,18 @@ const FolderListScreen = ({
   onFileChange,
   onTableChange,
   onStartWizard,
+  setIsNewTable, 
   onCloseWizard,
   onNextStep,
   onPrevStep,
   onFinalUpload,
 }: Props) => {
   
-  const isLoadingFolders = endpoints?.GetFolders?.loading;
-  // 2. Obtener el parámetro 'envid' de la URL
-  const { envId } = useParams<{ envId: string }>(); 
-  console.log("env id:", envId)
-  console.log("model:", model)
-
+  const isLoadingFolders = endpoints?.GetFolders?.loading;  
+  const { envId } = useParams<{ envId: string }>();   
   return (
     <div className="flex w-full h-full bg-white">
-      {/* 1. Menú Lateral */}
       <ProductSidebar
-        // 3. Usar 'envid' aquí (corregido de envID a envid para coincidir con el param)
         productName={envId === "sap" ? model?.bucketName : model?.productName}
         tables={model?.tables || []}
         loading={isLoadingFolders}
@@ -62,7 +59,6 @@ const FolderListScreen = ({
         onBack={onBack}
       />
 
-      {/* 2. Contenido Principal */}
       <main className="flex flex-grow flex-col p-10 w-full h-screen overflow-y-auto">
 
         {/* Sección de Selección de Archivo */}
@@ -72,6 +68,8 @@ const FolderListScreen = ({
           onFileChange={onFileChange}
           onTableChange={onTableChange}
           onAction={onStartWizard}
+          isNewTable={uploadState.isNewTable} 
+          setIsNewTable={setIsNewTable}
           />
 
           {model?.bucketName && (
@@ -91,6 +89,7 @@ const FolderListScreen = ({
           onNext={onNextStep}
           onPrevious={onPrevStep}
           onFinalUpload={onFinalUpload}
+          isNewTable={uploadState.isNewTable}
         />
       </main>
     </div>

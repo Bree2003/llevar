@@ -26,18 +26,18 @@ export interface FolderStateModel {
 }
 
 export interface UploadState {
-  // Formulario inicial
   selectedTable: string;
   file: File | null;
+  
+  isNewTable: boolean;
+  schemaData: any; 
 
-  // Wizard
   isWizardOpen: boolean;
   currentStep: number;
-  stepData: any; // Data dinámica del paso actual
+  stepData: any;
   isLoadingAnalysis: boolean;
-  analysisProgress: number; // Progreso de la subida al analizar
+  analysisProgress: number;
 
-  // Subida Final
   isUploading: boolean;
   uploadProgress: number;
   uploadSuccess: boolean;
@@ -46,6 +46,8 @@ export interface UploadState {
 const initialUploadState: UploadState = {
   selectedTable: "",
   file: null,
+  isNewTable: false, // Default
+  schemaData: null,  // Default
   isWizardOpen: false,
   currentStep: 1,
   stepData: null,
@@ -116,15 +118,17 @@ const FolderListController = () => {
 
   const handleBack = () => navigate(-1);
 
-  // --- FORMULARIO Y WIZARD ---
-
   const handleFileChange = (file: File | null) =>
     setUploadState((p) => ({ ...p, file }));
 
   const handleTableChange = (tableId: string) =>
     setUploadState((p) => ({ ...p, selectedTable: tableId }));
+    
+  // 3. NUEVO: Handler para cambiar el modo (Nueva/Existente) desde la vista
+  const handleSetIsNewTable = (isNew: boolean) => {
+    setUploadState((p) => ({ ...p, isNewTable: isNew }));
+  }
 
-  // 1. Abrir Wizard
   const handleStartWizard = () => {
     if (uploadState.file && uploadState.selectedTable) {
       setUploadState((p) => ({
@@ -134,20 +138,24 @@ const FolderListController = () => {
         uploadSuccess: false,
         stepData: null,
       }));
-      // Cargamos datos del paso 1 inmediatamente
       loadStepData(1);
     }
   };
 
   const handleCloseWizard = () => {
-    setUploadState(initialUploadState);
+    // Reseteamos todo excepto los datos del formulario principal
+    setUploadState(prev => ({
+        ...initialUploadState,
+        file: prev.file,
+        selectedTable: prev.selectedTable,
+        isNewTable: prev.isNewTable // Mantenemos la selección
+    }));
   };
 
   // 2. Cargar datos del paso (Llama a /analyze)
   const loadStepData = async (step: number) => {
-    const { file, selectedTable } = uploadState;
+    const { file, selectedTable, isNewTable } = uploadState;
 
-    // VALIDACIÓN DE SEGURIDAD: Si falta algo crítico, no llamamos
     if (!file || !envId || !bucketName || !productName || !selectedTable) {
       console.error("Faltan datos para iniciar el análisis");
       return;
@@ -159,17 +167,16 @@ const FolderListController = () => {
       analysisProgress: 0,
     }));
 
-    // Construimos el 'destination' para validar contra BQ (ej: manual/brisa)
     const destinationPath = `${productName}/${selectedTable}`;
 
     try {
-      // 👇 AQUÍ ESTÁ LA CORRECCIÓN CLAVE: Pasamos envId, bucketName y destinationPath
       const response = await analyzeFileService(
         file,
         step,
         envId,
         bucketName,
         destinationPath,
+        isNewTable,
         (pct) => {
           setUploadState((p) => ({ ...p, analysisProgress: pct }));
         }
@@ -177,7 +184,14 @@ const FolderListController = () => {
 
       if (response.status === 200) {
         let data = response.data;
-        // Inyectamos metadatos extra en el paso 1 para la visualización
+        
+        // 5. IMPORTANTE: Si estamos en paso 2, GUARDAMOS la estructura (Schema)
+        // para usarla en la creación final.
+        let newSchemaData = uploadState.schemaData;
+        if (step === 2 && data.columnas_encontradas) {
+             newSchemaData = data.columnas_encontradas;
+        }
+
         if (step === 1) {
           data = {
             ...data,
@@ -190,6 +204,7 @@ const FolderListController = () => {
         setUploadState((p) => ({
           ...p,
           stepData: data,
+          schemaData: newSchemaData, // Actualizamos schema
           currentStep: step,
           isLoadingAnalysis: false,
         }));
@@ -213,9 +228,9 @@ const FolderListController = () => {
     loadStepData(prev);
   };
 
-  // 3. Subida Final (Optimized Upload)
-  const handleFinalUpload = async () => {
-    const { file, selectedTable } = uploadState;
+  const handleFinalUpload = async (metadataFromWizard?: any) => {
+    const { file, selectedTable, isNewTable, schemaData } = uploadState;
+    
     if (!file || !selectedTable || !envId || !bucketName || !productName)
       return;
 
@@ -232,10 +247,13 @@ const FolderListController = () => {
           bucketName,
           destinationPath,
           file,
-          (pct) => setUploadState((p) => ({ ...p, uploadProgress: pct }))
+          (pct) => setUploadState((p) => ({ ...p, uploadProgress: pct })),
+          // 7. Si es tabla nueva, pasamos metadata (del wizard) y schema (guardado en paso 2)
+          isNewTable ? metadataFromWizard : undefined,
+          isNewTable ? schemaData : undefined
         );
       } else {
-        // Camino Pesado (GCS Directo)
+        // Camino Pesado (GCS Directo) - Nota: No soporta creación de BQ Entity aun con esta lógica simple
         const initRes = await initiateUploadService(
           envId,
           bucketName,
@@ -268,6 +286,8 @@ const FolderListController = () => {
       // Props del Form
       onFileChange={handleFileChange}
       onTableChange={handleTableChange}
+      // 8. Pasamos el setter para el checkbox de Nueva Tabla
+      setIsNewTable={handleSetIsNewTable} 
       onStartWizard={handleStartWizard}
       // Props del Wizard
       onCloseWizard={handleCloseWizard}

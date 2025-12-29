@@ -55,3 +55,44 @@ def validate_dataframe_against_schema(df, bq_schema):
                 f"Aviso: El archivo trae la columna nueva '{col}' que no existe en BigQuery.")
 
     return errores, alertas
+
+def create_table_entity(project_id, dataset_id, table_id, schema_data, metadata):
+    """
+    Crea una nueva tabla en BigQuery donde TODAS las columnas son STRING
+    para garantizar una ingesta robusta (Raw Zone).
+    """
+    try:
+        client = bigquery.Client(project=project_id)
+        table_ref = f"{project_id}.{dataset_id}.{table_id}"
+
+        # Construir el esquema de BigQuery
+        schema = []
+        column_descriptions = metadata.get('columnDescriptions', {})
+
+        for col in schema_data:
+            col_name = col['nombre']
+            
+            # Obtenemos la descripción del usuario
+            description = column_descriptions.get(col_name, "")
+
+            field = bigquery.SchemaField(
+                name=col_name,
+                field_type="STRING", 
+                mode="NULLABLE",
+                description=description
+            )
+            schema.append(field)
+
+        # Configurar la tabla
+        table = bigquery.Table(table_ref, schema=schema)
+        table.description = metadata.get('tableDescription', "")
+
+        # Crear la tabla
+        table = client.create_table(table, exists_ok=True)
+        
+        print(f"Tabla Raw (String) creada exitosamente en BQ: {table_ref}")
+        return table
+
+    except Exception as e:
+        print(f"Error fatal creando tabla en BigQuery: {e}")
+        raise e

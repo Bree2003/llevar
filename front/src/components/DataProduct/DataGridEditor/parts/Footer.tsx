@@ -22,8 +22,6 @@ export const DataGridFooter = ({
   onNext,
 }: DataGridFooterProps) => {
   return (
-    // CAMBIO AQUÍ: Eliminado 'sticky left-0 bottom-0 z-20'
-    // Ahora es un flex container normal que se posicionará naturalmente al final
     <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 flex items-center justify-between">
       {/* LADO IZQUIERDO: Información */}
       <div className="text-xs text-gray-500 flex items-center gap-4">

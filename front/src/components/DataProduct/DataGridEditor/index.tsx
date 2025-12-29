@@ -19,24 +19,22 @@ export default function DataGridEditor({
 
   return (
     <div className="w-full text-left p-10 relative">
-      {/* 1. Modal Descartar (Gris/Rojo suave o default) */}
       <ConfirmationModal
         isOpen={logic.showDiscardModal}
         title="Descartar cambios"
         message="¿Estás seguro de que quieres descartar todos los cambios no guardados? Volverás al estado inicial del archivo."
-        confirmText="Sí, descartar" // Texto personalizado
-        confirmButtonColor="bg-gray-600 hover:bg-gray-700" // Color distinto para distinguir de borrar
+        confirmText="Sí, descartar"
+        confirmButtonColor="bg-gray-600 hover:bg-gray-700" // color distinto para distinguir de borrar
         onConfirm={logic.confirmDiscard}
         onCancel={() => logic.setShowDiscardModal(false)}
       />
 
-      {/* 2. Modal Eliminar (Rojo Peligro) */}
       <ConfirmationModal
         isOpen={logic.showDeleteModal}
         title="Eliminar registros"
         message={`¿Estás seguro de que quieres eliminar ${logic.selectedRowIndices.size} registro(s)? Esta acción no se aplicará en la base de datos hasta que hagas clic en 'Guardar Cambios'.`}
-        confirmText="Eliminar" // Texto correcto
-        confirmButtonColor="bg-red-600 hover:bg-red-700" // Color de peligro
+        confirmText="Eliminar"
+        confirmButtonColor="bg-red-600 hover:bg-red-700"
         onConfirm={logic.confirmDelete}
         onCancel={() => logic.setShowDeleteModal(false)}
       />
@@ -57,7 +55,7 @@ export default function DataGridEditor({
         isDirty={logic.isDirty}
         onAdd={logic.handleAddRow}
         onEdit={logic.handleEditSelected}
-        onDelete={logic.handleDeleteRequest} // Llama a la solicitud (modal), no al borrado directo
+        onDelete={logic.handleDeleteRequest}
         onSave={logic.handleSave}
         onDiscard={() => logic.setShowDiscardModal(true)}
       />
@@ -73,7 +71,7 @@ export default function DataGridEditor({
             activeFilters={logic.activeFilters}
             openFilterColumn={logic.openFilterColumn}
             filterSearchTerm={logic.filterSearchTerm}
-            sortConfig={logic.sortConfig} // <--- Pasamos config Sort
+            sortConfig={logic.sortConfig}
             onToggleRowSelection={logic.toggleRowSelection}
             onToggleSelectAll={logic.toggleSelectAll}
             onInputChange={logic.handleInputChange}
@@ -83,7 +81,7 @@ export default function DataGridEditor({
             onSelectAllFilter={logic.handleSelectAllFilter}
             getUniqueValues={logic.getUniqueValues}
             filteredRowsWithIndex={logic.filteredRowsWithIndex}
-            onSort={logic.handleSort} // <--- Pasamos handler Sort
+            onSort={logic.handleSort}
           />
         )}
 

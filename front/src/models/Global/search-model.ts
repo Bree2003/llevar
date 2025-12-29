@@ -16,26 +16,19 @@ export interface SearchSuggestion {
   };
 }
 
-/**
- * Adapta los Buckets de SAP para el buscador.
- * FILTRA: Solo pasan los que cumplen el patrón de Módulo.
- */
 export const SapBucketsToSearchAdapter = (environments: EnvironmentModel[]): SearchSuggestion[] => {
   const suggestions: SearchSuggestion[] = [];
 
-  // Buscamos solo el entorno SAP
   const sapEnv = environments.find(e => e.id === 'sap');
 
   if (sapEnv) {
     sapEnv.buckets.forEach(bucket => {
-      // 1. Intentamos obtener el label bonito
       const niceLabel = getValidSapModuleLabel(bucket);
 
-      // 2. SOLO si es válido (no es null), lo agregamos
       if (niceLabel) {
         suggestions.push({
           id: bucket,
-          label: niceLabel, // "Módulo MM", "Módulo SD", etc.
+          label: niceLabel,
           type: 'module',
           routeParams: {
             envId: sapEnv.id,
@@ -49,9 +42,6 @@ export const SapBucketsToSearchAdapter = (environments: EnvironmentModel[]): Sea
   return suggestions;
 };
 
-/**
- * Adapta los Productos de Datos.
- */
 export const ProductsToSearchAdapter = (
     products: ProductModel[], 
     envId: string, 
@@ -60,7 +50,7 @@ export const ProductsToSearchAdapter = (
     
   return products.map(p => ({
     id: p.id,
-    label: formatProductName(p.label), // "Programa De Fabricación"
+    label: formatProductName(p.label),
     type: 'product',
     subLabel: envId === 'pd' ? 'Producto de Datos' : undefined,
     routeParams: {

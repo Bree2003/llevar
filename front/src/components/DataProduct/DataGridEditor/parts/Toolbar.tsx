@@ -3,7 +3,7 @@ import React from "react";
 interface DataGridToolbarProps {
   onAdd: () => void;
   onEdit: () => void;
-  onDelete: () => void; // Este ahora abrirá el modal
+  onDelete: () => void;
   onSave: () => void;
   onDiscard: () => void;
   selectedCount: number;
@@ -57,7 +57,6 @@ export const DataGridToolbar = ({
         Editar ({selectedCount})
       </button>
 
-      {/* Botón Eliminar: Ahora activará el modal desde el padre */}
       <button
         onClick={onDelete}
         disabled={selectedCount === 0}
@@ -97,7 +96,6 @@ export const DataGridToolbar = ({
             onClick={onSave}
             className="flex items-center gap-2 px-4 py-1.5 text-sm font-bold text-white bg-[--color-naranjo] rounded shadow hover:bg-orange-600 transition-transform active:scale-95"
           >
-            {/* NUEVO ICONO: Cloud Upload (Nube con flecha arriba) */}
             <svg
               className="w-4 h-4"
               fill="none"

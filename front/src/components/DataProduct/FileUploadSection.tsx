@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react"; // 1. Importar hooks
+import { useRef, useEffect, useState } from "react"; // 1. Importar hooks
 import { UploadState } from "controllers/Ingest/FolderListController";
 
 interface Table {
@@ -12,6 +12,8 @@ interface FileUploadSectionProps {
   onFileChange: (file: File | null) => void;
   onTableChange: (tableId: string) => void;
   onAction: () => void;
+  isNewTable: boolean;
+  setIsNewTable: (val: boolean) => void;
 }
 
 export default function FileUploadSection({
@@ -20,10 +22,13 @@ export default function FileUploadSection({
   onFileChange,
   onTableChange,
   onAction,
+  isNewTable,
+  setIsNewTable,
 }: FileUploadSectionProps) {
   
   // 2. Crear la referencia al input
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
 
   // 3. Efecto para limpiar el input nativo cuando el estado se reinicia
   useEffect(() => {
@@ -40,11 +45,38 @@ export default function FileUploadSection({
       </h2>
 
       <div className="space-y-6 max-w-2xl">
+        <div className="flex items-center gap-8 mb-4">
+          <label htmlFor="" className="w-40 shrink-0 text-gray-700 font-medium">Modo de Ingesta</label>
+          <div className="flex gap-4">
+            <label htmlFor="" className="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="" id="" 
+              checked={!isNewTable}
+              onChange={() => {setIsNewTable(false); onTableChange("");}}
+              className="text-orange-500 focus:ring-orange-500" />
+              <span className="text-sm text-gray-700">Tabla Existente</span>
+            </label>
+            <label htmlFor="" className="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="" id="" 
+              checked={isNewTable}
+              onChange={() => {setIsNewTable(true); onTableChange("");}}
+              className="text-orange-500 focus:ring-orange-500" />
+              <span className="text-sm text-gray-700">Nueva Tabla</span>
+            </label>
+          </div>
+        </div>
         {/* Selector de Tabla */}
         <div className="flex items-center">
           <label className="w-40 shrink-0 text-gray-700 font-medium">
-            Tabla Destino
+            {isNewTable ? "Nombre de Tabla" : "Tabla Destino"}
           </label>
+          {isNewTable ? (
+            <input type="text" name="" id=""
+            placeholder="Ej: maestro_ceco"
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm py-2 px-3 border"
+            value={uploadState.selectedTable}
+            onChange={(e) => onTableChange(e.target.value)}
+            />
+          ) : (
           <select
             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm py-2"
             value={uploadState.selectedTable}
@@ -57,6 +89,7 @@ export default function FileUploadSection({
               </option>
             ))}
           </select>
+          )}
         </div>
 
         {/* Input Archivo */}

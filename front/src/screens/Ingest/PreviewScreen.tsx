@@ -9,13 +9,12 @@ interface Props {
   model: Partial<UploadStateModel> | undefined;
   endpoints: Partial<Record<EndpointName, EndpointStatus>> | undefined;
   onBack: () => void;
-  onSave: (rows: any[]) => void; // Recibimos la función del controller
+  onSave: (rows: any[]) => void;
 }
 
 const PreviewScreen = ({ model, endpoints, onBack, onSave }: Props) => {
   const isLoading = endpoints?.GetLatestDataset?.loading;
 
-  // También podríamos bloquear la UI si se está guardando
   const isSaving = endpoints?.SaveDataset?.loading;
 
   return (
@@ -23,7 +22,6 @@ const PreviewScreen = ({ model, endpoints, onBack, onSave }: Props) => {
       <div className="pt-5 pl-10">
         <button
           onClick={onBack}
-          // Deshabilitamos volver si estamos guardando para evitar inconsistencias
           disabled={isSaving}
           className={`flex items-center px-4 py-3 bg-white rounded-lg shadow-sm
                         text-orange-600 border border-orange-300
@@ -37,7 +35,7 @@ const PreviewScreen = ({ model, endpoints, onBack, onSave }: Props) => {
       </div>
 
       <DataGridEditor
-        loading={isLoading || isSaving} // Mostramos skeleton si carga O si guarda
+        loading={isLoading || isSaving}
         file={model?.currentFile}
         breadcrumbs={{
           envId: model?.envId,
@@ -45,7 +43,7 @@ const PreviewScreen = ({ model, endpoints, onBack, onSave }: Props) => {
           productName: model?.productName,
           tableName: model?.tableName,
         }}
-        onSave={onSave} // Conectamos el botón Guardar del Grid con el Controller
+        onSave={onSave}
       />
     </div>
   );

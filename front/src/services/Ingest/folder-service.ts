@@ -62,7 +62,10 @@ export const uploadSmallFileService = async (
   bucketName: string,
   destinationPath: string,
   file: File,
-  onProgress: (percent: number) => void
+  onProgress: (percent: number) => void,
+  // Argumentos opcionales para creación de tabla
+  metadata?: any,
+  schema?: any
 ): Promise<AxiosResponse> => {
   const formData = new FormData();
   formData.append("file", file);
@@ -71,12 +74,17 @@ export const uploadSmallFileService = async (
   formData.append("destination", destinationPath);
   formData.append("user", "frontend-user");
 
-  // AHORA SÍ CONECTAMOS EL PROGRESO
+  // Si vienen metadatos (tabla nueva), los agregamos como JSON String
+  if (metadata && schema) {
+    formData.append("metadata", JSON.stringify(metadata));
+    formData.append("schema", JSON.stringify(schema));
+  }
+
   return await AxiosPostForm('/api/storage/upload', formData, {
     onUploadProgress: (progressEvent) => {
       if (progressEvent.total) {
         const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-        onProgress(percent); // Actualizamos la UI
+        onProgress(percent); 
       }
     }
   });
@@ -85,20 +93,22 @@ export const uploadSmallFileService = async (
 export const analyzeFileService = async (
   file: File,
   step: number,
-  // 👇 1. AGREGAMOS ESTOS ARGUMENTOS OBLIGATORIOS
   envId: string,
   bucketName: string,
   destination: string,
+  // NUEVO ARGUMENTO
+  isNewTable: boolean, 
   onProgress?: (percent: number) => void
 ): Promise<AxiosResponse> => {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("step", step.toString());
-  
-  // 👇 2. AGREGAMOS EL CONTEXTO AL FORM DATA
   formData.append("env_id", envId);
   formData.append("bucket_name", bucketName);
-  formData.append("destination", destination); // Esto será "producto/tabla"
+  formData.append("destination", destination);
+  
+  // Enviamos la bandera para que el backend sepa si validar BQ o no
+  formData.append("is_new_table", isNewTable ? "true" : "false");
 
   return await AxiosPostForm('/api/storage/analyze', formData, {
     onUploadProgress: (progressEvent) => {

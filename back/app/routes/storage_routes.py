@@ -10,6 +10,7 @@ from app.utils.exceptions import InvalidUsage
 import pandas as pd
 import numpy as np
 import os
+import json
 
 storage_bp = Blueprint("storage", __name__)
 
@@ -166,6 +167,7 @@ def analyze_file_api():
 
     file = request.files["file"]
     step = request.form.get("step", "1")
+    is_new_table = request.form.get('is_new_table') == 'true'
 
     if not file.filename:
         raise InvalidUsage(
@@ -234,6 +236,14 @@ def analyze_file_api():
 
         # --- PASO 3: Validación contra BigQuery ---
         elif step == "3":
+            
+            if is_new_table:
+                return jsonify({
+                    "validado_contra": "N/A (Nueva Tabla)",
+                    "bloqueantes": [],
+                    "alertas": []
+                })
+                
             env_id = request.form.get('env_id')
             bucket_name = request.form.get('bucket_name')
             destination = request.form.get('destination', "")
@@ -372,67 +382,124 @@ def analyze_file_api():
 @storage_bp.route("/upload", methods=["POST"])
 def upload_file_api():
     if "file" not in request.files:
-        raise InvalidUsage(
-            "No se proporcionó ningún archivo.", status_code=400)
+        raise InvalidUsage("No se proporcionó ningún archivo.", status_code=400)
 
     env_id = request.form.get('env_id')
     bucket_name = request.form.get('bucket_name')
-    # 'destination' ahora es la ruta de la tabla, ej: "sap/stxh"
-    print(env_id, bucket_name)
-    destination = request.form.get("destination")
+    destination = request.form.get("destination", "")
     user = request.form.get("user", "anonymous")
+    
+    metadata_json = request.form.get('metadata')
+    schema_json = request.form.get('schema')
 
     if not all([env_id, bucket_name, destination]):
-        raise InvalidUsage(
-            "Los campos 'env_id', 'bucket_name' y 'destination' son requeridos.", status_code=400)
+        raise InvalidUsage("Faltan campos 'env_id', 'bucket_name' y 'destination'.", status_code=400)
 
     file = request.files["file"]
     if not file.filename:
-        raise InvalidUsage(
-            "El archivo enviado no tiene nombre.", status_code=400)
+        raise InvalidUsage("El archivo enviado no tiene nombre.", status_code=400)
 
     try:
         project_id = get_project_id_for_bucket(env_id, bucket_name)
 
+        # =====================================================================
+        # 1. LÓGICA DE CREACIÓN DE TABLA EN BIGQUERY
+        # =====================================================================
+        if metadata_json and schema_json:
+            try:
+                metadata = json.loads(metadata_json)
+                schema_data = json.loads(schema_json)
+
+                parts = destination.split('/')
+                if len(parts) < 2:
+                    raise InvalidUsage("La ruta de destino debe ser 'producto/tabla'.")
+
+                product_name = parts[0]
+                table_name = parts[1]
+
+                # Resolvemos coordenadas
+                _, bq_dataset, bq_table, bq_bucket_real = resolve_bq_coordinates(
+                    project_id, product_name, table_name, bucket_name)
+
+                # Si bq_bucket_real es None o cadena vacía, detenemos la ejecución aquí.
+                if not bq_bucket_real: 
+                     raise InvalidUsage("No se pudo resolver el nombre del bucket de BigQuery (valor nulo).")
+                
+                target_dataset = ""
+                target_table_name = ""
+
+                if env_id == 'sap':
+                    try:
+                        partes = bq_bucket_real.split('_')
+                        # Validación extra por seguridad
+                        if len(partes) < 4:
+                             raise InvalidUsage(f"El nombre del bucket '{bq_bucket_real}' no tiene el formato esperado (datalake_sap_bw_MODULO...).")
+                        
+                        modulo = partes[3] 
+                        target_dataset = f"sdp_{modulo}_ddo"
+                        target_table_name = f"tbl_{bq_table}"
+                    except IndexError:
+                        raise InvalidUsage("Error al extraer el módulo del nombre del bucket SAP.")
+                
+                elif env_id == 'pd':
+                    target_dataset = f"sdp_{bq_dataset}"
+                    target_table_name = f"tbl_{bq_table}"
+                else:
+                    raise InvalidUsage(f"Entorno '{env_id}' no soportado.")
+
+                # Crear la tabla
+                bq_service.create_table_entity(
+                    project_id, target_dataset, target_table_name, schema_data, metadata
+                )
+                
+                logging_service.log_info("Tabla BigQuery creada", user=user, table=f"{target_dataset}.{target_table_name}")
+
+            except Exception as e:
+                logging_service.log_error("Error creando tabla BQ", user=user, error=str(e))
+                raise InvalidUsage(f"No se pudo crear la tabla en BigQuery: {str(e)}", status_code=500)
+
+        # =====================================================================
+        # 2. PROCESO DE SUBIDA A GCS
+        # =====================================================================
+        
         df = read_file_to_dataframe(file)
+        
+        # Convertimos explícitamente todo el DataFrame a String para asegurar
+        # compatibilidad con la tabla que acabamos de crear (que es puro STRING)
+        df = df.astype(str)
+
+        # BigQuery acepta "nan" como string, pero suele ser mejor limpiarlo si quieres NULLs reales:
+        df = df.replace('nan', "") 
 
         parquet_path = dataframe_to_parquet_tempfile(df, file.filename)
 
         final_blob_path = storage_service.upload_file(
             project_id, bucket_name, parquet_path, destination)
+        
         os.remove(parquet_path)
 
-        # 1. Extraemos 'product' y 'dataset' de la variable 'destination'
+        # Logging final
         path_parts = destination.split('/') if destination else []
         product = path_parts[0] if len(path_parts) > 0 else None
         dataset = path_parts[1] if len(path_parts) > 1 else None
 
-        # 2. Llamamos al servicio de logging con los nuevos campos extraídos
         logging_service.log_info(
             "Archivo subido exitosamente",
             user=user,
             env_id=env_id,
             bucket=bucket_name,
-            file_name=file.filename,  # Usamos el nombre original del archivo
-            product=product,         # <--- CAMPO AÑADIDO
-            dataset=dataset,         # <--- CAMPO AÑADIDO
-            gcs_path=final_blob_path  # También es útil guardar la ruta completa
+            file_name=file.filename,
+            product=product,
+            dataset=dataset,
+            gcs_path=final_blob_path
         )
 
-        msg = f"File {final_blob_path} uploaded to {bucket_name}"
-        return jsonify({"message": msg})
+        return jsonify({"message": f"Ingesta exitosa. Archivo en {bucket_name}"})
 
     except InvalidUsage as e:
         raise e
     except (ValueError, Exception) as e:
-        logging_service.log_error(
-            "Fallo al subir el archivo",
-            user=user,
-            env_id=env_id,
-            bucket=bucket_name,
-            file_name=file.filename,
-            error=str(e)
-        )
+        logging_service.log_error("Fallo upload", user=user, error=str(e))
         raise InvalidUsage(str(e))
 
 
