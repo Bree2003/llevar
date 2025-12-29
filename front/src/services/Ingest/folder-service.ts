@@ -119,3 +119,13 @@ export const analyzeFileService = async (
     }
   });
 };
+
+export const runProductPipelineService = async (
+  productName: string,
+  projectId: string
+): Promise<AxiosResponse> => {
+  return await AxiosPost('/api/pipeline/run-product', {
+    product_name: productName,
+    project_id: projectId
+  });
+};

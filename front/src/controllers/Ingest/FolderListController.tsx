@@ -8,8 +8,11 @@ import {
   uploadFileDirectlyService,
   uploadSmallFileService,
   analyzeFileService,
+  runProductPipelineService, // Asegúrate de tener este import
 } from "services/Ingest/folder-service";
 import FolderListScreen from "screens/Ingest/FolderListScreen";
+
+// --- INTERFACES ---
 
 export interface EndpointStatus {
   loading?: boolean;
@@ -28,9 +31,9 @@ export interface FolderStateModel {
 export interface UploadState {
   selectedTable: string;
   file: File | null;
-  
+
   isNewTable: boolean;
-  schemaData: any; 
+  schemaData: any;
 
   isWizardOpen: boolean;
   currentStep: number;
@@ -43,11 +46,17 @@ export interface UploadState {
   uploadSuccess: boolean;
 }
 
+// Nueva interfaz para mensajes de UI (sin usar alerts)
+export interface PipelineFeedback {
+  type: "success" | "error" | "info" | null;
+  message: string | null;
+}
+
 const initialUploadState: UploadState = {
   selectedTable: "",
   file: null,
-  isNewTable: false, // Default
-  schemaData: null,  // Default
+  isNewTable: false,
+  schemaData: null,
   isWizardOpen: false,
   currentStep: 1,
   stepData: null,
@@ -59,8 +68,11 @@ const initialUploadState: UploadState = {
 };
 
 const FolderListController = () => {
+  // 1. OBTENCIÓN DE DATOS DESDE LA URL
   const { envId, bucketName, productName } = useParams();
   const navigate = useNavigate();
+
+  // --- ESTADOS ---
 
   const [model, setModel] = useState<Partial<FolderStateModel>>({
     tables: [],
@@ -71,8 +83,18 @@ const FolderListController = () => {
 
   const [uploadState, setUploadState] =
     useState<UploadState>(initialUploadState);
+
   const [endpoints, setEndpoints] =
     useState<Partial<Record<EndpointName, EndpointStatus>>>();
+
+  // Estados para el Pipeline (Botón Reprocesar)
+  const [isPipelineRunning, setIsPipelineRunning] = useState(false);
+  const [pipelineFeedback, setPipelineFeedback] = useState<PipelineFeedback>({
+    type: null,
+    message: null,
+  });
+
+  // --- EFECTOS ---
 
   useEffect(() => {
     if (envId && bucketName && productName) {
@@ -80,7 +102,18 @@ const FolderListController = () => {
     }
   }, [envId, bucketName, productName]);
 
+  // Limpiar mensajes de feedback después de unos segundos (Opcional, mejora UX)
+  useEffect(() => {
+    if (pipelineFeedback.message) {
+      const timer = setTimeout(() => {
+        setPipelineFeedback({ type: null, message: null });
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [pipelineFeedback]);
+
   // --- HELPERS ---
+
   const setEndpointStatus = (
     name: EndpointName,
     status: Partial<EndpointStatus>
@@ -94,6 +127,8 @@ const FolderListController = () => {
   const updateModel = (data: Partial<FolderStateModel>) => {
     setModel((prev) => ({ ...prev, ...data }));
   };
+
+  // --- LÓGICA DE NEGOCIO: CARPETAS ---
 
   const loadFolders = async () => {
     if (!envId || !bucketName || !productName) return;
@@ -110,6 +145,57 @@ const FolderListController = () => {
     }
   };
 
+  // --- LÓGICA DE NEGOCIO: PIPELINE (REPROCESAR) ---
+
+  const handleRunPipeline = async () => {
+    // Validamos que tengamos los datos necesarios de la URL
+    if (!productName) {
+      setPipelineFeedback({
+        type: "error",
+        message: "No se identificó el nombre del producto.",
+      });
+      return;
+    }
+
+    // Limpiamos estados previos
+    setIsPipelineRunning(true);
+    setPipelineFeedback({ type: "info", message: "Iniciando ejecución..." });
+
+    try {
+      // PROYECTO: Como no viene en la URL, usamos el default o mapeamos según envId
+      // Si envId es 'sap', quizás el proyecto sea uno, si es 'pd' otro.
+      // Por ahora usamos el valor que definimos previamente.
+      const PROJECT_ID = "cyt-dev-hq-osc-gcp";
+
+      const response = await runProductPipelineService(productName, PROJECT_ID);
+
+      if (response.status === 200) {
+        setPipelineFeedback({
+          type: "success",
+          message: `Pipeline iniciado correctamente para ${productName}.`,
+        });
+      } else {
+        setPipelineFeedback({
+          type: "error",
+          message:
+            "El servidor respondió, pero hubo un problema iniciando el pipeline.",
+        });
+      }
+    } catch (e: any) {
+      console.error("Pipeline Error:", e);
+      const errorMsg =
+        e.response?.data?.error || "Error de conexión con el servidor.";
+      setPipelineFeedback({
+        type: "error",
+        message: errorMsg,
+      });
+    } finally {
+      setIsPipelineRunning(false);
+    }
+  };
+
+  // --- LÓGICA DE NEGOCIO: UPLOAD & WIZARD ---
+
   const handleSelectTableForPreview = (tableName: string) => {
     navigate(
       `/dashboard/${envId}/${bucketName}/${productName}/${tableName}/table`
@@ -123,11 +209,10 @@ const FolderListController = () => {
 
   const handleTableChange = (tableId: string) =>
     setUploadState((p) => ({ ...p, selectedTable: tableId }));
-    
-  // 3. NUEVO: Handler para cambiar el modo (Nueva/Existente) desde la vista
+
   const handleSetIsNewTable = (isNew: boolean) => {
     setUploadState((p) => ({ ...p, isNewTable: isNew }));
-  }
+  };
 
   const handleStartWizard = () => {
     if (uploadState.file && uploadState.selectedTable) {
@@ -143,16 +228,14 @@ const FolderListController = () => {
   };
 
   const handleCloseWizard = () => {
-    // Reseteamos todo excepto los datos del formulario principal
-    setUploadState(prev => ({
-        ...initialUploadState,
-        file: prev.file,
-        selectedTable: prev.selectedTable,
-        isNewTable: prev.isNewTable // Mantenemos la selección
+    setUploadState((prev) => ({
+      ...initialUploadState,
+      file: prev.file,
+      selectedTable: prev.selectedTable,
+      isNewTable: prev.isNewTable,
     }));
   };
 
-  // 2. Cargar datos del paso (Llama a /analyze)
   const loadStepData = async (step: number) => {
     const { file, selectedTable, isNewTable } = uploadState;
 
@@ -184,12 +267,10 @@ const FolderListController = () => {
 
       if (response.status === 200) {
         let data = response.data;
-        
-        // 5. IMPORTANTE: Si estamos en paso 2, GUARDAMOS la estructura (Schema)
-        // para usarla en la creación final.
+
         let newSchemaData = uploadState.schemaData;
         if (step === 2 && data.columnas_encontradas) {
-             newSchemaData = data.columnas_encontradas;
+          newSchemaData = data.columnas_encontradas;
         }
 
         if (step === 1) {
@@ -204,12 +285,11 @@ const FolderListController = () => {
         setUploadState((p) => ({
           ...p,
           stepData: data,
-          schemaData: newSchemaData, // Actualizamos schema
+          schemaData: newSchemaData,
           currentStep: step,
           isLoadingAnalysis: false,
         }));
       } else {
-        console.error("Error análisis", response);
         setUploadState((p) => ({ ...p, isLoadingAnalysis: false }));
       }
     } catch (e) {
@@ -230,7 +310,7 @@ const FolderListController = () => {
 
   const handleFinalUpload = async (metadataFromWizard?: any) => {
     const { file, selectedTable, isNewTable, schemaData } = uploadState;
-    
+
     if (!file || !selectedTable || !envId || !bucketName || !productName)
       return;
 
@@ -241,19 +321,18 @@ const FolderListController = () => {
 
     try {
       if (file.size < SIZE_LIMIT) {
-        // Camino Rápido (Backend)
+        // Subida Rápida (Backend)
         await uploadSmallFileService(
           envId,
           bucketName,
           destinationPath,
           file,
           (pct) => setUploadState((p) => ({ ...p, uploadProgress: pct })),
-          // 7. Si es tabla nueva, pasamos metadata (del wizard) y schema (guardado en paso 2)
           isNewTable ? metadataFromWizard : undefined,
           isNewTable ? schemaData : undefined
         );
       } else {
-        // Camino Pesado (GCS Directo) - Nota: No soporta creación de BQ Entity aun con esta lógica simple
+        // Subida Pesada (GCS Directo)
         const initRes = await initiateUploadService(
           envId,
           bucketName,
@@ -276,6 +355,8 @@ const FolderListController = () => {
     }
   };
 
+  // --- RENDER ---
+
   return (
     <FolderListScreen
       model={model}
@@ -286,14 +367,17 @@ const FolderListController = () => {
       // Props del Form
       onFileChange={handleFileChange}
       onTableChange={handleTableChange}
-      // 8. Pasamos el setter para el checkbox de Nueva Tabla
-      setIsNewTable={handleSetIsNewTable} 
+      setIsNewTable={handleSetIsNewTable}
       onStartWizard={handleStartWizard}
       // Props del Wizard
       onCloseWizard={handleCloseWizard}
       onNextStep={handleNextStep}
       onPrevStep={handlePrevStep}
       onFinalUpload={handleFinalUpload}
+      // Props Pipeline (NUEVAS)
+      onRunPipeline={handleRunPipeline}
+      isPipelineRunning={isPipelineRunning}
+      pipelineFeedback={pipelineFeedback}
     />
   );
 };
