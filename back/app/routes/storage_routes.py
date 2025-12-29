@@ -236,14 +236,14 @@ def analyze_file_api():
 
         # --- PASO 3: Validación contra BigQuery ---
         elif step == "3":
-            
+
             if is_new_table:
                 return jsonify({
                     "validado_contra": "N/A (Nueva Tabla)",
                     "bloqueantes": [],
                     "alertas": []
                 })
-                
+
             env_id = request.form.get('env_id')
             bucket_name = request.form.get('bucket_name')
             destination = request.form.get('destination', "")
@@ -382,22 +382,25 @@ def analyze_file_api():
 @storage_bp.route("/upload", methods=["POST"])
 def upload_file_api():
     if "file" not in request.files:
-        raise InvalidUsage("No se proporcionó ningún archivo.", status_code=400)
+        raise InvalidUsage(
+            "No se proporcionó ningún archivo.", status_code=400)
 
     env_id = request.form.get('env_id')
     bucket_name = request.form.get('bucket_name')
     destination = request.form.get("destination", "")
     user = request.form.get("user", "anonymous")
-    
+
     metadata_json = request.form.get('metadata')
     schema_json = request.form.get('schema')
 
     if not all([env_id, bucket_name, destination]):
-        raise InvalidUsage("Faltan campos 'env_id', 'bucket_name' y 'destination'.", status_code=400)
+        raise InvalidUsage(
+            "Faltan campos 'env_id', 'bucket_name' y 'destination'.", status_code=400)
 
     file = request.files["file"]
     if not file.filename:
-        raise InvalidUsage("El archivo enviado no tiene nombre.", status_code=400)
+        raise InvalidUsage(
+            "El archivo enviado no tiene nombre.", status_code=400)
 
     try:
         project_id = get_project_id_for_bucket(env_id, bucket_name)
@@ -412,7 +415,8 @@ def upload_file_api():
 
                 parts = destination.split('/')
                 if len(parts) < 2:
-                    raise InvalidUsage("La ruta de destino debe ser 'producto/tabla'.")
+                    raise InvalidUsage(
+                        "La ruta de destino debe ser 'producto/tabla'.")
 
                 product_name = parts[0]
                 table_name = parts[1]
@@ -422,9 +426,10 @@ def upload_file_api():
                     project_id, product_name, table_name, bucket_name)
 
                 # Si bq_bucket_real es None o cadena vacía, detenemos la ejecución aquí.
-                if not bq_bucket_real: 
-                     raise InvalidUsage("No se pudo resolver el nombre del bucket de BigQuery (valor nulo).")
-                
+                if not bq_bucket_real:
+                    raise InvalidUsage(
+                        "No se pudo resolver el nombre del bucket de BigQuery (valor nulo).")
+
                 target_dataset = ""
                 target_table_name = ""
 
@@ -433,14 +438,16 @@ def upload_file_api():
                         partes = bq_bucket_real.split('_')
                         # Validación extra por seguridad
                         if len(partes) < 4:
-                             raise InvalidUsage(f"El nombre del bucket '{bq_bucket_real}' no tiene el formato esperado (datalake_sap_bw_MODULO...).")
-                        
-                        modulo = partes[3] 
+                            raise InvalidUsage(
+                                f"El nombre del bucket '{bq_bucket_real}' no tiene el formato esperado (datalake_sap_bw_MODULO...).")
+
+                        modulo = partes[3]
                         target_dataset = f"sdp_{modulo}_ddo"
                         target_table_name = f"tbl_{bq_table}"
                     except IndexError:
-                        raise InvalidUsage("Error al extraer el módulo del nombre del bucket SAP.")
-                
+                        raise InvalidUsage(
+                            "Error al extraer el módulo del nombre del bucket SAP.")
+
                 elif env_id == 'pd':
                     target_dataset = f"sdp_{bq_dataset}"
                     target_table_name = f"tbl_{bq_table}"
@@ -451,31 +458,34 @@ def upload_file_api():
                 bq_service.create_table_entity(
                     project_id, target_dataset, target_table_name, schema_data, metadata
                 )
-                
-                logging_service.log_info("Tabla BigQuery creada", user=user, table=f"{target_dataset}.{target_table_name}")
+
+                logging_service.log_info(
+                    "Tabla BigQuery creada", user=user, table=f"{target_dataset}.{target_table_name}")
 
             except Exception as e:
-                logging_service.log_error("Error creando tabla BQ", user=user, error=str(e))
-                raise InvalidUsage(f"No se pudo crear la tabla en BigQuery: {str(e)}", status_code=500)
+                logging_service.log_error(
+                    "Error creando tabla BQ", user=user, error=str(e))
+                raise InvalidUsage(
+                    f"No se pudo crear la tabla en BigQuery: {str(e)}", status_code=500)
 
         # =====================================================================
         # 2. PROCESO DE SUBIDA A GCS
         # =====================================================================
-        
+
         df = read_file_to_dataframe(file)
-        
+
         # Convertimos explícitamente todo el DataFrame a String para asegurar
         # compatibilidad con la tabla que acabamos de crear (que es puro STRING)
         df = df.astype(str)
 
         # BigQuery acepta "nan" como string, pero suele ser mejor limpiarlo si quieres NULLs reales:
-        df = df.replace('nan', "") 
+        df = df.replace('nan', "")
 
         parquet_path = dataframe_to_parquet_tempfile(df, file.filename)
 
         final_blob_path = storage_service.upload_file(
             project_id, bucket_name, parquet_path, destination)
-        
+
         os.remove(parquet_path)
 
         # Logging final
@@ -568,52 +578,111 @@ def get_latest_dataset_preview_api(product_path):
 @storage_bp.route("/products/save-data", methods=["POST"])
 def save_full_data_api():
     """
-    Recibe el dataset completo desde el frontend y crea una nueva versión en GCS.
+    Recibe data del front -> Sube a GCS -> Actualiza BQ.
     """
     data = request.get_json()
 
-    # Validaciones básicas
+    # ... (Validaciones existentes) ...
     if not data:
-        raise InvalidUsage("No payload received.", status_code=400)
+        raise InvalidUsage("No payload.", status_code=400)
 
-    required = ['env_id', 'bucket_name', 'product_name', 'table_name', 'rows']
-    if not all(k in data for k in required):
-        raise InvalidUsage(f"Faltan campos: {required}", status_code=400)
+    # Extraemos datos
+    env_id = data['env_id']
+    bucket_name = data['bucket_name']
+    product_name = data['product_name']
+    table_name = data['table_name']
+    rows = data['rows']
+    user = data.get('user', 'anonymous')
 
     try:
-        env_id = data['env_id']
-        bucket_name = data['bucket_name']
-        product_name = data['product_name']
-        table_name = data['table_name']
-        rows = data['rows']  # Esta es la lista GIGANTE de diccionarios
-        user = data.get('user', 'anonymous')
-
+        # 1. Subir a GCS (Ya lo tienes listo)
         project_id = get_project_id_for_bucket(env_id, bucket_name)
         product_path = f"{product_name}/{table_name}"
 
-        # Llamamos al servicio de guardado
-        gcs_path = storage_service.save_full_dataset(
+        # gcs_path es relativo (ej: producto/tabla/year=.../data.parquet)
+        gcs_relative_path = storage_service.save_full_dataset(
             project_id, bucket_name, product_path, rows
         )
 
+        # Construimos la URI completa gs://...
+        gcs_uri = f"gs://{bucket_name}/{gcs_relative_path}"
+
+        # ------------------------------------------------------------------
+        # 2. SINCRONIZACIÓN CON BIGQUERY
+        # ------------------------------------------------------------------
+
+        # A. Resolver coordenadas BQ (Project, Dataset, Table)
+        # Usamos tu utilidad existente o lógica ad-hoc
+        bq_project, bq_dataset, bq_table_clean, _ = resolve_bq_coordinates(
+            project_id, product_name, table_name, bucket_name
+        )
+
+        # Ajuste de nombres según tu lógica de entornos (SAP vs PD)
+        target_dataset = ""
+        target_table = f"tbl_{bq_table_clean}"  # Convención usual
+
+        if env_id == 'sap':
+            # Lógica para extraer módulo del bucket (ej: raw-dev-ddo-mm-bucket -> mm)
+            parts = bucket_name.split('-')
+            module = parts[3] if len(parts) > 3 else 'manual'
+            target_dataset = f"sdp_{module}_ddo"
+        elif env_id == 'pd':
+            # bq_dataset suele ser el nombre del producto
+            target_dataset = f"sdp_{bq_dataset}"
+        else:
+            # Fallback genérico
+            target_dataset = f"sdp_{product_name.replace('-', '_')}"
+
+        print(f"Destino BQ: {bq_project}.{target_dataset}.{target_table}")
+
+        # B. Asegurar que la tabla existe (Create if not exists)
+        # Extraemos nombres de columnas de la primera fila para crear esquema básico
+        if rows and len(rows) > 0:
+            sample_row = rows[0]
+            # Formato simple para create_table_entity: [{'nombre': 'col1'}, ...]
+            simple_schema = [{'nombre': k} for k in sample_row.keys()]
+
+            bq_service.create_table_entity(
+                bq_project,
+                target_dataset,
+                target_table,
+                simple_schema,
+                metadata={
+                    'tableDescription': f"Tabla Raw actualizada manualmente por {user}"}
+            )
+
+        # C. Cargar datos desde GCS a BQ
+        filas_cargadas = bq_service.load_parquet_from_gcs_to_bq(
+            bq_project,
+            target_dataset,
+            target_table,
+            gcs_uri
+        )
+
+        # ------------------------------------------------------------------
+
         # Logging
         logging_service.log_info(
-            "Dataset completo actualizado manualmente",
+            "Dataset guardado y sincronizado con BQ",
             user=user,
             product=product_name,
             dataset=table_name,
             bucket=bucket_name,
-            gcs_path=gcs_path,
-            rows_count=len(rows)
+            gcs_path=gcs_relative_path,
+            rows_processed=len(rows),
+            bq_table=f"{target_dataset}.{target_table}",
+            bq_rows_loaded=filas_cargadas
         )
 
         return jsonify({
             "success": True,
-            "message": "Archivo actualizado correctamente.",
-            "path": gcs_path
+            "message": "Datos guardados en GCS y actualizados en BigQuery.",
+            "path": gcs_relative_path,
+            "bq_loaded": filas_cargadas
         })
 
     except Exception as e:
-        logging_service.log_error(
-            "Error saving data", user=data.get('user'), error=str(e))
-        raise InvalidUsage(f"Error guardando datos: {e}", status_code=500)
+        # ... Log de error ...
+        logging_service.log_error("Error saving data", user=user, error=str(e))
+        raise InvalidUsage(
+            f"Error guardando/sincronizando: {e}", status_code=500)

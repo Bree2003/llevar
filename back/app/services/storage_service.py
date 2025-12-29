@@ -197,8 +197,6 @@ def read_latest_dataset_content(project_id, bucket_name, product_path):
         if filename.endswith('.parquet'):
             df = pd.read_parquet(io.BytesIO(data_bytes))
         elif filename.endswith('.csv'):
-            # Reutilizamos tu lógica robusta de lectura, pero simplificada aquí para lectura
-            # Idealmente podrías importar read_file_to_dataframe si aceptara bytes en vez de file object
             try:
                 df = pd.read_csv(io.BytesIO(data_bytes), sep=None, engine='python',
                                  encoding='utf-8', on_bad_lines='skip', dtype=str)
@@ -219,39 +217,42 @@ def read_latest_dataset_content(project_id, bucket_name, product_path):
 
 def save_full_dataset(project_id, bucket_name, product_path, rows):
     """
-    Recibe TODAS las filas desde el front, las procesa con TU lógica de negocio
-    (todo a string, limpieza de caracteres) y sube el parquet resultante.
+    Recibe las filas, agrega columnas de partición (year, month, day),
+    convierte a Parquet y sube a GCS.
     """
-    # 1. Crear DataFrame crudo desde el JSON
+    # 1. Definir fecha de partición (UTC o Local según prefieras)
+    today = datetime.now()
+    year = today.strftime('%Y')
+    month = today.strftime('%m')
+    day = today.strftime('%d')
+
+    # 2. Crear DataFrame
     df = pd.DataFrame(rows)
 
-    # 2. PROCESAMIENTO Y LIMPIEZA
-    # Usamos tu utilidad existente. Esto asegura consistencia total.
-    # Esta función crea un archivo temporal en disco con la limpieza aplicada.
+    # --- CAMBIO CLAVE: Inyectamos las columnas de partición al DataFrame ---
+    # Esto asegura que el archivo "data.parquet" contenga físicamente estos datos.
+    df['year'] = year
+    df['month'] = month
+    df['day'] = day
+
+    # 3. PROCESAMIENTO Y LIMPIEZA
     try:
         temp_parquet_path = dataframe_to_parquet_tempfile(
             df, "data_editada.parquet")
     except Exception as e:
         raise Exception(f"Error en la transformación de datos: {e}")
 
-    # 3. Calcular ruta de destino (Partitioning por fecha actual)
-    today = datetime.now()
-    year = today.strftime('%Y')
-    month = today.strftime('%m')
-    day = today.strftime('%d')
-
     filename = "data.parquet"
+    # Ruta estilo Hive: year=2023/month=12/day=29
     destination_blob_name = f"{product_path}/year={year}/month={month}/day={day}/{filename}"
 
-    # 4. Subir a GCS desde el archivo temporal
+    # 4. Subir a GCS
     storage_client = get_storage_client(project_id)
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(destination_blob_name)
 
-    # Subimos el archivo físico generado por tu utilidad
     blob.upload_from_filename(temp_parquet_path)
 
-    # 5. Limpieza: Borramos el archivo temporal local
     if os.path.exists(temp_parquet_path):
         os.remove(temp_parquet_path)
 

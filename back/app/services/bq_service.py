@@ -56,43 +56,106 @@ def validate_dataframe_against_schema(df, bq_schema):
 
     return errores, alertas
 
-def create_table_entity(project_id, dataset_id, table_id, schema_data, metadata):
+
+def create_table_entity(project_id, dataset_id, table_id, schema_data, metadata=None):
     """
-    Crea una nueva tabla en BigQuery donde TODAS las columnas son STRING
-    para garantizar una ingesta robusta (Raw Zone).
+    Crea una nueva tabla en BigQuery con esquema STRING + Columnas de Partición.
     """
     try:
         client = bigquery.Client(project=project_id)
         table_ref = f"{project_id}.{dataset_id}.{table_id}"
 
-        # Construir el esquema de BigQuery
         schema = []
-        column_descriptions = metadata.get('columnDescriptions', {})
+        meta = metadata if metadata else {}
+        column_descriptions = meta.get('columnDescriptions', {})
 
+        # 1. Agregamos las columnas que vienen del archivo (Frontend)
         for col in schema_data:
-            col_name = col['nombre']
-            
-            # Obtenemos la descripción del usuario
-            description = column_descriptions.get(col_name, "")
+            col_name = col['nombre'] if isinstance(col, dict) else col
 
+            # Evitamos duplicados si por alguna razón ya venían en la data
+            if col_name.lower() in ['year', 'month', 'day']:
+                continue
+
+            description = column_descriptions.get(col_name, "")
             field = bigquery.SchemaField(
                 name=col_name,
-                field_type="STRING", 
+                field_type="STRING",
                 mode="NULLABLE",
                 description=description
             )
             schema.append(field)
 
-        # Configurar la tabla
-        table = bigquery.Table(table_ref, schema=schema)
-        table.description = metadata.get('tableDescription', "")
+        # 2. --- CAMBIO CLAVE: Agregamos explícitamente las columnas de partición ---
+        # Las definimos como STRING para mantener la consistencia de la Raw Zone
+        schema.append(bigquery.SchemaField(
+            "year", "STRING", "NULLABLE", "Partition Year"))
+        schema.append(bigquery.SchemaField(
+            "month", "STRING", "NULLABLE", "Partition Month"))
+        schema.append(bigquery.SchemaField(
+            "day", "STRING", "NULLABLE", "Partition Day"))
 
-        # Crear la tabla
+        table = bigquery.Table(table_ref, schema=schema)
+        table.description = meta.get('tableDescription', "")
+
+        # OPCIONAL: Configurar particionamiento nativo de BigQuery
+        # Si quisieras que BQ optimice consultas usando estas columnas, podrías hacer:
+        # table.clustering_fields = ["year", "month"]
+        # (El particionamiento real por columna string es limitado, suele usarse clustering)
+
         table = client.create_table(table, exists_ok=True)
-        
-        print(f"Tabla Raw (String) creada exitosamente en BQ: {table_ref}")
+
+        print(f"Tabla creada con columnas de partición: {table_ref}")
         return table
 
     except Exception as e:
-        print(f"Error fatal creando tabla en BigQuery: {e}")
+        print(f"Error creando tabla BQ: {e}")
+        raise e
+
+
+def load_parquet_from_gcs_to_bq(project_id, dataset_id, table_id, gcs_uri):
+    """
+    Carga un archivo Parquet desde GCS a una tabla de BigQuery.
+    Modo: WRITE_TRUNCATE (Sobrescribe la tabla con la nueva data) o WRITE_APPEND.
+    Para edición de datos, generalmente queremos TRUNCATE (reemplazo total) 
+    o APPEND si es versionado histórico. 
+
+    Dado que tu flujo es 'Actualizar Dataset', asumiremos que quieres que la 
+    tabla en BQ refleje exactamente lo que el usuario ve y guardó.
+    """
+    client = bigquery.Client(project=project_id)
+    table_ref = f"{project_id}.{dataset_id}.{table_id}"
+
+    job_config = bigquery.LoadJobConfig(
+        source_format=bigquery.SourceFormat.PARQUET,
+        # Opciones:
+        # WRITE_TRUNCATE: Borra datos y escribe los nuevos (Ideal para "Guardar Cambios")
+        # WRITE_APPEND: Agrega al final (Histórico)
+        write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
+
+        # IMPORTANTE: Como tus tablas raw son STRING, pero el Parquet puede traer
+        # inferencias, a veces es útil autodetectar o forzar.
+        # Sin embargo, como tú creas la tabla con esquema STRING explícito antes,
+        # BQ intentará convertir. Parquet es binario y tipado, así que BQ suele
+        # respetar los tipos del archivo.
+        # Si tu tabla es STRING y el parquet trae INT, BQ hará casting si es posible.
+        autodetect=True
+    )
+
+    try:
+        load_job = client.load_table_from_uri(
+            gcs_uri, table_ref, job_config=job_config
+        )
+
+        print(
+            f"Iniciando job de carga {load_job.job_id} desde {gcs_uri} a {table_ref}...")
+
+        load_job.result()  # Espera a que termine
+
+        print(f"Job terminado. Filas cargadas: {load_job.output_rows}")
+        return load_job.output_rows
+
+    except Exception as e:
+        print(f"Error cargando datos a BQ: {e}")
+        # Es vital propagar el error para que el endpoint sepa que falló la carga
         raise e
