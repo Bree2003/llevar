@@ -35,7 +35,9 @@ const SearchController = () => {
 
     try {
       const envResponse = await getEnvironmentsService();
+      console.log("envResponse",envResponse)
       const envs = EnvironmentAdapter(envResponse);
+      console.log("envs", envs)
 
       let globalIndex: SearchSuggestion[] = [];
 

@@ -89,8 +89,6 @@ const MainController = () => {
             statusEndpoint.done();
         }
     };
-
-    // --- CAMBIO CLAVE: Llamamos a MainScreen sin pasarle ninguna prop ---
     return (
         <MainScreen />
     );

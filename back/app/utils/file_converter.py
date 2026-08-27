@@ -2,7 +2,7 @@ import os
 import tempfile
 import pandas as pd
 import unicodedata
-
+import re
 def clean_text_series(series: pd.Series) -> pd.Series:
     """
     Limpia una serie: 
@@ -54,7 +54,7 @@ def dataframe_to_parquet_tempfile(df: pd.DataFrame, original_filename: str) -> s
         new_columns = []
         for col in df_limpio.columns:
             # Convertimos el nombre de la columna a string y limpiamos
-            clean_col = str(col).replace('ñ', 'ni').replace('Ñ', 'Ni')
+            clean_col = str(col).replace('ñ', 'ni').replace('Ñ', 'Ni').replace("-", "_")
             clean_col = unicodedata.normalize('NFKD', clean_col)\
                 .encode('ascii', 'ignore')\
                 .decode('utf-8')
@@ -78,4 +78,33 @@ def dataframe_to_parquet_tempfile(df: pd.DataFrame, original_filename: str) -> s
 
     except Exception as e:
         raise IOError(f"Error al convertir DataFrame a Parquet: {str(e)}")
-    
+# Función Replace using regex
+def clean_col_name(col):
+            col = str(col).lower()
+
+            # Detectar porcentaje antes de eliminarlo
+            has_pct = '%' in col
+            # ñ → ni
+            col = col.replace('ñ', 'ni')
+            
+            col = col.replace('%', '')
+
+            # Quitar acentos (áéíóúü → aeiouu)
+            col = unicodedata.normalize('NFKD', col)
+            col = ''.join(c for c in col if not unicodedata.combining(c))
+
+
+            # Todo lo no alfanumérico → _
+            col = re.sub(r'[^a-z0-9]+', '_', col)
+
+            # Colapsar múltiples _
+            col = re.sub(r'_+', '_', col)
+
+            # Limpiar bordes
+            col = col.strip('_')
+
+            # Prefijo pct_
+            if has_pct:
+                col = f"pct_{col}"
+
+            return col

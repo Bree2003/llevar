@@ -2,7 +2,6 @@ import React from "react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 
-// --- IMPORTS DE ICONOS EXISTENTES ---
 import { ReactComponent as Calendar } from "components/Global/Icons/calendar.svg";
 import { ReactComponent as Notification } from "components/Global/Icons/notification.svg";
 import { ReactComponent as Mantenimiento } from "components/Global/Icons/mantenimiento.svg";
@@ -11,13 +10,11 @@ import { ReactComponent as MTS } from "components/Global/Icons/mts.svg";
 import { ReactComponent as Stock } from "components/Global/Icons/stock.svg";
 import { ReactComponent as Export } from "components/Global/Icons/export.svg";
 
-// --- IMPORTS DE DOCUMENTACIÓN (Ejemplo) ---
-// Descomenta y ajusta las rutas cuando tengas los archivos reales
-// import DocPrograma from "assets/docs/programa_fabricacion.pdf";
-// import DocNotificaciones from "assets/docs/notificaciones_manual.pdf";
+import DocAvisos from "assets/docs/Documentacion - PD - Avisos Mantenimiento.pdf";
+import DocMermas from "assets/docs/Documentacion - PD - Mermas.pdf";
+import DocPrograma from "assets/docs/Documentacion - PD - Programa Fabricacion.pdf";
+import DocVersion from "assets/docs/Documentacion - PD - Version Fabricacion.pdf";
 
-// --- ICONO GENÉRICO (SVG INLINE) ---
-// Usamos este si no hay icono específico definido
 const GenericDatabaseIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -47,41 +44,46 @@ interface ProductDisplayGridProps {
   bucketName?: string;
 }
 
-// --- CONFIGURACIÓN CENTRALIZADA ---
 interface ProductConfig {
   description: string;
   icon: React.ComponentType<any>;
-  file?: string; // URL del archivo PDF/Excel
+  file?: string; 
 }
 
 const PRODUCT_CONFIG: Record<string, ProductConfig> = {
-  programa_de_fabricacion: {
+  "programa-de-fabricacion": {
     description: "Plan o cronograma que organiza y controla la fabricación.",
     icon: Calendar,
-    file: "DocPrograma",
+    file: DocPrograma,
   },
-  notificaciones: {
+  "version-de-fabricacion": {
+    description: "",
+    icon: MTS,
+    file: DocVersion,
+  },
+  "notificaciones": {
     description: "Registro semanal que consolida y valida la producción.",
     icon: Notification,
-    // file: DocNotificaciones
   },
-  avisos_mantenimiento: {
+  "avisos-de-mantenimiento": {
     description: "M4 se refiere a los avisos de mantención correctiva.",
-    icon: Mantenimiento,
+    icon: GenericDatabaseIcon,
+    file: DocAvisos,
   },
-  mermas: {
+  "mermas": {
     description: "Información que mide las mermas de los insumos secos.",
     icon: Mermas,
+    file: DocMermas,
   },
-  mts: {
+  "mts": {
     description: "Sistema externo que almacena los tiempos de producción.",
     icon: MTS,
   },
-  stock_materiales: {
+  "stock-materiales": {
     description: "Mantiene el stock existente y solicitado.",
     icon: Stock,
   },
-  venta_exportacion: {
+  "venta-exportacion": {
     description: "Contiene el stock SD y MM.",
     icon: Export,
   },
@@ -90,11 +92,10 @@ const PRODUCT_CONFIG: Record<string, ProductConfig> = {
 // Configuración por defecto (Fallback)
 const DEFAULT_CONFIG: ProductConfig = {
   description: "Descripción no disponible.",
-  icon: GenericDatabaseIcon, // <--- Usamos el SVG Inline aquí
+  icon: GenericDatabaseIcon,
   file: undefined,
 };
 
-// --- SKELETON ---
 const ProductCardSkeleton = () => (
   <div className="bg-[--color-gris-claro] p-5 rounded-xl w-[290px] h-48 flex flex-col justify-between">
     <div>
@@ -112,7 +113,6 @@ const ProductCardSkeleton = () => (
   </div>
 );
 
-// --- COMPONENTE PRINCIPAL ---
 export default function ProductDisplayGrid({
   products,
   loading,
@@ -153,7 +153,7 @@ export default function ProductDisplayGrid({
   };
 
   return (
-    <div className="w-full text-left p-10">
+    <div className="w-full text-left p-10 bg-gray-50 min-h-screen"> 
       <div className="mb-10">
         <h1 className="text-3xl text-[--color-naranjo] font-bold">
           {loading ? <Skeleton width={400} /> : "Productos de Datos"}
@@ -167,7 +167,6 @@ export default function ProductDisplayGrid({
           ))
         ) : products.length > 0 ? (
           products.map((product) => {
-            // Buscamos la config o usamos la default (GenericIcon)
             const config = PRODUCT_CONFIG[product.id] || DEFAULT_CONFIG;
             const IconComponent = config.icon;
 
@@ -175,12 +174,12 @@ export default function ProductDisplayGrid({
               <div
                 key={product.id}
                 onClick={() => onProductClick(product.id)}
-                className="group relative bg-[--color-gris-claro] p-5 rounded-xl w-[290px] h-48 cursor-pointer flex flex-col justify-between transition-all hover:shadow-md border border-transparent hover:border-gray-200"
+                className="group relative bg-white p-5 rounded-xl w-[290px] h-48 cursor-pointer flex flex-col justify-between transition-all hover:shadow-lg border border-gray-100 hover:border-gray-200" // Fondo blanco y sombra para las tarjetas
               >
                 {/* Contenido Principal */}
                 <div>
                   <div className="flex items-center gap-4 mb-3">
-                    <div className="p-2 bg-white rounded-lg shadow-sm group-hover:scale-110 transition-transform">
+                    <div className="p-2 bg-gray-50 rounded-lg shadow-sm group-hover:scale-110 transition-transform"> {/* Fondo gris claro para el círculo del icono */}
                       {/* Icono */}
                       <IconComponent className="w-6 h-6 text-[--color-naranjo]" />
                     </div>
@@ -188,28 +187,29 @@ export default function ProductDisplayGrid({
                       {formatLabel(product.label)}
                     </h2>
                   </div>
-                  <p className="text-sm text-[--color-gris-oscuro] line-clamp-3">
+                  <p className="text-sm text-gray-500 line-clamp-3">
                     {config.description}
                   </p>
                 </div>
 
                 {/* Footer de la tarjeta con Botón de Descarga */}
-                <div className="flex justify-end items-center mt-3 pt-3 border-t border-gray-200/50">
+                <div className="flex justify-end items-center mt-3 pt-3 border-t border-gray-100"> 
                   {config.file ? (
                     <button
                       onClick={(e) =>
                         handleDownload(
                           e,
                           config.file!,
-                          `doc_${product.label}.pdf`
+                          `doc_${config.file}.pdf`
                         )
                       }
-                      className="flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-[--color-naranjo] transition-colors py-1 px-2 rounded hover:bg-orange-50"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-gray-700 font-semibold text-sm transition-all shadow-sm border border-gray-200
+                                 hover:bg-orange-50 hover:text-[--color-naranjo] hover:border-orange-300 active:scale-[0.98]"
                       title="Descargar documentación técnica"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4"
+                        className="h-4 w-4 text-gray-500 hover:text-[--color-naranjo] transition-colors" 
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -224,7 +224,7 @@ export default function ProductDisplayGrid({
                       <span>Documentación</span>
                     </button>
                   ) : (
-                    <span className="text-[10px] text-gray-300 italic select-none">
+                    <span className="text-xs text-gray-400 italic select-none"> 
                       Sin documentación
                     </span>
                   )}
@@ -233,7 +233,7 @@ export default function ProductDisplayGrid({
             );
           })
         ) : (
-          <div className="w-full py-12 text-center bg-gray-50 rounded-lg border border-dashed border-gray-300">
+          <div className="w-full py-12 text-center bg-white rounded-lg border border-dashed border-gray-300 shadow-sm">
             <p className="text-gray-500">
               No se encontraron productos en este bucket.
             </p>

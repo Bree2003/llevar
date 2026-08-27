@@ -68,7 +68,7 @@ const formatLabel = (text: string): string => {
     .join(' ');
 };
   return (
-    <div className="w-[300px] bg-[--color-gris-claro] p-6 text-left flex-shrink-0 h-screen overflow-y-auto">
+    <div className="w-[300px] h-full bg-[--color-gris-claro] p-6 text-left flex-shrink-0 overflow-y-auto">
       {loading ? (
         // Estado de carga con esqueletos
         <div>

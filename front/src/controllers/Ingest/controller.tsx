@@ -46,21 +46,16 @@ const IngestController = () => {
 // --- LÓGICA DE NAVEGACIÓN ---
   const handleSelectEnvironment = (envId: string) => {
     if (envId === "pd") {
-      const hostname = window.location.hostname;
+     const envSuffix = process.env.REACT_APP_ENVIRONMENT || "dev"; 
+     console.log("env", process.env.REACT_APP_ENVIRONMENT)
       
-      console.log("[DEBUG] Hostname detectado:", hostname);
+      console.log("[DEBUG] Environment detectado (env var):", envSuffix);
 
-      // 1. Asumimos "dev" por defecto (para localhost, dev cloud, etc.)
-      let envSuffix = "dev";
-
-      // 2. Solo si la URL dice explícitamente "-prd-", cambiamos a "prd"
-      if (hostname.includes("-prd-")) {
-          envSuffix = "prd";
-      }
-
-      console.log("[DEBUG] Bucket seleccionado:", `raw-${envSuffix}-osc-manual-bucket`);
-
+      // El nombre del bucket se construye usando la variable (ej: dev o prd)
       const bucketName = `raw-${envSuffix}-osc-manual-bucket`;
+      
+      console.log("[DEBUG] Bucket seleccionado:", bucketName);
+
       navigate(`/dashboard/${envId}/${bucketName}/products`);
       
     } else {

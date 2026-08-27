@@ -1,6 +1,5 @@
-import { AxiosGet, AxiosPost } from "services/utils"; // Asegúrate de importar AxiosPost
+import { AxiosGet, AxiosPost, AxiosGetConfig } from "services/utils";
 
-// Respuesta del preview
 export interface DatasetPreviewResponse {
   exists: boolean;
   fileName?: string;
@@ -9,7 +8,6 @@ export interface DatasetPreviewResponse {
   error?: string;
 }
 
-// Respuesta del guardado
 export interface SaveDatasetResponse {
   success: boolean;
   message: string;
@@ -22,15 +20,20 @@ export const getLatestDatasetPreviewService = async (
   productName: string,
   tableName: string
 ): Promise<DatasetPreviewResponse> => {
+
   const path = `${productName}/${tableName}`;
-  const response = await AxiosGet(`/api/storage/products/${path}/preview-latest`, {
-    env_id: envId,
-    bucket_name: bucketName
-  });
+
+  const response = await AxiosGet(
+    `/api/storage/products/${path}/preview-latest`,
+    {
+      env_id: envId,
+      bucket_name: bucketName
+    }
+  );
+
   return response?.data;
 };
 
-// --- NUEVA FUNCIÓN: GUARDAR DATOS ---
 export const saveDatasetDataService = async (
   envId: string,
   bucketName: string,
@@ -39,16 +42,112 @@ export const saveDatasetDataService = async (
   rows: any[]
 ): Promise<SaveDatasetResponse> => {
   
-  // Construimos el payload exacto que pide el Backend Python
   const payload = {
     env_id: envId,
     bucket_name: bucketName,
     product_name: productName,
     table_name: tableName,
     rows: rows,
-    user: "usuario_app" // Podrías pasar el usuario real aquí si lo tienes
+    user: "usuario_app"
   };
 
-  const response = await AxiosPost("/api/storage/products/save-data", payload);
+  const response = await AxiosPost(
+    "/api/storage/products/save-data",
+    payload
+  );
+
   return response?.data;
+};
+
+
+export const downloadDatasetExcelService = async (
+  envId: string,
+  bucketName: string,
+  productName: string,
+  tableName: string
+): Promise<void> => {
+
+  const path = `${productName}/${tableName}`;
+
+  const response = await AxiosGetConfig(
+    `/api/storage/products/${path}/download-excel`,
+    {
+      env_id: envId,
+      bucket_name: bucketName,
+    },
+    {
+      responseType: "blob",
+    }
+  );
+
+  const blob = response.data;
+
+  let fileName = `${tableName}.xlsx`;
+
+  const contentDisposition = response?.headers?.["content-disposition"];
+
+  if (contentDisposition) {
+    const match = contentDisposition.match(/filename="?(.+)"?/);
+    if (match?.[1]) {
+      fileName = match[1];
+    }
+  }
+
+  const url = window.URL.createObjectURL(new Blob([blob]));
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  window.URL.revokeObjectURL(url);
+};
+
+export const downloadMarketplaceProductExcelService = async (
+  envId: string,
+  bucketName: string,
+  productName: string
+): Promise<void> => {
+  const response = await AxiosGetConfig(
+    `/api/storage/marketplace/products/${productName}/download-excel`,
+    {
+      env_id: envId,
+      bucket_name: bucketName,
+    },
+    {
+      responseType: "blob",
+    }
+  );
+
+  const blob = response.data;
+
+  let fileName = `${productName}.xlsx`;
+
+  const contentDisposition =
+    response?.headers?.["content-disposition"];
+
+  if (contentDisposition) {
+    const match = contentDisposition.match(/filename="?(.+)"?/);
+
+    if (match?.[1]) {
+      fileName = match[1];
+    }
+  }
+
+  const url = window.URL.createObjectURL(
+    new Blob([blob])
+  );
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  window.URL.revokeObjectURL(url);
 };

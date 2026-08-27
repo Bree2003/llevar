@@ -32,14 +32,19 @@ import {
   UnauthenticatedTemplate,
 } from "@azure/msal-react";
 import AppLayout from "AppLayout";
-import ProductoController from "controllers/Productodato/controller";
 import IngestController from "controllers/Ingest/controller";
 import BucketListController from "controllers/Ingest/BucketListController";
 import ProductListController from "controllers/Ingest/ProductListController";
 import FolderListController from "controllers/Ingest/FolderListController";
 import PreviewController from "controllers/Ingest/PreviewController";
 import LoginController from "controllers/Login/LoginController";
-import DataPlatform from "screens/Redisenio/DataPlatform";
+import MarketplaceController from "controllers/Marketplace/controller";
+import DomainController from "controllers/Marketplace/DomainController";
+import AdminController from "controllers/Marketplace/AdminController";
+import ReportController from "controllers/Marketplace/ReportController";
+import OnboardingController from "controllers/Onboarding/controller";
+import FaqController from "controllers/Faq/controller";
+import ConceptosController from "controllers/Conceptos/controller";
 
 const msalInstance = new PublicClientApplication(msalConfig as Configuration);
 
@@ -94,9 +99,21 @@ const Router = () => {
                           element={<ProtectedRoute />}
                         > */}
                 <Route path="/" element={<LoginController />} />
-                <Route path="/rediseno" element={<DataPlatform />} />
                 <Route element={<AppLayout />}>
-                  <Route path="/introduccion" element={<MainController />} />
+                  <Route path="/home" element={<MainController />} />
+                  <Route path="/onboarding" element={<OnboardingController />} />
+                  <Route path="/faq" element={<FaqController />} />
+                  <Route path="/conceptos" element={<ConceptosController />} />
+                  <Route path="/marketplace" element={<MarketplaceController />} />
+                  <Route path="/marketplace/administracion" element={<AdminController />} />
+                  <Route
+                    path="/marketplace/:domainId"
+                    element={<DomainController />}
+                  />
+                  <Route
+                    path="/marketplace/:domainId/:reportId"
+                    element={<ReportController />}
+                  />
                   <Route path="/dashboard" element={<IngestController />} />
                   <Route
                     path="/dashboard/:envId"

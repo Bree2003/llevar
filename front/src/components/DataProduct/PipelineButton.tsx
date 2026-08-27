@@ -16,18 +16,19 @@ const PipelineButton = ({
       onClick={onRun}
       disabled={disabled || isLoading}
       className={`
-        flex items-center gap-2 px-4 py-2 rounded-lg border font-semibold text-sm transition-all shadow-sm
+        w-full group relative flex items-center justify-center gap-2.5 px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 shadow-sm
         ${
           isLoading || disabled
-            ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-            : "bg-white text-[--color-naranjo] border-[--color-naranjo] hover:bg-orange-50 active:scale-95"
+            ? "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed"
+            : "bg-white text-[#F46546] border-2 border-[#F46546] hover:bg-orange-50 hover:shadow-md active:scale-[0.98]" 
         }
       `}
     >
       {isLoading ? (
         <>
+          {/* Spinner de carga mejorado */}
           <svg
-            className="animate-spin h-4 w-4 text-[--color-naranjo]"
+            className="animate-spin h-5 w-5 text-white"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -50,24 +51,16 @@ const PipelineButton = ({
         </>
       ) : (
         <>
-          {/* Icono de Play / Engranaje */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
+            className="h-5 w-5 transition-transform group-hover:translate-x-0.5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
           >
             <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-            />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              fillRule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+              clipRule="evenodd"
             />
           </svg>
           <span>Reprocesar Producto</span>

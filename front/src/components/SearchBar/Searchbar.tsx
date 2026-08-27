@@ -52,7 +52,7 @@ const SearchBar = ({
       </div>
 
       {isFocused && searchTerm.length > 0 && (
-        <div className="absolute top-12 left-0 w-[400px] bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden animate-fadeIn">
+        <div className="absolute top-12 left-0 w-[400px] max-h-[400px] text-start bg-white rounded-lg shadow-xl border border-gray-100 overflow-y-auto animate-fadeIn">
           {suggestions.length > 0 ? (
             <ul>
               {suggestions.map((item) => (

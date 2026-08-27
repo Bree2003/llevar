@@ -1,12 +1,12 @@
 from google.cloud import dataform_v1beta1
 
 
-def run_dataform_workspace_all(project_id, location, repository_name, workspace="development"):
+def run_dataform_workspace_all(project_id, location, repository_name, workspace):
     """
     Replica el botón "Ejecutar -> Todo" de la consola de GCP dentro de un Workspace.
 
     Args:
-        repository_name (str): Nombre del repo (ej: 'df-notificaciones').
+        repository_name (str): Nombre del repo (ej: 'notificaciones').
         workspace (str): Nombre del workspace (ej: 'development').
     """
     client = dataform_v1beta1.DataformClient()

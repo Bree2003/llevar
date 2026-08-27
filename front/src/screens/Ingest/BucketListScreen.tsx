@@ -53,7 +53,7 @@ const BucketListScreen = ({
       <ProductCardGrid
 
         // Le pasamos el título dinámico
-        title={`Buckets de ${model?.environmentName || '...'}`}
+        title={`${model?.environmentName || '...'}`}
         // Le pasamos el array de strings
         items={model?.buckets || []}
         loading={isLoading}

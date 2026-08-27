@@ -2,11 +2,9 @@
 
 import { combineReducers } from "redux";
 import UserTokenReducer from "./userToken";
-import gcsDataReducer from "./gcsData"; // <-- IMPORTAMOS NUESTRO NUEVO REDUCER
 
 const reducers = combineReducers({
   UserPermissions: UserTokenReducer,
-  GcsData: gcsDataReducer, // <-- AÑADIMOS NUESTRO REDUCER AL ESTADO GLOBAL
 });
 
 export default reducers;

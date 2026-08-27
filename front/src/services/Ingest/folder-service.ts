@@ -9,6 +9,12 @@ export interface InitiateUploadResponse {
   finalPath: string;
 }
 
+export interface ProcessCuadraturaResponse {
+  message: string;
+  bq_table: string;
+  gcs_root?: string;
+}
+
 // 1. Obtener carpetas (Ya la tenías)
 export const getFoldersService = async (
   envId: string, 
@@ -39,6 +45,47 @@ export const initiateUploadService = async (
   return response?.data;
 };
 
+export const processCuadraturaUploadService = async (
+  envId: string,
+  bucketName: string,
+  destination: string,
+  fileName: string
+): Promise<ProcessCuadraturaResponse> => {
+  const body = {
+    env_id: envId,
+    bucket_name: bucketName,
+    destination,
+    fileName
+  };
+
+  const response = await AxiosPost("/api/storage/process-cuadratura-upload", body);
+  return response?.data;
+};
+
+export const uploadLargeFileAndCreateCuadraturaTable = async (
+  envId: string,
+  bucketName: string,
+  destinationPath: string,
+  file: File,
+  onProgress: (percent: number) => void
+): Promise<ProcessCuadraturaResponse> => {
+  const { sessionUrl, finalPath } = await initiateUploadService(
+    envId,
+    bucketName,
+    destinationPath,
+    file.name
+  );
+
+  await uploadFileDirectlyService(sessionUrl, file, onProgress);
+
+  // split finalPath => destination + fileName
+  const lastSlash = finalPath.lastIndexOf("/");
+  const destination = finalPath.substring(0, lastSlash);
+  const fileName = finalPath.substring(lastSlash + 1);
+
+  return await processCuadraturaUploadService(envId, bucketName, destination, fileName);
+};
+
 // 2. CAMINO PESADO: Subir a GCS (Igual que antes)
 export const uploadFileDirectlyService = async (
   sessionUrl: string,
@@ -46,7 +93,7 @@ export const uploadFileDirectlyService = async (
   onProgress: (percent: number) => void
 ): Promise<AxiosResponse> => {
   return await AxiosURLPut(sessionUrl, file, {
-    headers: { 'Content-Type': file.type },
+    headers: { "Content-Type": file.type || "text/csv" },
     onUploadProgress: (progressEvent) => {
       if (progressEvent.total) {
         const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);

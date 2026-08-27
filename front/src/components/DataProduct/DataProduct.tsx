@@ -70,7 +70,7 @@ export default function DataProduct({ products, loading, onProductClick }: DataP
     return (
         <div className="w-full text-left p-10">
             <h1 className="text-3xl text-[--color-naranjo] font-bold mb-10">
-                {loading ? <Skeleton width={400} /> : "Principales Dominios"}
+                {loading ? <Skeleton width={400} /> : "Principales dominios"}
             </h1>
             <div className="flex flex-wrap gap-5">
                 {loading ? (

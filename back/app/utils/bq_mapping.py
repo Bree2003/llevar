@@ -8,8 +8,11 @@ def resolve_bq_coordinates(project_id, product_name, table_name, bucket_name):
     bq_project_id = project_id
 
     # 2. El Dataset suele ser el nombre del producto (limpiando caracteres)
-    dataset_id = product_name.replace("-de-", "-")
-    dataset_id = product_name.replace("-", "_")
+    dataset_id = product_name
+    
+    dataset_id = dataset_id.replace("-de-", "-")
+    dataset_id = dataset_id.replace("_de_", "_")
+    dataset_id = dataset_id.replace("-", "_")
 
     # 3. La Tabla es el nombre de la subcarpeta
     table_id = table_name.replace("-", "_")

@@ -4,6 +4,7 @@ import { useSnackbar } from "notistack"; // Importamos notistack para feedback v
 
 import DatasetAdapter, { DatasetModel } from "models/Ingest/dataset-model";
 import {
+  downloadDatasetExcelService,
   getLatestDatasetPreviewService,
   saveDatasetDataService,
 } from "services/Ingest/dataset-service";
@@ -14,7 +15,7 @@ export interface EndpointStatus {
   error?: boolean;
 }
 
-export type EndpointName = "GetLatestDataset" | "SaveDataset"; // Agregamos SaveDataset
+export type EndpointName = "GetLatestDataset" | "SaveDataset" | "DownloadExcel";
 
 export interface UploadStateModel {
   currentFile: DatasetModel;
@@ -117,6 +118,27 @@ const PreviewController = () => {
     }
   };
 
+const handleDownloadExcel = async () => {
+  if (!envId || !bucketName || !productName || !tableName) return;
+
+  setEndpointStatus("DownloadExcel", { loading: true, error: false });
+
+  try {
+    await downloadDatasetExcelService(
+      envId,
+      bucketName,
+      productName,
+      tableName
+    );
+
+  } catch (e) {
+    console.error(e);
+    setEndpointStatus("DownloadExcel", { error: true });
+  } finally {
+    setEndpointStatus("DownloadExcel", { loading: false });
+  }
+};
+
   const handleBack = () => navigate(-1);
 
   return (
@@ -124,7 +146,8 @@ const PreviewController = () => {
       model={model}
       endpoints={endpoints}
       onBack={handleBack}
-      onSave={handleSaveData} // Pasamos la función al screen
+      onSave={handleSaveData} 
+      onDownloadExcel={handleDownloadExcel}
     />
   );
 };

@@ -1,15 +1,41 @@
+@import "tailwindcss";
+
 :root {
   --color-naranjo: #FF5B35;
   --color-grafito: #262626;
   --color-gris-oscuro: #4B4B4B;
   --color-gris-claro: #EDEDED;
+
+  /* Grupo 1 - Estados */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+
+  /* Grupo 2 - Texto */
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #64748B;
+  --color-text-muted: #94A3B8;
+
+  /* Grupo 3 - Accent */
+  --color-accent: #FF5F3F;
+  --color-accent-hover: #E04E32;
+  --color-accent-light: #FFF0ED;
+
+  /* Grupo 4 - Superficies */
+  --color-border: #E2E8F0;
+  --color-background: #F8FAFC; /* Fondo */
+  --color-surface-primary: #1F1F1F;
+  --color-surface-secondary: #2D2D2D;
+  --color-white: #FFFFFF; /* Fondo */
 }
 
-* {
-  margin: 0;
+body {
+  background-color: var(--color-background);
 }
 
 *, *::before, *::after {
+  margin: 0;
   box-sizing: border-box;
 }
 
@@ -30,14 +56,6 @@
     animation: App-logo-spin infinite 20s linear;
   }
 }
-
-/* .App-background {
-  background-image: url('/images/background-login.png');
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-attachment: fixed;
-} */
 
 .App-link {
   color: #61dafb;

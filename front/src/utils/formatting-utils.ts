@@ -1,14 +1,14 @@
 export const getValidSapModuleLabel = (bucketName: string): string | null => {
   if (!bucketName) return null;
-
-  const regex = /^raw-dev-ddo-([a-z]{2})-bucket$/;
+  
+  const regex = /^raw-[a-z0-9]+-ddo-([a-z]+)-bucket$/;
+  
   const match = bucketName.match(regex);
 
   if (match && match[1]) {
     return `Módulo ${match[1].toUpperCase()}`;
   }
 
-  // Si es "manual", "mts" (como bucket), o cualquier otra cosa rara, devuelve null
   return null; 
 };
 

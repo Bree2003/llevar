@@ -4,7 +4,6 @@ import rootReducer, { RootState } from './reducers';
 
 // <-- 2. Importar los tipos de TODAS las acciones síncronas de la aplicación
 import { UserTokenAction } from './models/userToken';
-import { GcsDataAction } from './models/gcsData';
 
 export const middlewares = [thunk];
 // @ts-ignore
@@ -18,7 +17,7 @@ const store = createStore(
 // --- SECCIÓN MODIFICADA ---
 
 // 3. Crear un tipo que sea la unión de todas nuestras acciones síncronas
-type AppAction = UserTokenAction | GcsDataAction;
+type AppAction = UserTokenAction;
 
 // 4. Definir AppDispatch explícitamente como un ThunkDispatch
 // Esto le dice a TypeScript: "Nuestro dispatch puede manejar thunks que operan

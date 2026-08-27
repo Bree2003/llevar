@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 
 import FolderAdapter, { FolderModel } from "models/Ingest/folder-model";
 import {
@@ -8,11 +8,11 @@ import {
   uploadFileDirectlyService,
   uploadSmallFileService,
   analyzeFileService,
-  runProductPipelineService, // Asegúrate de tener este import
+  runProductPipelineService,
+  uploadLargeFileAndCreateCuadraturaTable, 
 } from "services/Ingest/folder-service";
 import FolderListScreen from "screens/Ingest/FolderListScreen";
 
-// --- INTERFACES ---
 
 export interface EndpointStatus {
   loading?: boolean;
@@ -27,6 +27,13 @@ export interface FolderStateModel {
   bucketName: string;
   productName: string;
 }
+
+
+export interface UploadSuccessMessage {
+  c_storage?: string;
+  b_query?: string;
+}
+
 
 export interface UploadState {
   selectedTable: string;
@@ -44,9 +51,11 @@ export interface UploadState {
   isUploading: boolean;
   uploadProgress: number;
   uploadSuccess: boolean;
+  
+  uploadError: string | null; 
+  uploadMessage: UploadSuccessMessage | null;
 }
 
-// Nueva interfaz para mensajes de UI (sin usar alerts)
 export interface PipelineFeedback {
   type: "success" | "error" | "info" | null;
   message: string | null;
@@ -65,12 +74,16 @@ const initialUploadState: UploadState = {
   isUploading: false,
   uploadProgress: 0,
   uploadSuccess: false,
+  uploadError: null,
+  uploadMessage: null
 };
 
 const FolderListController = () => {
-  // 1. OBTENCIÓN DE DATOS DESDE LA URL
   const { envId, bucketName, productName } = useParams();
   const navigate = useNavigate();
+  const location = useLocation(); 
+  const isCuadraturaPath = location.pathname.includes('/cuadraturas/');
+  const [showCuadraturaModal, setShowCuadraturaModal] = useState(false);
 
   // --- ESTADOS ---
 
@@ -102,7 +115,6 @@ const FolderListController = () => {
     }
   }, [envId, bucketName, productName]);
 
-  // Limpiar mensajes de feedback después de unos segundos (Opcional, mejora UX)
   useEffect(() => {
     if (pipelineFeedback.message) {
       const timer = setTimeout(() => {
@@ -145,10 +157,9 @@ const FolderListController = () => {
     }
   };
 
-  // --- LÓGICA DE NEGOCIO: PIPELINE (REPROCESAR) ---
+  // --- LÓGICA DE NEGOCIO: PIPELINE ---
 
   const handleRunPipeline = async () => {
-    // Validamos que tengamos los datos necesarios de la URL
     if (!productName) {
       setPipelineFeedback({
         type: "error",
@@ -157,16 +168,11 @@ const FolderListController = () => {
       return;
     }
 
-    // Limpiamos estados previos
     setIsPipelineRunning(true);
     setPipelineFeedback({ type: "info", message: "Iniciando ejecución..." });
 
     try {
-      // PROYECTO: Como no viene en la URL, usamos el default o mapeamos según envId
-      // Si envId es 'sap', quizás el proyecto sea uno, si es 'pd' otro.
-      // Por ahora usamos el valor que definimos previamente.
       const PROJECT_ID = "cyt-dev-hq-osc-gcp";
-
       const response = await runProductPipelineService(productName, PROJECT_ID);
 
       if (response.status === 200) {
@@ -177,14 +183,12 @@ const FolderListController = () => {
       } else {
         setPipelineFeedback({
           type: "error",
-          message:
-            "El servidor respondió, pero hubo un problema iniciando el pipeline.",
+          message: "El servidor respondió, pero hubo un problema iniciando el pipeline.",
         });
       }
     } catch (e: any) {
       console.error("Pipeline Error:", e);
-      const errorMsg =
-        e.response?.data?.error || "Error de conexión con el servidor.";
+      const errorMsg = e.response?.data?.error || "Error de conexión con el servidor.";
       setPipelineFeedback({
         type: "error",
         message: errorMsg,
@@ -214,6 +218,26 @@ const FolderListController = () => {
     setUploadState((p) => ({ ...p, isNewTable: isNew }));
   };
 
+   const handleInitiateUpload = () => {
+    // Primero, una validación para asegurar que tenemos todo lo necesario.
+    if (!uploadState.file || !uploadState.selectedTable) {
+      alert("Por favor, selecciona un archivo y una tabla de destino.");
+      return;
+    }
+
+    if (isCuadraturaPath) {
+      // Si es la ruta de cuadratura, nos saltamos el wizard.
+      console.log("[Upload Flow] Ruta 'cuadratura' detectada. Subiendo archivo directamente...");
+      setShowCuadraturaModal(true);
+      handleFinalUpload();
+
+    } else {
+      // Si es cualquier otra ruta, iniciamos el wizard como siempre.
+      console.log("[Upload Flow] Ruta estándar. Iniciando el wizard...");
+      handleStartWizard();
+    }
+  };
+
   const handleStartWizard = () => {
     if (uploadState.file && uploadState.selectedTable) {
       setUploadState((p) => ({
@@ -221,6 +245,8 @@ const FolderListController = () => {
         isWizardOpen: true,
         currentStep: 1,
         uploadSuccess: false,
+        uploadError: null,
+        uploadMessage: null,
         stepData: null,
       }));
       loadStepData(1);
@@ -267,12 +293,10 @@ const FolderListController = () => {
 
       if (response.status === 200) {
         let data = response.data;
-
         let newSchemaData = uploadState.schemaData;
         if (step === 2 && data.columnas_encontradas) {
           newSchemaData = data.columnas_encontradas;
         }
-
         if (step === 1) {
           data = {
             ...data,
@@ -308,21 +332,25 @@ const FolderListController = () => {
     loadStepData(prev);
   };
 
+  // --- GESTIÓN DE SUBIDA FINAL ---
   const handleFinalUpload = async (metadataFromWizard?: any) => {
     const { file, selectedTable, isNewTable, schemaData } = uploadState;
 
-    if (!file || !selectedTable || !envId || !bucketName || !productName)
-      return;
+    if (!file || !selectedTable || !envId || !bucketName || !productName) return;
 
-    setUploadState((p) => ({ ...p, isUploading: true, uploadProgress: 0 }));
+    // Reseteamos estados
+    setUploadState((p) => ({ ...p, isUploading: true, uploadProgress: 0, uploadError: null, uploadMessage: null }));
 
     const SIZE_LIMIT = 300 * 1024 * 1024; // 300MB
     const destinationPath = `${productName}/${selectedTable}`;
 
     try {
-      if (file.size < SIZE_LIMIT) {
-        // Subida Rápida (Backend)
-        await uploadSmallFileService(
+      // La condición ahora es:
+      // USA EL BACKEND SI (NO es cuadratura)
+      // En todos los demás casos, usa la subida directa a GCS.
+      if (!isCuadraturaPath) {
+        // 1. Subida vía Backend (solo para flujos que NO son 'cuadratura')
+        const response = await uploadSmallFileService(
           envId,
           bucketName,
           destinationPath,
@@ -331,31 +359,84 @@ const FolderListController = () => {
           isNewTable ? metadataFromWizard : undefined,
           isNewTable ? schemaData : undefined
         );
+
+        if (response && response.status === 200) {
+          const successMsg = response.data;
+          setUploadState((p) => ({
+              ...p,
+              isUploading: false,
+              uploadSuccess: true,
+              uploadError: null,
+              uploadMessage: successMsg,
+            }));
+        } else {
+            throw new Error("El servidor no confirmó la subida.");
+        }
+
       } else {
-        // Subida Pesada (GCS Directo)
-        const initRes = await initiateUploadService(
-          envId,
-          bucketName,
-          destinationPath,
-          file.name
-        );
-        await uploadFileDirectlyService(initRes.sessionUrl, file, (pct) =>
+        // 2. Subida GCS Directa (se usará SIEMPRE para 'cuadratura' o para archivos grandes)
+      try {
+      const result = await uploadLargeFileAndCreateCuadraturaTable(
+        envId,
+        bucketName,
+        destinationPath,
+        file,
+        (pct) =>
           setUploadState((p) => ({ ...p, uploadProgress: pct }))
-        );
-      }
+      );
 
       setUploadState((p) => ({
         ...p,
         isUploading: false,
         uploadSuccess: true,
+        uploadError: null,
+        uploadMessage: {
+          c_storage: "Archivo subido correctamente a Cloud Storage",
+          b_query: result.bq_table
+        }
       }));
-    } catch (e) {
-      console.error(e);
-      setUploadState((p) => ({ ...p, isUploading: false }));
+
+      setShowCuadraturaModal(true);
+
+    } catch (e: any) {
+      setUploadState((p) => ({
+        ...p,
+        isUploading: false,
+        uploadSuccess: false,
+        uploadError: e?.message || "Error en subida o procesamiento de cuadratura",
+        uploadMessage: null
+      }));
+    }
+
+      }
+
+    } catch (e: any) {
+      console.error("Error crítico en upload:", e);
+      
+      let errorMsg = "Ocurrió un error inesperado al subir el archivo.";
+      
+      if (e.response && e.response.data) {
+          if (e.response.data.error) {
+              errorMsg = e.response.data.error;
+          } 
+          // Fallback por si acaso
+          else if (e.response.data.message) {
+              errorMsg = e.response.data.message;
+          }
+      } else if (e.message) {
+          errorMsg = e.message;
+      }
+
+      // Seteamos el estado de error
+      setUploadState((p) => ({
+        ...p,
+        isUploading: false,
+        uploadSuccess: false,
+        uploadError: errorMsg,
+        uploadMessage: null
+      }));
     }
   };
-
-  // --- RENDER ---
 
   return (
     <FolderListScreen
@@ -364,20 +445,20 @@ const FolderListController = () => {
       uploadState={uploadState}
       onSelectTable={handleSelectTableForPreview}
       onBack={handleBack}
-      // Props del Form
       onFileChange={handleFileChange}
       onTableChange={handleTableChange}
       setIsNewTable={handleSetIsNewTable}
-      onStartWizard={handleStartWizard}
-      // Props del Wizard
+      onStartWizard={handleInitiateUpload}
       onCloseWizard={handleCloseWizard}
       onNextStep={handleNextStep}
       onPrevStep={handlePrevStep}
       onFinalUpload={handleFinalUpload}
-      // Props Pipeline (NUEVAS)
       onRunPipeline={handleRunPipeline}
       isPipelineRunning={isPipelineRunning}
       pipelineFeedback={pipelineFeedback}
+      showCuadraturaModal={showCuadraturaModal}
+      setShowCuadraturaModal={setShowCuadraturaModal}
+
     />
   );
 };

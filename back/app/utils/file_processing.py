@@ -18,6 +18,8 @@ def read_file_to_dataframe(file):
             # 2. Dejamos una opción final con 'replace' por si es un archivo basura (como el del error 0x8d).
             attempts = [
                 # (encoding, separador, comportamiento_error)
+                ('utf-8', ',', 'strict'),
+                ('utf-8', ';', 'strict'),
                 ('utf-8-sig', ',', 'strict'),
                 ('utf-8-sig', ';', 'strict'),
                 ('latin-1', ',', 'strict'),
@@ -57,7 +59,7 @@ def read_file_to_dataframe(file):
             raise ValueError(f"No se pudo leer el archivo CSV. Último error: {last_error}")
 
         elif filename.endswith(('.xls', '.xlsx')):
-            return pd.read_excel(file, dtype=str)
+            return pd.read_excel(file, dtype=str, engine='calamine')
 
         elif filename.endswith('.parquet'):
             return pd.read_parquet(file)
