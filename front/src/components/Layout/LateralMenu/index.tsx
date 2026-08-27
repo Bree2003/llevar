@@ -15,132 +15,127 @@ import { useMemo, useState } from "react";
 import { domainUnits } from "data/domain-units";
 
 interface LateralMenuProps {
-    isOpen: boolean;
-    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const LateralMenu = ({
-    isOpen,
-    setIsOpen,
-}: LateralMenuProps) => {
+const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
+  const navigate = useNavigate();
+  const location = useLocation();
 
-    const navigate = useNavigate();
-    const location = useLocation();
+  const STORAGE_KEY = "admin_reports";
 
-    const STORAGE_KEY = "admin_reports";
+  const [expandedDomains, setExpandedDomains] = useState<
+    Record<string, boolean>
+  >({});
 
-    const [expandedDomains, setExpandedDomains] = useState<
-        Record<string, boolean>
-    >({});
+  const reports: Report[] = JSON.parse(
+    sessionStorage.getItem(STORAGE_KEY) || "[]",
+  );
 
+  const marketplaceTree = useMemo(() => {
+    const grouped = reports.reduce(
+      (acc, report) => {
+        if (!report.area) {
+          return acc;
+        }
 
-    const reports: Report[] = JSON.parse(
-        sessionStorage.getItem(STORAGE_KEY) || "[]"
+        if (!acc[report.area]) {
+          acc[report.area] = [];
+        }
+
+        acc[report.area].push(report);
+
+        return acc;
+      },
+      {} as Record<string, Report[]>,
     );
 
-    const marketplaceTree = useMemo(() => {
-        const grouped = reports.reduce(
-            (acc, report) => {
-                if (!report.area) {
-                    return acc;
-                }
+    return Object.entries(grouped)
+      .map(([domainId, reports]) => {
+        const domain = domainUnits.find((unit) => unit.id === domainId);
 
-                if (!acc[report.area]) {
-                    acc[report.area] = [];
-                }
+        if (!domain) {
+          return null;
+        }
 
-                acc[report.area].push(report);
+        return {
+          ...domain,
+          reports,
+        };
+      })
+      .filter(Boolean);
+  }, [reports]);
 
-                return acc;
-            },
-            {} as Record<string, Report[]>
-        );
+  if (location.pathname === "/home") {
+    return null;
+  }
 
-        return Object.entries(grouped)
-            .map(([domainId, reports]) => {
-                const domain = domainUnits.find(
-                    (unit) => unit.id === domainId
-                );
+  const menuItems = [
+    {
+      label: "Inicio",
+      icon: House,
+      path: "/home",
+      onClick: () => navigate("/home"),
+    },
+    {
+      label: "Ingestas",
+      icon: Database,
+      path: "/dashboard",
+      onClick: () => navigate("/dashboard"),
+    },
+    {
+      label: "Marketplace",
+      icon: Category,
+      path: "/marketplace",
+      onClick: () => navigate("/marketplace"),
+    },
+    {
+      label: "Administración",
+      icon: Setting,
+      path: "/marketplace/administracion",
+      onClick: () => navigate("/marketplace/administracion"),
+    },
+  ];
 
-                if (!domain) {
-                    return null;
-                }
+  const handleGcpConsoleClick = () => {
+    const envSuffix = process.env.REACT_APP_ENVIRONMENT || "dev";
 
-                return {
-                    ...domain,
-                    reports,
-                };
-            })
-            .filter(Boolean);
-    }, [reports]);
+    const gcpUrl =
+      envSuffix === "dev"
+        ? "https://console.cloud.google.com/welcome?project=cyt-dev-hq-osc-gcp"
+        : "https://console.cloud.google.com/welcome?project=cyt-prd-hq-osc-gcp";
 
-    if (location.pathname === "/home") {
-        return null;
-    }
+    window.open(gcpUrl, "_blank", "noopener, noreferrer");
+  };
 
-    const menuItems = [
-        {
-            label: "Inicio",
-            icon: House,
-            path: "/home",
-            onClick: () => navigate("/home")
-        },
-        {
-            label: "Ingestas",
-            icon: Database,
-            path: "/dashboard",
-            onClick: () => navigate("/dashboard")
-        },
-        {
-            label: "Marketplace",
-            icon: Category,
-            path: "/marketplace",
-            onClick: () => navigate("/marketplace")
-        },
-        {
-            label: "Administración",
-            icon: Setting,
-            path: "/marketplace/administracion",
-            onClick: () => navigate("/marketplace/administracion")
-        },
-    ];
-
-    const handleGcpConsoleClick = () => {
-        const envSuffix = process.env.REACT_APP_ENVIRONMENT || "dev";
-
-        const gcpUrl =
-            envSuffix === "dev"
-                ? "https://console.cloud.google.com/welcome?project=cyt-dev-hq-osc-gcp"
-                : "https://console.cloud.google.com/welcome?project=cyt-prd-hq-osc-gcp";
-
-        window.open(gcpUrl, "_blank", "noopener, noreferrer");
-    };
-
-
-    return (
-        <aside
-            className={`
-                h-full
-                flex-shrink-0
-        bg-[var(--color-white)]
-        text-[var(--color-text-secondary)]
-        font-semibold
-        flex flex-col justify-between
-        transition-all duration-300 ease-in-out
-        overflow-hidden
-        ${isOpen ? "w-[250px]" : "w-[60px]"}
-      `}
-        >
-            <nav className="p-3">
-                <div className="flex flex-col">
-                    {menuItems.map(({ label, icon: Icon, onClick, path }) => {
-                        const isActive = location.pathname === path;
-                        return (
-                            <button
-                                key={label}
-                                type="button"
-                                onClick={onClick}
-                                className={`
+  return (
+    <aside
+      className={`
+    h-full
+    flex-shrink-0
+    bg-[var(--color-white)]
+    text-[var(--color-text-secondary)]
+    font-semibold
+    flex
+    flex-col
+    transition-all
+    duration-300
+    ease-in-out
+    overflow-hidden
+    ${isOpen ? "w-[250px]" : "w-[60px]"}
+  `}
+    >
+      <nav className="p-3">
+        <div className="flex flex-col">
+          {menuItems.map(({ label, icon: Icon, onClick, path }) => {
+            const isActive = location.pathname === path;
+            return (
+              <button
+                key={label}
+                type="button"
+                onClick={onClick}
+                className={`
                 w-full
                 h-10
                 flex items-center
@@ -149,24 +144,22 @@ const LateralMenu = ({
                 ${isOpen ? "justify-start gap-3 px-1.5" : "px-1.5"}
                 ${isActive ? "bg-[--color-accent] text-white" : "hover:bg-[--color-accent-light] hover:text-[--color-accent]"}
                 `}
-                            >
-                                <Icon className="w-6 h-6" />
+              >
+                <Icon className="w-6 h-6" />
 
-                                {isOpen && (
-                                    <span className="text-sm font-semibold whitespace-nowrap">
-                                        {label}
-                                    </span>
-                                )}
+                {isOpen && (
+                  <span className="text-sm font-semibold whitespace-nowrap">
+                    {label}
+                  </span>
+                )}
+              </button>
+            );
+          })}
 
-                            </button>
-
-                        )
-                    })}
-
-                    <button
-                        type="button"
-                        onClick={handleGcpConsoleClick}
-                        className={`
+          <button
+            type="button"
+            onClick={handleGcpConsoleClick}
+            className={`
               w-full
               h-10
               flex items-center
@@ -176,159 +169,160 @@ const LateralMenu = ({
               transition-colors
               ${isOpen ? "justify-start gap-3 px-1.5" : "px-1.5"}
             `}
-                    >
+          >
+            <Cloud className="w-6 h-6 shrink-0" />
 
-                        <Cloud className="w-6 h-6 shrink-0" />
-
-                        {isOpen && (
-                            <span className="text-sm whitespace-nowrap">
-                                Consola GCP
-                            </span>
-                        )}
-
-                        {isOpen && <Export className="w-5 h-5 shrink-0" />}
-                    </button>
-                </div>
-            </nav>
-
-            {/* Marketplace Navigation */}
-            {location.pathname.startsWith("/marketplace") && isOpen && (
-                <div className="text-left p-3">
-
-                    {isOpen && (
-                        <h4 className="uppercase text-xs mb-3 text-[--color-text-muted]">
-                            Unidades de Negocio
-                        </h4>
-                    )}
-
-                    <div className="flex flex-col gap-1">
-
-                        {marketplaceTree.map((domain) => {
-                            if (!domain) {
-                                return null;
-                            }
-
-                            const isDomainActive =
-                                location.pathname ===
-                                `/marketplace/${domain.id}`;
-
-                            return (
-                                <div key={domain.id}>
-
-                                    {/* DOMAIN */}
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            navigate(
-                                                `/marketplace/${domain.id}`
-                                            )
-                                        }
-                                        className={`
-                                w-full
-                                flex
-                                items-center
-                                gap-2
-                                py-2
-                                px-2
-                                rounded-lg
-                                text-left
-                                transition-colors
-                                ${isDomainActive
-                                                ? "bg-[--color-accent-light] text-[--color-accent]"
-                                                : "hover:bg-[--color-background]"
-                                            }
-                            `}
-                                    >
-                                        <ArrowDown className=" w-4 h-4" />
-                                        <Folder className="w-5 h-5" />
-
-                                        {isOpen && (
-                                            <>
-                                                <span className="text-sm">
-                                                    {domain.name}
-                                                </span>
-                                            </>
-                                        )}
-                                    </button>
-
-                                    {/* REPORTS */}
-                                    {isOpen && (
-                                        <div className="ml-8 mt-1 flex flex-col gap-1">
-
-                                            {domain.reports.map((report) => {
-                                                const isReportActive =
-                                                    location.pathname ===
-                                                    `/marketplace/${domain.id}/${report.id}`;
-
-                                                return (
-                                                    <button
-                                                        key={report.id}
-                                                        type="button"
-                                                        onClick={() =>
-                                                            navigate(
-                                                                `/marketplace/${domain.id}/${report.id}`
-                                                            )
-                                                        }
-                                                        className={`
-                                                flex
-                                                items-center
-                                                gap-2
-                                                px-2
-                                                py-1
-                                                rounded-md
-                                                text-left
-                                                text-sm
-                                                transition-colors
-                                                ${isReportActive
-                                                                ? "bg-[--color-accent-light] text-[--color-accent]"
-                                                                : "hover:bg-[--color-background]"
-                                                            }
-                                            `}
-                                                    >
-                                                        <BarChart className="w-4 h-4" />
-
-                                                        <span className="truncate">
-                                                            {report.nombre}
-                                                        </span>
-                                                    </button>
-                                                );
-                                            })}
-
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
-
-                    </div>
-                </div>
+            {isOpen && (
+              <span className="text-sm whitespace-nowrap">Consola GCP</span>
             )}
 
-            <div className="border-t border-[var(--color-border)] flex justify-center items-center p-2">
-                <button
-                    type="button"
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="
-            w-10
-            h-10
-            flex
-            items-center
-            justify-center
-            rounded-lg
-            hover:bg-[--color-accent-light]
-            hover:text-[--color-accent]
-            transition-colors
-          "
-                >
-                    {isOpen ? (
-                        <Close className="w-10 h-10 shrink-0" />
-                    ) : (
-                        <Menu className="w-6 h-6 shrink-0" />
-                    )}
-                </button>
+            {isOpen && <Export className="w-5 h-5 shrink-0" />}
+          </button>
+        </div>
+      </nav>
+
+      {/* Ayuda y documentación */}
+      <div className="w-full border-t border-[var(--color-border)]">
+        <button
+          type="button"
+          onClick={() => navigate("/onboarding")}
+          className={`
+      w-full
+      h-14
+      flex
+      items-center
+      transition-colors
+      hover:bg-[--color-accent-light]
+      hover:text-[--color-accent]
+      ${isOpen ? "justify-start px-[18px]" : "justify-center"}
+    `}
+        >
+          {isOpen && (
+            <span className="text-sm font-semibold whitespace-nowrap">
+              Ayuda y documentación
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Marketplace Navigation */}
+      {location.pathname.startsWith("/marketplace") &&
+        isOpen &&
+        marketplaceTree.length > 0 && (
+          <div className="text-left p-3">
+            <h4 className="uppercase text-xs mb-3 text-[--color-text-muted]">
+              Unidades de Negocio
+            </h4>
+
+            <div className="flex flex-col gap-1">
+              {marketplaceTree.map((domain) => {
+                if (!domain) {
+                  return null;
+                }
+
+                const isDomainActive =
+                  location.pathname === `/marketplace/${domain.id}`;
+
+                return (
+                  <div key={domain.id}>
+                    {/* DOMAIN */}
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/marketplace/${domain.id}`)}
+                      className={`
+                  w-full
+                  flex
+                  items-center
+                  gap-2
+                  py-2
+                  px-2
+                  rounded-lg
+                  text-left
+                  transition-colors
+                  ${
+                    isDomainActive
+                      ? "bg-[--color-accent-light] text-[--color-accent]"
+                      : "hover:bg-[--color-background]"
+                  }
+                `}
+                    >
+                      <ArrowDown className="w-4 h-4" />
+                      <Folder className="w-5 h-5" />
+
+                      <span className="text-sm">{domain.name}</span>
+                    </button>
+
+                    {/* REPORTS */}
+                    <div className="ml-8 mt-1 flex flex-col gap-1">
+                      {domain.reports.map((report) => {
+                        const isReportActive =
+                          location.pathname ===
+                          `/marketplace/${domain.id}/${report.id}`;
+
+                        return (
+                          <button
+                            key={report.id}
+                            type="button"
+                            onClick={() =>
+                              navigate(`/marketplace/${domain.id}/${report.id}`)
+                            }
+                            className={`
+                        flex
+                        items-center
+                        gap-2
+                        px-2
+                        py-1
+                        rounded-md
+                        text-left
+                        text-sm
+                        transition-colors
+                        ${
+                          isReportActive
+                            ? "bg-[--color-accent-light] text-[--color-accent]"
+                            : "hover:bg-[--color-background]"
+                        }
+                      `}
+                          >
+                            <BarChart className="w-4 h-4" />
+
+                            <span className="truncate">{report.nombre}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-        </aside>
-    );
+          </div>
+        )}
+
+      {/* Botón abrir / cerrar menú */}
+      <div className="mt-auto w-full border-t border-[var(--color-border)] flex justify-center items-center p-2">
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="
+      w-10
+      h-10
+      flex
+      items-center
+      justify-center
+      rounded-lg
+      hover:bg-[--color-accent-light]
+      hover:text-[--color-accent]
+      transition-colors
+    "
+        >
+          {isOpen ? (
+            <Close className="w-10 h-10 shrink-0" />
+          ) : (
+            <Menu className="w-6 h-6 shrink-0" />
+          )}
+        </button>
+      </div>
+    </aside>
+  );
 };
 
 export default LateralMenu;
