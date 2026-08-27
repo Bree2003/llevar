@@ -215,84 +215,159 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
             </h4>
 
             <div className="flex flex-col gap-1">
-              {marketplaceTree.map((domain) => {
-                if (!domain) {
-                  return null;
-                }
-
-                const isDomainActive =
-                  location.pathname === `/marketplace/${domain.id}`;
-
-                return (
-                  <div key={domain.id}>
-                    {/* DOMAIN */}
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/marketplace/${domain.id}`)}
-                      className={`
-                  w-full
-                  flex
-                  items-center
-                  gap-2
-                  py-2
-                  px-2
-                  rounded-lg
-                  text-left
-                  transition-colors
-                  ${
-                    isDomainActive
-                      ? "bg-[--color-accent-light] text-[--color-accent]"
-                      : "hover:bg-[--color-background]"
+              <div className="flex flex-col gap-1">
+                {marketplaceTree.map((domain) => {
+                  if (!domain) {
+                    return null;
                   }
-                `}
-                    >
-                      <ArrowDown className="w-4 h-4" />
-                      <Folder className="w-5 h-5" />
 
-                      <span className="text-sm">{domain.name}</span>
-                    </button>
+                  const isDomainActive =
+                    location.pathname === `/marketplace/${domain.id}`;
 
-                    {/* REPORTS */}
-                    <div className="ml-8 mt-1 flex flex-col gap-1">
-                      {domain.reports.map((report) => {
-                        const isReportActive =
-                          location.pathname ===
-                          `/marketplace/${domain.id}/${report.id}`;
+                  const isExpanded = expandedDomains[domain.id] ?? false;
 
-                        return (
-                          <button
-                            key={report.id}
-                            type="button"
-                            onClick={() =>
-                              navigate(`/marketplace/${domain.id}/${report.id}`)
-                            }
+                  return (
+                    <div key={domain.id}>
+                      {/* DOMAIN */}
+                      <div
+                        className={`
+            w-full
+            flex
+            items-center
+            gap-1
+            py-1
+            px-1
+            rounded-lg
+            transition-colors
+            ${
+              isDomainActive
+                ? "bg-[--color-accent-light] text-[--color-accent]"
+                : "hover:bg-[--color-background]"
+            }
+          `}
+                      >
+                        {/* Flecha: SOLO expande / contrae */}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpandedDomains((prev) => ({
+                              ...prev,
+                              [domain.id]: !isExpanded,
+                            }))
+                          }
+                          className="
+              w-7
+              h-7
+              flex
+              items-center
+              justify-center
+              rounded-md
+              flex-shrink-0
+              hover:bg-[--color-accent-light]
+              transition-colors
+            "
+                          aria-label={
+                            isExpanded
+                              ? `Contraer ${domain.name}`
+                              : `Expandir ${domain.name}`
+                          }
+                          aria-expanded={isExpanded}
+                        >
+                          <ArrowDown
                             className={`
-                        flex
-                        items-center
-                        gap-2
-                        px-2
-                        py-1
-                        rounded-md
-                        text-left
-                        text-sm
-                        transition-colors
-                        ${
-                          isReportActive
-                            ? "bg-[--color-accent-light] text-[--color-accent]"
-                            : "hover:bg-[--color-background]"
-                        }
-                      `}
-                          >
-                            <BarChart className="w-4 h-4" />
+                w-4
+                h-4
+                transition-transform
+                duration-300
+                ${isExpanded ? "rotate-90" : "rotate-0"}
+              `}
+                          />
+                        </button>
 
-                            <span className="truncate">{report.nombre}</span>
-                          </button>
-                        );
-                      })}
+                        {/* Carpeta + nombre: REDIRECCIONA */}
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/marketplace/${domain.id}`)}
+                          className="
+              flex
+              items-center
+              gap-2
+              flex-1
+              min-w-0
+              py-1
+              text-left
+            "
+                        >
+                          <Folder className="w-5 h-5 flex-shrink-0" />
+
+                          <span className="text-sm truncate">
+                            {domain.name}
+                          </span>
+                        </button>
+                      </div>
+
+                      {/* REPORTS */}
+                      <div
+                        className={`
+            grid
+            transition-all
+            duration-300
+            ease-in-out
+            ${
+              isExpanded
+                ? "grid-rows-[1fr] opacity-100"
+                : "grid-rows-[0fr] opacity-0"
+            }
+          `}
+                      >
+                        <div className="overflow-hidden">
+                          <div className="ml-8 mt-1 flex flex-col gap-1">
+                            {domain.reports.map((report) => {
+                              const isReportActive =
+                                location.pathname ===
+                                `/marketplace/${domain.id}/${report.id}`;
+
+                              return (
+                                <button
+                                  key={report.id}
+                                  type="button"
+                                  onClick={() =>
+                                    navigate(
+                                      `/marketplace/${domain.id}/${report.id}`,
+                                    )
+                                  }
+                                  className={`
+                      flex
+                      items-center
+                      gap-2
+                      px-2
+                      py-1.5
+                      rounded-md
+                      text-left
+                      text-sm
+                      transition-colors
+                      ${
+                        isReportActive
+                          ? "bg-[--color-accent-light] text-[--color-accent]"
+                          : "hover:bg-[--color-background]"
+                      }
+                    `}
+                                >
+                                  <BarChart className="w-4 h-4 flex-shrink-0" />
+
+                                  <span className="truncate">
+                                    {report.nombre}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
