@@ -6,7 +6,7 @@ import { ReactComponent as ArrowUp } from "components/Global/Icons/arrow-up.svg"
 const OnboardingScreen = () => {
   const navigate = useNavigate();
 
-  const PLACEHOLDER_IMAGE = "/images/placeholder.png";
+  const PLACEHOLDER_IMAGE = "/images/video-introductorio.png";
 
   const handleDownloadManual = () => {
     const link = document.createElement("a");
@@ -21,25 +21,25 @@ const OnboardingScreen = () => {
 
   const learning_items = [
     {
-      img: PLACEHOLDER_IMAGE,
+      img: "/images/explora-data.png",
       title: "Explora el Data Marketplace",
       description:
         "Descubre cómo encontrar reportes certificados y productos de datos para apoyar la toma de decisiones",
     },
     {
-      img: PLACEHOLDER_IMAGE,
+      img: "/images/indicadores.png",
       title: "Comprende los indicadores clave",
       description:
         "Aprende a interpretar métricas, KPIs y conceptos que te ayudarán a entender mejor el desempeño del negocio",
     },
     {
-      img: PLACEHOLDER_IMAGE,
+      img: "/images/accesos.png",
       title: "Gestiona accesos y permisos",
       description:
         "Conoce cómo solicitar acceso a información y recursos según tus necesidades",
     },
     {
-      img: PLACEHOLDER_IMAGE,
+      img: "/images/administrar.png",
       title: "Administra y actualiza datos",
       description:
         "Aprende a cargar, modificar y mantener información crítica para asegurar datos confiables y actualizados",
@@ -183,9 +183,7 @@ const OnboardingScreen = () => {
         "
               >
                 Ver video introductorio
-                <span className="w-5 h-5 rounded-full border border-white flex items-center justify-center text-xs">
-                  ▶
-                </span>
+                <img src="/images/play-circle.png" alt="play-circle" className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -210,22 +208,20 @@ const OnboardingScreen = () => {
             gap-4
             py-5
 
-            ${
-              index !== learning_items.length - 1
-                ? "border-b border-[--color-border]"
-                : ""
-            }
+            ${index !== learning_items.length - 1
+                      ? "border-b border-[--color-border]"
+                      : ""
+                    }
 
             md:px-6
 
             xl:py-0
             xl:border-b-0
 
-            ${
-              index !== learning_items.length - 1
-                ? "xl:border-r xl:border-[--color-border]"
-                : ""
-            }
+            ${index !== learning_items.length - 1
+                      ? "xl:border-r xl:border-[--color-border]"
+                      : ""
+                    }
 
             ${index === 0 ? "md:pl-0 xl:pl-0" : ""}
 
@@ -337,10 +333,9 @@ const OnboardingScreen = () => {
                   gap-4
                   md:gap-5
                   w-full
-                  ${
-                    index !== next_steps.length - 1
-                      ? "xl:border-r xl:border-[--color-border] xl:pr-8"
-                      : ""
+                  ${index !== next_steps.length - 1
+                    ? "xl:border-r xl:border-[--color-border] xl:pr-8"
+                    : ""
                   }
                 `}
               >
@@ -415,9 +410,9 @@ const OnboardingScreen = () => {
 
             <a
               href="mailto:pedir-correo-soporte@conchaytoro.cl"
-              className="text-sm md:text-base text-[--color-accent] font-semibold hover:underline"
+              className="text-sm md:text-base text-[--color-info] font-semibold hover:underline"
             >
-              pedir-correo-soporte@conchaytoro.cl
+              placeholder@conchaytoro.cl
             </a>
           </div>
         </section>

@@ -255,7 +255,7 @@ const DomainScreen = ({ onDownloadExcel }: DomainScreenProps) => {
                     "
                     >
                       <Download className="w-5 h-5 flex-shrink-0" />
-                      Descargar Excel
+                      Descargar Archivo
                     </button>
 
                     {/* Ver reporte */}
@@ -273,7 +273,7 @@ const DomainScreen = ({ onDownloadExcel }: DomainScreenProps) => {
                       px-3
                       rounded-lg
                       text-[--color-accent]
-                      font-medium
+                      font-semibold
                       uppercase
                       text-sm
                       hover:bg-[--color-accent-light]

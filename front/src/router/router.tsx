@@ -4,7 +4,6 @@ import {
   Route,
   Routes,
   Outlet,
-  Navigate,
   useNavigate,
 } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
@@ -13,7 +12,6 @@ import commonTheme from "themes/common-theme";
 import { Provider } from "react-redux";
 import store from "../store/store";
 import UserTokenPermission from "modules/tokenPermission/components/userTokenPermission";
-import { useAppSelector } from "store/hooks/redux-hooks";
 
 import MainController from "controllers/Main/controller";
 
@@ -56,103 +54,88 @@ const NotFoundRedirectRoute = () => {
   return <></>;
 };
 
-const ProtectedRoute = ({ perm }: { perm?: string }) => {
-  const { user } = useAppSelector((state) => state.UserPermissions);
-  const roles = user.roles;
-  if (user !== undefined && roles.length > 0) {
-    const isAppUser = roles.includes("user");
-    if (perm !== undefined) {
-      const isPerm = roles.includes(perm);
-      if (isAppUser === true && isPerm === true) {
-        return <Outlet />;
-      } else {
-        return <Navigate to="/401" />;
-      }
-    }
-    if (isAppUser === true) {
-      return <Outlet />;
-    }
-  }
-  return <Navigate to="/401" />;
+const ProtectedRoute = () => {
+  return <Outlet />;
 };
 
 const Router = () => {
   return (
-    // <MsalProvider instance={msalInstance}>
-    <ThemeProvider theme={commonTheme}>
-      {/* <AuthenticatedTemplate> */}
-      {/* <AcquireToken> */}
-      <Provider store={store}>
-        {/* <UserTokenPermission> */}
-        <BrowserRouter>
-          <SnackbarProvider
-            maxSnack={5}
-            dense
-            anchorOrigin={{ vertical: "top", horizontal: "right" }}
-          >
-            <div className="App App-background">
-              <Routes>
-                <Route path="401" element={<NotAuthorizedScreen />} />
-                <Route path="404" element={<NotFoundScreen />} />
-                {/* <Route
+    <MsalProvider instance={msalInstance}>
+      <ThemeProvider theme={commonTheme}>
+        <AuthenticatedTemplate>
+          <AcquireToken>
+            <Provider store={store}>
+              <UserTokenPermission>
+                <BrowserRouter>
+                  <SnackbarProvider
+                    maxSnack={5}
+                    dense
+                    anchorOrigin={{ vertical: "top", horizontal: "right" }}
+                  >
+                    <div className="App App-background">
+                      <Routes>
+                        <Route path="401" element={<NotAuthorizedScreen />} />
+                        <Route path="404" element={<NotFoundScreen />} />
+                        <Route
                           path="/"
                           element={<ProtectedRoute />}
-                        > */}
-                <Route path="/" element={<LoginController />} />
-                <Route element={<AppLayout />}>
-                  <Route path="/home" element={<MainController />} />
-                  <Route path="/onboarding" element={<OnboardingController />} />
-                  <Route path="/faq" element={<FaqController />} />
-                  <Route path="/conceptos" element={<ConceptosController />} />
-                  <Route path="/marketplace" element={<MarketplaceController />} />
-                  <Route path="/marketplace/administracion" element={<AdminController />} />
-                  <Route
-                    path="/marketplace/:domainId"
-                    element={<DomainController />}
-                  />
-                  <Route
-                    path="/marketplace/:domainId/:reportId"
-                    element={<ReportController />}
-                  />
-                  <Route path="/dashboard" element={<IngestController />} />
-                  <Route
-                    path="/dashboard/:envId"
-                    element={<BucketListController />}
-                  />
-                  <Route
-                    path="/dashboard/:envId/:bucketName/products"
-                    element={<ProductListController />}
-                  />
-                  <Route
-                    path="/dashboard/:envId/:bucketName/:productName/folders"
-                    element={<FolderListController />}
-                  />
-                  <Route
-                    path="/dashboard/:envId/:bucketName/:productName/:tableName/table"
-                    element={<PreviewController />}
-                  />
-                </Route>
-                {/* </Route> */}
-                <Route path="/logout" element={<Logout />} />
-                <Route path="*" element={<NotFoundRedirectRoute />} />
-              </Routes>
-            </div>
-          </SnackbarProvider>
-        </BrowserRouter>
-        {/* </UserTokenPermission> */}
-      </Provider>
-      {/* </AcquireToken> */}
-      {/* </AuthenticatedTemplate> */}
-      {/* <UnauthenticatedTemplate>
+                        >
+                          <Route path="/" element={<MainController />} />
+                          <Route element={<AppLayout />}>
+                            <Route path="/home" element={<MainController />} />
+                            <Route path="/onboarding" element={<OnboardingController />} />
+                            <Route path="/faq" element={<FaqController />} />
+                            <Route path="/conceptos" element={<ConceptosController />} />
+                            <Route path="/marketplace" element={<MarketplaceController />} />
+                            <Route path="/marketplace/administracion" element={<AdminController />} />
+                            <Route
+                              path="/marketplace/:domainId"
+                              element={<DomainController />}
+                            />
+                            <Route
+                              path="/marketplace/:domainId/:reportId"
+                              element={<ReportController />}
+                            />
+                            <Route path="/dashboard" element={<IngestController />} />
+                            <Route
+                              path="/dashboard/:envId"
+                              element={<BucketListController />}
+                            />
+                            <Route
+                              path="/dashboard/:envId/:bucketName/products"
+                              element={<ProductListController />}
+                            />
+                            <Route
+                              path="/dashboard/:envId/:bucketName/:productName/folders"
+                              element={<FolderListController />}
+                            />
+                            <Route
+                              path="/dashboard/:envId/:bucketName/:productName/:tableName/table"
+                              element={<PreviewController />}
+                            />
+                          </Route>
+                        </Route>
+                        <Route path="/logout" element={<Logout />} />
+                        <Route path="*" element={<NotFoundRedirectRoute />} />
+                      </Routes>
+                    </div>
+                  </SnackbarProvider>
+                </BrowserRouter>
+              </UserTokenPermission>
+            </Provider>
+          </AcquireToken>
+        </AuthenticatedTemplate>
+        <UnauthenticatedTemplate>
           <BrowserRouter>
             <Routes>
-              <Route path="/loggedout" element={<LogoutScreen />} /> */}
-      {/* <Route path="*" element={<Login />} /> */}
-      {/* </Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/loggedout" element={<LogoutScreen />} />
+              <Route path="*" element={<LoginController />} />
+            </Routes>
           </BrowserRouter>
-        </UnauthenticatedTemplate> */}
-    </ThemeProvider>
-    // </MsalProvider>
+        </UnauthenticatedTemplate>
+      </ThemeProvider>
+    </MsalProvider>
   );
 };
 

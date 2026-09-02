@@ -1,9 +1,16 @@
+export interface UserTokenDataModel {
+  name: string;
+  active: boolean;
+}
+
 export interface UserTokenModel {
   username: string;
   name: string;
   surname: string;
-  roles: string[];
   email: string;
+  domains: UserTokenDataModel[];
+  permissions: UserTokenDataModel[];
+  active: boolean;
 }
 
 export type UserTokenState = {

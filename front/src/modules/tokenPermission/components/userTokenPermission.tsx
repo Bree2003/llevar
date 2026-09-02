@@ -6,6 +6,7 @@ import {
   UserTokenModel,
   UserTokenToModel,
 } from "../models/user-token.model";
+import loadUserPermissions from "../services/get-user-permissions";
 import {
   setUserTokenLoading,
   setUserToken,
@@ -26,15 +27,17 @@ export const UserTokenPermission = ({ children }: { children: ReactElement }) =>
   };
 
   useEffect(() => {
-    loadUserPermissions();
+    getUserPermissions();
   }, []);
 
-  const loadUserPermissions = async () => {
+  const getUserPermissions = async () => {
     await setUserTokenLoading();
     try {
       const token = await getOnSessionStorage('accessToken');
+      const userPermissions = await loadUserPermissions();
       const userTokenPermission: UserTokenModel = await UserTokenToModel(
-        token
+        token,
+        userPermissions
       );
       await saveUserToken(userTokenPermission);
     } catch (e) {

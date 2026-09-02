@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { ReactComponent as Logo } from 'components/Global/Iconslogo.svg';
 import { SvgIcon } from "@mui/material";
 import { SvgIconProps } from "@mui/material/SvgIcon/SvgIcon";
 
@@ -62,8 +61,7 @@ const LogoProperties = {
 
 const LogoIcon = (props: SvgIconProps) => {
     return (
-        <SvgIcon viewBox="0 0 74 28" {...props}>
-            <Logo />
+        <SvgIcon viewBox="0 0 74 28" {...props}>s
         </SvgIcon>
     )
 }

@@ -272,14 +272,13 @@ const FaqScreen = () => {
                     text-xs
                     md:text-sm
                     transition-all
-                    ${
-                      isActive
-                        ? `
+                    ${isActive
+                      ? `
                           bg-[--color-accent]
                           border-[--color-accent]
                           text-white
                         `
-                        : `
+                      : `
                           bg-white
                           border-[--color-border]
                           text-[--color-text-secondary]
@@ -317,10 +316,9 @@ const FaqScreen = () => {
                     key={faq.originalIndex}
                     className={`
                       w-full
-                      ${
-                        index !== filteredFaqs.length - 1
-                          ? "border-b border-[--color-border]"
-                          : ""
+                      ${index !== filteredFaqs.length - 1
+                        ? "border-b border-[--color-border]"
+                        : ""
                       }
                     `}
                   >
@@ -340,10 +338,9 @@ const FaqScreen = () => {
                         py-4
                         md:py-5
                         transition-colors
-                        ${
-                          isOpen
-                            ? "bg-[--color-accent-light]"
-                            : "bg-white hover:bg-[--color-background]"
+                        ${isOpen
+                          ? "bg-[--color-accent-light]"
+                          : "bg-white hover:bg-[--color-background]"
                         }
                       `}
                     >
@@ -368,10 +365,9 @@ const FaqScreen = () => {
                           flex-shrink-0
                           transition-transform
                           duration-300
-                          ${
-                            isOpen
-                              ? "rotate-0 text-[--color-accent]"
-                              : "rotate-180 text-[--color-text-secondary]"
+                          ${isOpen
+                            ? "rotate-0 text-[--color-accent]"
+                            : "rotate-180 text-[--color-text-secondary]"
                           }
                         `}
                       />
@@ -440,32 +436,6 @@ const FaqScreen = () => {
             </div>
           )}
         </section>
-
-        {/* Footer */}
-        <footer
-          className="
-            w-full
-            border-t
-            border-[--color-border]
-            py-5
-            flex
-            flex-col
-            md:flex-row
-            gap-3
-            justify-between
-            text-xs
-            text-[--color-text-muted]
-            uppercase
-          "
-        >
-          <span>
-            © 2026 Viña Concha y Toro - Plataforma Inteligente de Datos
-          </span>
-
-          <span>
-            Impulsando decisiones basadas en datos en toda la organización
-          </span>
-        </footer>
 
         <Agent />
       </div>

@@ -12,8 +12,10 @@ const initialState: UserTokenState = {
     username: "",
     name: "",
     surname: "",
-    roles: [],
     email: "",
+    domains: [],
+    permissions: [],
+    active: false,
   },
   loading: true,
 };
@@ -29,8 +31,10 @@ const UserTokenReducer = (
           username: action.payload.username,
           name: action.payload.name,
           surname: action.payload.surname,
-          roles: action.payload.roles,
           email: action.payload.email,
+          domains: action.payload.domains,
+          permissions: action.payload.permissions,
+          active: action.payload.active,
         };
         return { user: UserToken, loading: false };
       } else {

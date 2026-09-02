@@ -10,10 +10,11 @@ export const msalConfig = {
     authority: `https://login.microsoftonline.com/${TENANT}`,
     redirectUri: FRONT_HOST,
     postLogoutRedirectUri: `${FRONT_HOST}/loggedout`,
+    navigateToLoginRequestUrl: false,
   },
   cache: {
     cacheLocation: "sessionStorage",
-    storeAuthStateCookie: false,
+    storeAuthStateInCookie: false,
   },
   system: {
     tokenRenewalOffsetSeconds: 300,

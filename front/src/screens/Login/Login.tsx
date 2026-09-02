@@ -1,17 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Login.css';
 
-// --- 1. Las props se mantienen idénticas ---
-interface LoginScreenProps {
-  isLoading?: boolean;
-  onLoginClick: () => void;
-}
+const LoginScreen = () => {
+  const navigate = useNavigate();
 
-const LoginScreen = ({ isLoading, onLoginClick }: LoginScreenProps) => {
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log("Iniciando sesión...");
-  };
   return (
     <div className="flex text-left h-screen w-full overflow-hidden bg-white font-sans text-gray-800">
 
@@ -51,13 +44,14 @@ const LoginScreen = ({ isLoading, onLoginClick }: LoginScreenProps) => {
           </div>
 
           {/* Botón Microsoft */}
-          <a href="/home">
-            <button className="flex h-14 w-full items-center justify-center gap-3 rounded-lg bg-[#2F2F2F] text-base font-medium text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-[#111] hover:shadow-lg">
-              {/* <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft Logo" width="22" /> */}
-              Iniciar sesión
-              {/* con Microsoft */}
-            </button>
-          </a>
+          <button
+            className="flex h-14 w-full items-center justify-center gap-3 rounded-lg bg-[#2F2F2F] text-base font-medium text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-[#111] hover:shadow-lg"
+            onClick={() => navigate('/login')}
+          >
+            {/* <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" alt="Microsoft Logo" width="22" /> */}
+            Iniciar sesión
+            {/* con Microsoft */}
+          </button>
 
           {/* Separador */}
           <div className="my-10 flex items-center text-center text-xs font-medium uppercase tracking-widest text-gray-400 before:mr-4 before:flex-1 before:border-b before:border-gray-200 after:ml-4 after:flex-1 after:border-b after:border-gray-200">

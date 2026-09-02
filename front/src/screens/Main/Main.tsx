@@ -1,10 +1,12 @@
 import { useNavigate } from "react-router-dom";
+import { useAppSelector } from "store/hooks/redux-hooks";
 import Agent from "../../components/Agent/Agent";
 import { ReactComponent as Download } from "components/Global/Icons/download.svg";
 import { ReactComponent as ArrowUp } from "components/Global/Icons/arrow-up.svg";
 import BannerCarousel from "components/BannerCarousel/BannerCarousel";
 
 const MainScreen = () => {
+  const { user } = useAppSelector((state) => state.UserPermissions);
   const navigate = useNavigate();
 
   const handleGcpConsoleClick = () => {
@@ -108,7 +110,7 @@ const MainScreen = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-16 items-center">
             <div className="flex flex-col justify-center">
               <h2 className="text-xl md:text-2xl pb-4">
-                <strong>Hola, Brisa 👋</strong>
+                <strong>Hola, {`${user.name} ${user.surname}`} 👋</strong>
               </h2>
               <h1 className="text-4xl md:text-4xl xl:text-6xl leading-tight pb-6">
                 <strong>
@@ -173,183 +175,12 @@ const MainScreen = () => {
         </section>
 
         {/* Capacities */}
-        <div className="w-full py-5">
-          <h2 className="text-2xl pb-12">
-            <strong>Explora las capacidades de la plataforma</strong>
-          </h2>
-          <div className="flex w-full gap-5">
-            {/* Gestión de datos */}
-            <div className="border-2 rounded-xl p-5 border-[--color-border] bg-white">
-              <div className="flex w-full gap-4 items-center mb-4">
-                <img
-                  src="/images/capacities-gestion.png"
-                  alt="Gestión de datos"
-                  className="h-10"
-                />
-                <h2 className="text-2xl">
-                  <strong>Gestión de datos</strong>
-                </h2>
-                <hr className="border-2 border-[--color-accent] flex-1" />
-              </div>
-              <div className="flex w-full gap-4">
-                {/* Ingesta de datos */}
-                <div className="flex flex-col border rounded-xl border-[--color-border] p-5 w-96 h-[557px]">
-                  <img
-                    src="/images/ingesta-datos.png"
-                    alt="Ingesta de datos"
-                    className="h-60 mb-2"
-                  />
-                  <div className="flex flex-col justify-between flex-1">
-                    <div>
-                      <h3 className="text-xl pb-2">
-                        <strong>Ingesta de datos</strong>
-                      </h3>
-                      <p className="text-[--color-text-secondary]">
-                        Incorpora y actualiza información crítica del negocio de
-                        manera simple y controlada para mantener la operación
-                        siempre conectada con datos confiables
-                      </p>
-                    </div>
-                    <div>
-                      <div className="flex gap-4 my-4 items-center bg-[--color-background] rounded-full px-[10px] py-[6px]">
-                        <img
-                          src="/images/profile.png"
-                          alt="Personas"
-                          className="h-5"
-                        />
-                        <span className="text-[--color-text-secondary]">
-                          Para quienes construyen y mantienen productos de datos
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => navigate("/dashboard")}
-                        className="flex gap-4 bg-[--color-accent] rounded-[10px] px-5 py-[10px] items-center justify-center w-full"
-                      >
-                        <p className="uppercase text-white">
-                          <strong>Ir a ingestas</strong>
-                        </p>
-                        <ArrowUp className="w-4 h-4 text-white" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                {/* Administración de plataforma */}
-                <div className="flex flex-col border rounded-xl border-[--color-border] p-5 w-96 h-[557px]">
-                  <img
-                    src="/images/admin-platform.png"
-                    alt="Administración de plataforma"
-                    className="h-60 mb-2"
-                  />
-                  <div className="flex flex-col justify-between flex-1">
-                    <div>
-                      <h3 className="text-xl pb-2">
-                        <strong>Administración de plataforma</strong>
-                      </h3>
-                      <p className="text-[--color-text-secondary]">
-                        Accede a los servicios que habilitan la operación de la
-                        Plataforma Inteligente de Datos y gestiona sus
-                        componentes tecnológicos
-                      </p>
-                    </div>
-                    <div>
-                      <div className="flex gap-4 my-4 items-center bg-[--color-background] rounded-full px-[10px] py-[6px]">
-                        <img
-                          src="/images/profile.png"
-                          alt="Personas"
-                          className="h-5"
-                        />
-                        <span className="text-[--color-text-secondary]">
-                          Para equipos de datos y administración de plataforma
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleGcpConsoleClick}
-                        className="flex gap-4 bg-[--color-accent] rounded-[10px] px-5 py-[10px] items-center justify-center w-full"
-                      >
-                        <p className="uppercase text-white">
-                          <strong>Acceder consola</strong>
-                        </p>
-                        <ArrowUp className="w-4 h-4 text-white" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            {/* Explotación de datos */}
-            <div className="border-2 rounded-xl p-5 border-[--color-border] bg-white">
-              <div className="flex w-full gap-4 items-center mb-4">
-                <img
-                  src="/images/capacities-gestion.png"
-                  alt="Gestión de datos"
-                  className="h-10"
-                />
-                <h2 className="text-2xl">
-                  <strong>Explotación de datos</strong>
-                </h2>
-                <hr className="border-2 border-[--color-accent] flex-1" />
-              </div>
-              <div className="flex w-full">
-                {/* Data Marketplace */}
-                <div className="flex flex-col border rounded-xl border-[--color-border] p-5 w-96 h-[557px]">
-                  <img
-                    src="/images/ingesta-datos.png"
-                    alt="Ingesta de datos"
-                    className="h-60 mb-2"
-                  />
-                  <div className="flex flex-col justify-between flex-1">
-                    <div>
-                      <h3 className="text-xl pb-2">
-                        <strong>Data Marketplace</strong>
-                      </h3>
-                      <p className="text-[--color-text-secondary]">
-                        Tu puerta de entrada a información certificada, insights
-                        relevantes y decisiones basadas en datos
-                      </p>
-                    </div>
-                    <div>
-                      <div className="flex gap-4 my-4 items-center bg-[--color-background] rounded-full px-[10px] py-[6px]">
-                        <img
-                          src="/images/profile.png"
-                          alt="Personas"
-                          className="h-5"
-                        />
-                        <span className="text-[--color-text-secondary]">
-                          Para quienes exploran información, analizan resultados
-                          y toman decisiones
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => navigate("/marketplace")}
-                        className="flex gap-4 bg-[--color-accent] rounded-[10px] px-5 py-[10px] items-center justify-center w-full"
-                      >
-                        <p className="uppercase text-white">
-                          <strong>Acceder marketplace</strong>
-                        </p>
-                        <ArrowUp className="w-4 h-4 text-white" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Capacities */}
         <section className="w-full py-8 md:py-12">
           <h2 className="text-2xl md:text-3xl pb-8 md:pb-12">
             <strong>Explora las capacidades de la plataforma</strong>
           </h2>
 
-          {/* Contenedor de capacidades */}
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 w-full">
-            {/* =========================
-        Gestión de datos
-    ========================== */}
             <div className="xl:col-span-2 border-2 rounded-xl p-4 md:p-5 border-[--color-border] bg-white w-full">
               {/* Header */}
               <div className="flex w-full gap-3 md:gap-4 items-center mb-5">
@@ -366,7 +197,6 @@ const MainScreen = () => {
                 <hr className="border border-[--color-accent] flex-1" />
               </div>
 
-              {/* Cards Gestión */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 w-full">
                 {/* Ingesta de datos */}
                 <div className="flex flex-col border rounded-xl border-[--color-border] p-4 md:p-5 w-full min-h-[500px]">
@@ -474,14 +304,11 @@ const MainScreen = () => {
               </div>
             </div>
 
-            {/* =========================
-        Explotación de datos
-    ========================== */}
             <div className="xl:col-span-1 border-2 rounded-xl p-4 md:p-5 border-[--color-border] bg-white w-full">
               {/* Header */}
               <div className="flex w-full gap-3 md:gap-4 items-center mb-5">
                 <img
-                  src="/images/capacities-gestion.png"
+                  src="/images/explotacion.png"
                   alt="Explotación de datos"
                   className="h-8 md:h-10 w-auto flex-shrink-0"
                 />
@@ -511,8 +338,7 @@ const MainScreen = () => {
                     </h3>
 
                     <p className="text-[--color-text-secondary]">
-                      Tu puerta de entrada a información certificada, insights
-                      relevantes y decisiones basadas en datos
+                      Tu puerta de entrada a información certificada, insights relevantes y decisiones basadas en datos para tu gestión diaria
                     </p>
                   </div>
 
@@ -549,44 +375,6 @@ const MainScreen = () => {
         </section>
 
         {/* Siguientes pasos */}
-        <div className="w-full py-5">
-          <h2 className="text-2xl pb-4">
-            <strong>Te acompañamos en cada paso</strong>
-          </h2>
-          <p className="text-xl pb-12 text-[--color-text-secondary]">
-            Accede a guías, recursos y conocimientos que te ayudarán a
-            aprovechar al máximo la Plataforma Inteligente de Datos
-          </p>
-          <div className="flex w-full justify-between gap-4">
-            {next_steps.map((card, index) => (
-              <div key={index} className="flex justify-between gap-4">
-                <img src={card.img} alt={card.img} className="w-16 h-16" />
-                <div>
-                  <h3 className="text-xl pb-2">
-                    <strong>{card.title}</strong>
-                  </h3>
-                  <p className="text-[--color-text-secondary] pb-2">
-                    {card.description}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={card.onClick}
-                    className="text-[--color-accent] flex gap-2 items-center"
-                  >
-                    <strong>{card.title}</strong>
-                    {card.img == "/images/manual-usuario.png" ? (
-                      <Download className="w-4 h-4" />
-                    ) : (
-                      <ArrowUp className="w-4 h-4" />
-                    )}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Siguientes pasos */}
         <section className="w-full py-8 md:py-12">
           <h2 className="text-2xl md:text-3xl pb-4">
             <strong>Te acompañamos en cada paso</strong>
@@ -596,50 +384,6 @@ const MainScreen = () => {
             Accede a guías, recursos y conocimientos que te ayudarán a
             aprovechar al máximo la Plataforma Inteligente de Datos
           </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 md:gap-8 w-full bg-white rounded-[20px] border Sborder-[--color-border] p-5">
-            {next_steps.map((card, index) => (
-              <div
-                key={index}
-                className="flex flex-col sm:flex-row gap-4 md:gap-5 w-full"
-              >
-                <img
-                  src={card.img}
-                  alt={card.title}
-                  className="w-14 h-14 md:w-16 md:h-16 object-contain flex-shrink-0"
-                  loading="lazy"
-                />
-
-                <div className="flex flex-col flex-1">
-                  <h3 className="text-lg md:text-xl pb-2">
-                    <strong>{card.title}</strong>
-                  </h3>
-
-                  <p className="text-sm md:text-base text-[--color-text-secondary] pb-4 flex-1">
-                    {card.description}
-                  </p>
-
-                  <button
-                    type="button"
-                    onClick={card.onClick}
-                    className="text-[--color-accent] flex gap-2 items-center w-fit"
-                  >
-                    <strong>{card.title}</strong>
-
-                    {card.img === "/images/manual-usuario.png" ? (
-                      <Download className="w-4 h-4 flex-shrink-0" />
-                    ) : (
-                      <ArrowUp className="w-4 h-4 flex-shrink-0" />
-                    )}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Siguientes pasos */}
-        <section className="w-full mb-6 md:mb-8">
           <div
             className="
       grid
@@ -670,11 +414,10 @@ const MainScreen = () => {
 
           xl:px-5
 
-          ${
-            index !== next_steps.length - 1
-              ? "xl:border-r xl:border-[--color-border]"
-              : ""
-          }
+          ${index !== next_steps.length - 1
+                    ? "xl:border-r xl:border-[--color-border]"
+                    : ""
+                  }
 
           ${index === 0 ? "xl:pl-0" : ""}
           ${index === next_steps.length - 1 ? "xl:pr-0" : ""}
@@ -715,77 +458,6 @@ const MainScreen = () => {
               text-xs
               xl:text-sm
             "
-                  >
-                    <strong>{card.button}</strong>
-
-                    {card.button === "DESCARGAR PDF" ? (
-                      <Download className="w-4 h-4 flex-shrink-0" />
-                    ) : (
-                      <ArrowUp className="w-4 h-4 flex-shrink-0" />
-                    )}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Siguientes pasos */}
-        <section className="w-full mb-6 md:mb-8">
-          <div
-            className="
-              grid
-              grid-cols-1
-              md:grid-cols-2
-              xl:grid-cols-3
-              gap-6
-              md:gap-8
-              w-full
-              bg-white
-              rounded-[20px]
-              border
-              border-[--color-border]
-              p-5
-              md:p-7
-            "
-          >
-            {next_steps.map((card, index) => (
-              <div
-                key={index}
-                className={`
-                  flex
-                  flex-col
-                  sm:flex-row
-                  gap-4
-                  md:gap-5
-                  w-full
-                  ${
-                    index !== next_steps.length - 1
-                      ? "xl:border-r xl:border-[--color-border] xl:pr-8"
-                      : ""
-                  }
-                `}
-              >
-                <img
-                  src={card.img}
-                  alt={card.title}
-                  className="w-14 h-14 md:w-16 md:h-16 object-contain flex-shrink-0"
-                  loading="lazy"
-                />
-
-                <div className="flex flex-col flex-1">
-                  <h3 className="text-lg md:text-xl font-bold pb-2">
-                    {card.title}
-                  </h3>
-
-                  <p className="text-sm md:text-base text-[--color-text-secondary] pb-4 flex-1">
-                    {card.description}
-                  </p>
-
-                  <button
-                    type="button"
-                    onClick={card.onClick}
-                    className="text-[--color-accent] flex gap-2 items-center w-fit text-sm"
                   >
                     <strong>{card.button}</strong>
 
