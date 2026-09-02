@@ -38,11 +38,14 @@ import PreviewController from "controllers/Ingest/PreviewController";
 import LoginController from "controllers/Login/LoginController";
 import MarketplaceController from "controllers/Marketplace/controller";
 import DomainController from "controllers/Marketplace/DomainController";
-import AdminController from "controllers/Marketplace/AdminController";
+import AdminController from "controllers/Admin/AdminController";
 import ReportController from "controllers/Marketplace/ReportController";
 import OnboardingController from "controllers/Onboarding/controller";
 import FaqController from "controllers/Faq/controller";
 import ConceptosController from "controllers/Conceptos/controller";
+import AdminMarketplaceController from "controllers/Admin/AdminMarketplaceController";
+import AdminIngestController from "controllers/Admin/AdminIngestController";
+import AdminPlatformController from "controllers/Admin/AdminPlatformController";
 
 const msalInstance = new PublicClientApplication(msalConfig as Configuration);
 
@@ -93,8 +96,20 @@ const Router = () => {
                               element={<MarketplaceController />}
                             />
                             <Route
-                              path="/marketplace/administracion"
+                              path="/admin"
                               element={<AdminController />}
+                            />
+                            <Route
+                              path="/admin/marketplace"
+                              element={<AdminMarketplaceController />}
+                            />
+                            <Route
+                              path="/admin/ingesta"
+                              element={<AdminIngestController />}
+                            />
+                            <Route
+                              path="/admin/platform"
+                              element={<AdminPlatformController />}
                             />
                             <Route
                               path="/marketplace/:domainId"

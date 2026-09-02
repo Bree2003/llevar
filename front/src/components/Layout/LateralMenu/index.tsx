@@ -110,8 +110,8 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
     {
       label: "Administración",
       icon: Setting,
-      path: "/marketplace/administracion",
-      onClick: () => navigate("/marketplace/administracion"),
+      path: "/admin",
+      onClick: () => navigate("/admin"),
     },
   ];
 

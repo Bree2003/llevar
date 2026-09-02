@@ -5,9 +5,9 @@ import { useEffect, useRef, useState } from "react";
 
 import { domainUnits } from "data/domain-units";
 
-import ReportDrawer from "./ReportDrawer";
-import ReportsTable from "./ReportsTable";
-import { Report } from "./types";
+import ReportDrawer from "../Marketplace/Admin/ReportDrawer";
+import ReportsTable from "../Marketplace/Admin/ReportsTable";
+import { Report } from "../Marketplace/Admin/types";
 
 const STORAGE_KEY = "admin_reports";
 
@@ -26,7 +26,7 @@ const normalizeReports = (reports: Report[]) => {
   }));
 };
 
-const AdminScreen = () => {
+const AdminMarketplaceScreen = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [reports, setReports] = useState<Report[]>([]);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
@@ -428,4 +428,4 @@ const AdminScreen = () => {
   );
 };
 
-export default AdminScreen;
+export default AdminMarketplaceScreen;
