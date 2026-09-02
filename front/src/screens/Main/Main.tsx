@@ -4,6 +4,7 @@ import Agent from "../../components/Agent/Agent";
 import { ReactComponent as Download } from "components/Global/Icons/download.svg";
 import { ReactComponent as ArrowUp } from "components/Global/Icons/arrow-up.svg";
 import BannerCarousel from "components/BannerCarousel/BannerCarousel";
+import ManualUsuario from "assets/docs/Manual-Plataforma-Inteligente-de-Datos.pdf";
 
 const MainScreen = () => {
   const { user } = useAppSelector((state) => state.UserPermissions);
@@ -21,14 +22,7 @@ const MainScreen = () => {
   };
 
   const handleDownloadManual = () => {
-    const link = document.createElement("a");
-
-    link.href = "/documents/manual-usuario.pdf";
-    link.download = "Manual-Plataforma-Inteligente-de-Datos.pdf";
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    window.open(ManualUsuario, "_blank");
   };
 
   const next_steps = [
@@ -441,11 +435,10 @@ const MainScreen = () => {
 
           xl:px-5
 
-          ${
-            index !== next_steps.length - 1
-              ? "xl:border-r xl:border-[--color-border]"
-              : ""
-          }
+          ${index !== next_steps.length - 1
+                    ? "xl:border-r xl:border-[--color-border]"
+                    : ""
+                  }
 
           ${index === 0 ? "xl:pl-0" : ""}
           ${index === next_steps.length - 1 ? "xl:pr-0" : ""}

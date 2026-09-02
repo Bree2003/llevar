@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 
 import { ReactComponent as Download } from "components/Global/Icons/download.svg";
 import { ReactComponent as ArrowUp } from "components/Global/Icons/arrow-up.svg";
+import ManualUsuario from "assets/docs/Manual-Plataforma-Inteligente-de-Datos.pdf";
 
 const OnboardingScreen = () => {
   const navigate = useNavigate();
@@ -9,14 +10,7 @@ const OnboardingScreen = () => {
   const PLACEHOLDER_IMAGE = "/images/video-introductorio.png";
 
   const handleDownloadManual = () => {
-    const link = document.createElement("a");
-
-    link.href = "/documents/manual-usuario.pdf";
-    link.download = "Manual-Plataforma-Inteligente-de-Datos.pdf";
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    window.open(ManualUsuario, "_blank");
   };
 
   const learning_items = [

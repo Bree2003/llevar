@@ -67,16 +67,6 @@ const Navbar = () => {
       leading-tight
     "
           >
-            <span
-              className="
-        truncate
-
-        text-sm
-        font-semibold
-      "
-            >
-              {`${user.name} ${user.surname}`}
-            </span>
 
             <span
               className="
