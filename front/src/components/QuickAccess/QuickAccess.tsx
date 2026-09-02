@@ -9,14 +9,14 @@ type LogEntry = {
 };
 
 const LogEntrySkeleton = () => (
-  <div className="py-3">
-    <Skeleton width="70%" height={18} />
+  <div className="leading-none">
+    <Skeleton width="70%" />
 
     <Skeleton
-      width="45%"
-      height={13}
+      width="50%"
+      height={12}
       style={{
-        marginTop: "6px",
+        marginTop: "4px",
       }}
     />
   </div>
@@ -24,6 +24,7 @@ const LogEntrySkeleton = () => (
 
 export default function QuickAccess() {
   const [userLogs, setUserLogs] = useState<LogEntry[]>([]);
+
   const [loading, setLoading] = useState(true);
 
   const fetchUserLogs = async () => {
@@ -49,6 +50,7 @@ export default function QuickAccess() {
       setUserLogs(data.logs || []);
     } catch (error) {
       console.error("Error:", error);
+
       setUserLogs([]);
     } finally {
       setLoading(false);
@@ -60,118 +62,124 @@ export default function QuickAccess() {
   }, []);
 
   return (
-    <aside
+    <div
       className="
-        w-full
-        min-w-0
-        bg-white
-        border
-        border-[--color-border]
-        rounded-2xl
-        p-5
-        md:p-6
-        h-fit
+        w-[420px]
 
-        xl:sticky
-        xl:top-6
+        bg-[--color-background]
+
+        border-l
+        border-[--color-border]
+
+        p-5
+
+        text-left
+
+        h-full
+
+        flex-shrink-0
       "
     >
-      {/* Header */}
-      <div>
-        <h2
-          className="
-            text-xl
-            md:text-2xl
-            font-bold
-            text-[--color-text-primary]
-          "
-        >
-          Tus últimas modificaciones
-        </h2>
+      <h3
+        className="
+          text-xl
+          font-semibold
+          mb-4
 
-        <p
-          className="
-            mt-2
-            text-sm
-            text-[--color-text-secondary]
-          "
-        >
-          Revisa rápidamente las últimas fuentes de datos que has modificado.
-        </p>
-      </div>
+          text-[--color-text-primary]
+        "
+      >
+        Tus últimas modificaciones
+      </h3>
 
-      {/* Separador */}
-      <div className="w-full border-t border-[--color-border] my-5" />
-
-      {/* Contenido */}
       {loading ? (
-        <div className="divide-y divide-[--color-border]">
-          {Array.from({ length: 5 }).map((_, index) => (
+        <div
+          className="
+            p-2
+
+            bg-white
+
+            border
+            border-[--color-border]
+
+            rounded-xl
+
+            flex
+            flex-col
+            gap-2
+          "
+        >
+          {Array.from({
+            length: 5,
+          }).map((_, index) => (
             <LogEntrySkeleton key={index} />
           ))}
         </div>
-      ) : userLogs.length === 0 ? (
-        <div className="py-6 text-center">
-          <p
-            className="
-              text-sm
-              md:text-base
-              text-[--color-text-secondary]
-            "
-          >
-            No se encontraron modificaciones recientes.
-          </p>
-        </div>
       ) : (
-        <div className="flex flex-col">
-          {userLogs.slice(0, 5).map((log, index) => (
-            <div
-              key={`${log.dataset}-${log.timestamp}-${index}`}
-              className={`
-                py-3
-                px-2
-                rounded-lg
-                transition-colors
-                hover:bg-[--color-background]
+        <div
+          className="
+            p-2
 
-                ${
-                  index !== Math.min(userLogs.length, 5) - 1
-                    ? "border-b border-[--color-border]"
-                    : ""
-                }
-              `}
+            bg-white
+
+            border
+            border-[--color-border]
+
+            rounded-xl
+
+            flex
+            flex-col
+            gap-2
+          "
+        >
+          {userLogs.length === 0 ? (
+            <p
+              className="
+                text-sm
+
+                text-[--color-text-secondary]
+              "
             >
+              No se encontraron modificaciones recientes.
+            </p>
+          ) : (
+            userLogs.slice(0, 5).map((log, index) => (
               <p
+                key={index}
                 className="
-                  text-sm
-                  md:text-base
-                  font-semibold
-                  text-[--color-text-primary]
-                  break-words
-                "
+                      p-1
+
+                      rounded-md
+
+                      leading-none
+
+                      text-[--color-text-primary]
+
+                      hover:bg-[--color-accent-light]
+
+                      transition-colors
+                    "
               >
                 {log.dataset || "Sin dataset"}
-              </p>
 
-              <p
-                className="
-                  mt-1
-                  text-xs
-                  md:text-sm
-                  text-[--color-text-secondary]
-                "
-              >
-                {log.timestamp
-                  ? new Date(log.timestamp).toLocaleString("es-CL", {
-                      dateStyle: "short",
-                      timeStyle: "short",
-                    })
-                  : "Sin fecha"}
+                <br />
+
+                <span
+                  className="
+                        text-sm
+                        text-[--color-text-secondary]
+                      "
+                >
+                  Fecha:{" "}
+                  {log.timestamp
+                    ? new Date(log.timestamp).toLocaleString("es-CL")
+                    : "Sin fecha"}
+                </span>
               </p>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       )}
-    </aside>
+    </div>
   );
 }

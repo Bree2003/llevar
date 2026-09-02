@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 
 import { UploadState } from "controllers/Ingest/FolderListController";
+
 import AlertMessage from "components/UI/AlertMessage";
 
 interface Table {
@@ -10,6 +11,7 @@ interface Table {
 
 interface FileUploadSectionProps {
   tables: Table[];
+
   uploadState: UploadState;
 
   onFileChange: (file: File | null) => void;
@@ -45,27 +47,36 @@ export default function FileUploadSection({
   }, [uploadState.file]);
 
   return (
-    <div className="w-full max-w-3xl">
-      <div className="flex flex-col gap-6">
-        {/* MODO */}
+    <div className="mb-4 pb-0">
+      <div
+        className="
+          space-y-6
+          max-w-2xl
+        "
+      >
+        {/* Modo */}
         <div
           className="
-            grid
-            grid-cols-1
-            md:grid-cols-[160px_minmax(0,1fr)]
+            flex
+            flex-col
+            sm:flex-row
+
+            sm:items-center
+
             gap-3
-            md:gap-5
-            md:items-center
+            sm:gap-0
+
+            text-start
           "
         >
           <label
             className="
-              text-sm
-              md:text-base
+              sm:w-40
+              sm:shrink-0
 
-              font-semibold
+              text-[--color-text-secondary]
 
-              text-[--color-text-primary]
+              font-medium
             "
           >
             Modo de ingesta
@@ -73,118 +84,134 @@ export default function FileUploadSection({
 
           <div
             className="
-              grid
-              grid-cols-1
-              sm:grid-cols-2
+              flex
+              flex-col
+              xs:flex-row
+              sm:flex-row
+
               gap-3
+              sm:gap-4
             "
           >
+            {/* Existente */}
             <label
-              className={`
+              className="
                 flex
                 items-center
-                gap-3
-
-                px-4
-                py-3
-
-                rounded-xl
-
-                border
+                gap-2
 
                 cursor-pointer
 
-                transition-colors
-
-                ${
-                  !isNewTable
-                    ? "border-[--color-accent] bg-[--color-accent-light]"
-                    : "border-[--color-border] bg-white hover:bg-[--color-background]"
-                }
-              `}
+                group
+              "
             >
               <input
                 type="radio"
                 checked={!isNewTable}
                 onChange={() => {
                   setIsNewTable(false);
+
                   onTableChange("");
                 }}
                 className="
-                  w-4
                   h-4
+                  w-4
 
-                  accent-[--color-accent]
+                  border-[--color-border]
+
+                  accent-[var(--color-accent)]
 
                   cursor-pointer
                 "
               />
 
-              <span className="text-sm font-medium text-[--color-text-primary]">
+              <span
+                className="
+                  text-sm
+                  font-medium
+
+                  text-[--color-text-secondary]
+
+                  group-hover:text-[--color-text-primary]
+                "
+              >
                 Tabla existente
               </span>
             </label>
 
+            {/* Nueva */}
             <label
-              className={`
+              className="
                 flex
                 items-center
-                gap-3
-
-                px-4
-                py-3
-
-                rounded-xl
-
-                border
+                gap-2
 
                 cursor-pointer
 
-                transition-colors
-
-                ${
-                  isNewTable
-                    ? "border-[--color-accent] bg-[--color-accent-light]"
-                    : "border-[--color-border] bg-white hover:bg-[--color-background]"
-                }
-              `}
+                group
+              "
             >
               <input
                 type="radio"
                 checked={isNewTable}
                 onChange={() => {
                   setIsNewTable(true);
+
                   onTableChange("");
                 }}
                 className="
-                  w-4
                   h-4
+                  w-4
 
-                  accent-[--color-accent]
+                  border-[--color-border]
+
+                  accent-[var(--color-accent)]
 
                   cursor-pointer
                 "
               />
 
-              <span className="text-sm font-medium text-[--color-text-primary]">
+              <span
+                className="
+                  text-sm
+                  font-medium
+
+                  text-[--color-text-secondary]
+
+                  group-hover:text-[--color-text-primary]
+                "
+              >
                 Nueva tabla
               </span>
             </label>
           </div>
         </div>
 
-        {/* TABLA */}
+        {/* Tabla */}
         <div
           className="
-            grid
-            grid-cols-1
-            md:grid-cols-[160px_minmax(0,1fr)]
-            gap-3
-            md:gap-5
-            md:items-center
+            flex
+            flex-col
+            sm:flex-row
+
+            sm:items-center
+
+            gap-2
+            sm:gap-0
+
+            text-start
           "
         >
-          <label className="text-sm md:text-base font-semibold text-[--color-text-primary]">
+          <label
+            className="
+              sm:w-40
+              sm:shrink-0
+
+              text-[--color-text-secondary]
+
+              font-medium
+            "
+          >
             {isNewTable ? "Nombre de tabla" : "Tabla destino"}
           </label>
 
@@ -193,21 +220,23 @@ export default function FileUploadSection({
               type="text"
               placeholder="Ej: maestro-ceco"
               value={uploadState.selectedTable}
-              onChange={(event) => onTableChange(event.target.value)}
+              onChange={(e) => onTableChange(e.target.value)}
               className="
+                block
                 w-full
 
-                px-4
-                py-2.5
-
-                rounded-[10px]
-
-                bg-white
+                rounded-md
 
                 border
                 border-[--color-border]
 
+                bg-white
+
+                py-2
+                px-3
+
                 text-sm
+
                 text-[--color-text-primary]
 
                 outline-none
@@ -222,21 +251,23 @@ export default function FileUploadSection({
           ) : (
             <select
               value={uploadState.selectedTable}
-              onChange={(event) => onTableChange(event.target.value)}
+              onChange={(e) => onTableChange(e.target.value)}
               className="
+                block
                 w-full
 
-                px-4
-                py-2.5
-
-                rounded-[10px]
-
-                bg-white
+                rounded-md
 
                 border
                 border-[--color-border]
 
+                bg-white
+
+                py-2
+                px-3
+
                 text-sm
+
                 text-[--color-text-primary]
 
                 outline-none
@@ -248,7 +279,7 @@ export default function FileUploadSection({
                 transition-all
               "
             >
-              <option value="">Selecciona una tabla</option>
+              <option value="">-- Selecciona una tabla --</option>
 
               {tables.map((table) => (
                 <option key={table.id} value={table.id}>
@@ -259,26 +290,39 @@ export default function FileUploadSection({
           )}
         </div>
 
-        {/* ARCHIVO */}
+        {/* Archivo */}
         <div
           className="
-            grid
-            grid-cols-1
-            md:grid-cols-[160px_minmax(0,1fr)]
-            gap-3
-            md:gap-5
-            md:items-center
+            flex
+            flex-col
+            sm:flex-row
+
+            sm:items-center
+
+            gap-2
+            sm:gap-0
+
+            text-start
           "
         >
-          <label className="text-sm md:text-base font-semibold text-[--color-text-primary]">
+          <label
+            className="
+              sm:w-40
+              sm:shrink-0
+
+              text-[--color-text-secondary]
+
+              font-medium
+            "
+          >
             Cargar archivo
           </label>
 
-          <div className="min-w-0">
+          <div className="w-full min-w-0">
             <input
               ref={fileInputRef}
               type="file"
-              accept=".csv,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
+              accept=".csv, .xlsx, .xls, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, text/csv"
               className="hidden"
               onChange={(event) => {
                 if (event.target.files && event.target.files.length > 0) {
@@ -302,29 +346,26 @@ export default function FileUploadSection({
                 type="button"
                 onClick={handleCustomClick}
                 className="
-                  w-full
-                  sm:w-auto
+                  w-fit
 
                   px-4
-                  py-2.5
+                  py-2
 
-                  rounded-[10px]
+                  rounded-full
 
-                  border
-                  border-[--color-border]
+                  bg-[--color-accent-light]
 
-                  bg-white
+                  text-[--color-accent]
 
                   text-sm
                   font-semibold
 
-                  text-[--color-accent]
+                  hover:opacity-80
 
-                  hover:bg-[--color-accent-light]
+                  transition-opacity
 
-                  transition-colors
-
-                  whitespace-nowrap
+                  border
+                  border-[--color-border]
                 "
               >
                 Seleccionar archivo
@@ -332,13 +373,16 @@ export default function FileUploadSection({
 
               <span
                 className="
-                  min-w-0
-
                   text-sm
 
-                  text-[--color-text-secondary]
+                  text-[--color-text-muted]
+
+                  italic
 
                   truncate
+
+                  max-w-full
+                  sm:max-w-[240px]
                 "
               >
                 {uploadState.file
@@ -349,17 +393,19 @@ export default function FileUploadSection({
           </div>
         </div>
 
-        {/* BOTÓN */}
+        {/* Acción */}
         <div
           className="
-            grid
-            grid-cols-1
-            md:grid-cols-[160px_minmax(0,1fr)]
-            gap-3
-            md:gap-5
+            flex
+            flex-col
+            sm:flex-row
+
+            sm:items-center
+
+            mt-6
           "
         >
-          <div className="hidden md:block" />
+          <div className="hidden sm:block sm:w-40 sm:shrink-0" />
 
           <button
             type="button"
@@ -368,24 +414,31 @@ export default function FileUploadSection({
             className="
               w-full
 
-              px-5
-              py-3
-
-              rounded-[10px]
+              rounded-lg
 
               bg-[--color-accent]
 
-              text-white
+              py-3
+              px-8
+
               text-sm
-              font-semibold
+              font-bold
+              text-white
 
               hover:opacity-90
 
-              transition-opacity
+              focus:outline-none
+              focus:ring-2
+              focus:ring-[--color-accent]
+              focus:ring-offset-2
 
               disabled:bg-gray-200
               disabled:text-gray-400
               disabled:cursor-not-allowed
+
+              transition-all
+
+              active:scale-[0.98]
             "
           >
             Analizar e ingestar
@@ -394,7 +447,7 @@ export default function FileUploadSection({
       </div>
 
       {isNewTable && (
-        <AlertMessage variant="compact" className="mt-5">
+        <AlertMessage variant="compact" className="mt-4">
           <span>
             El nombre de la tabla incluirá automáticamente el prefijo tbl_.
           </span>

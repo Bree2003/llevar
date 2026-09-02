@@ -1,12 +1,10 @@
-import { useEffect, useRef, useState } from "react";
-
+import { useRef, useState, useEffect } from "react";
 import {
   Step1Confirmation,
   Step2Structure,
   Step3Validation,
   Step3NewTableDescription,
 } from "./WizardSteps";
-
 import { UploadSuccessMessage } from "controllers/Ingest/FolderListController";
 
 interface WizardModalProps {
@@ -14,23 +12,17 @@ interface WizardModalProps {
   currentStep: number;
   stepData: any;
   isLoading: boolean;
-
   onClose: () => void;
   onNext: () => void;
   onPrevious: () => void;
   onFinalUpload: (metadata?: any) => void;
-
   isUploading: boolean;
   uploadProgress: number;
-
   uploadSuccess: boolean;
+  isNewTable?: boolean;
   uploadError: string | null;
   uploadMessage: UploadSuccessMessage | null;
-
-  isNewTable?: boolean;
 }
-
-const STEP_LABELS = ["Confirmación", "Estructura", "Validación"];
 
 export default function WizardModal({
   isOpen,
@@ -61,29 +53,20 @@ export default function WizardModal({
 
   useEffect(() => {
     if (!isOpen) {
-      setMetadata({
-        tableDescription: "",
-        columnDescriptions: {},
-      });
+      setMetadata({ tableDescription: "", columnDescriptions: {} });
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleTableDescChange = (value: string) => {
-    setMetadata((prev) => ({
-      ...prev,
-      tableDescription: value,
-    }));
+  const handleTableDescChange = (val: string) => {
+    setMetadata((prev) => ({ ...prev, tableDescription: val }));
   };
 
-  const handleColumnDescChange = (columnName: string, value: string) => {
+  const handleColumnDescChange = (colName: string, val: string) => {
     setMetadata((prev) => ({
       ...prev,
-      columnDescriptions: {
-        ...prev.columnDescriptions,
-        [columnName]: value,
-      },
+      columnDescriptions: { ...prev.columnDescriptions, [colName]: val },
     }));
   };
 
@@ -95,100 +78,44 @@ export default function WizardModal({
     }
   };
 
+  // 1. Errores bloqueantes técnicos (Tablas existentes)
   const hasTechnicalErrors =
     !isNewTable && currentStep === 3 && stepData?.bloqueantes?.length > 0;
 
+  // 2. Validación de Metadatos Manuales (Nuevas Tablas)
   const validateNewTableMetadata = () => {
+    // A. Descripción de tabla obligatoria
     if (!metadata.tableDescription || metadata.tableDescription.trim() === "") {
-      return true;
+      return true; // Falta descripción tabla
     }
-
+    // B. Descripción de columnas obligatoria
     if (columnsRef.current && columnsRef.current.length > 0) {
-      for (const column of columnsRef.current) {
-        const description = metadata.columnDescriptions[column.nombre];
-
-        if (!description || description.trim() === "") {
-          return true;
+      for (const col of columnsRef.current) {
+        const desc = metadata.columnDescriptions[col.nombre];
+        if (!desc || desc.trim() === "") {
+          return true; // Falta descripción columna
         }
       }
     }
-
     return false;
   };
 
   const hasMissingMetadata =
     isNewTable && currentStep === 3 && validateNewTableMetadata();
 
+  // El botón se bloquea si: subiendo, cargando, errores técnicos o faltan metadatos
   const isButtonDisabled =
     isUploading || isLoading || hasTechnicalErrors || hasMissingMetadata;
+  console.log(uploadMessage);
 
-  const stepTitle =
-    currentStep === 1
-      ? "Confirmación de archivo"
-      : currentStep === 2
-        ? "Análisis de estructura"
-        : isNewTable
-          ? "Definición de metadatos"
-          : "Validación final";
-
-  /* SUCCESS */
   if (uploadSuccess && uploadMessage) {
     return (
-      <div
-        className="
-          fixed
-          inset-0
-          z-[9999]
-          bg-black/60
-          backdrop-blur-[2px]
-
-          flex
-          items-center
-          justify-center
-
-          p-4
-          md:p-6
-        "
-      >
-        <div
-          className="
-            w-full
-            max-w-md
-
-            bg-white
-
-            rounded-2xl
-
-            border
-            border-[--color-border]
-
-            shadow-2xl
-
-            p-6
-            md:p-8
-
-            text-center
-          "
-        >
-          <div
-            className="
-              w-16
-              h-16
-
-              mx-auto
-
-              flex
-              items-center
-              justify-center
-
-              rounded-full
-
-              bg-green-100
-              text-green-600
-            "
-          >
+      <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md text-center animate-fadeIn">
+          <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg
-              className="w-8 h-8"
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-10 w-10"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -201,79 +128,20 @@ export default function WizardModal({
               />
             </svg>
           </div>
-
-          <h2
-            className="
-              mt-5
-              text-xl
-              md:text-2xl
-              font-bold
-              text-[--color-text-primary]
-            "
-          >
-            ¡Ingesta completada!
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            ¡Ingesta Completada!
           </h2>
-
-          <p
-            className="
-              mt-2
-              text-sm
-              md:text-base
-              text-[--color-text-secondary]
-              leading-relaxed
-            "
-          >
-            El archivo fue procesado y cargado correctamente en BigQuery.
+          <p className="text-gray-600 mb-6">
+            El archivo ha sido procesado y cargado correctamente en BigQuery.
+            Tabla {uploadMessage.b_query}
           </p>
 
-          <div
-            className="
-              mt-5
-              p-3
-
-              rounded-xl
-
-              bg-[--color-background]
-
-              border
-              border-[--color-border]
-
-              font-mono
-              text-sm
-              text-[--color-text-primary]
-
-              break-all
-            "
-          >
-            {uploadMessage.b_query}
-          </div>
-
           <button
-            type="button"
             onClick={() => {
               onClose();
               window.location.reload();
             }}
-            className="
-              w-full
-
-              mt-6
-
-              px-5
-              py-2.5
-
-              rounded-[10px]
-
-              bg-[--color-accent]
-
-              text-white
-              text-sm
-              font-semibold
-
-              hover:opacity-90
-
-              transition-opacity
-            "
+            className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 w-full font-bold shadow-md transition-all"
           >
             Cerrar
           </button>
@@ -282,65 +150,14 @@ export default function WizardModal({
     );
   }
 
-  /* ERROR */
   if (uploadError) {
     return (
-      <div
-        className="
-          fixed
-          inset-0
-          z-[9999]
-
-          bg-black/60
-          backdrop-blur-[2px]
-
-          flex
-          items-center
-          justify-center
-
-          p-4
-          md:p-6
-        "
-      >
-        <div
-          className="
-            w-full
-            max-w-md
-
-            bg-white
-
-            rounded-2xl
-
-            border
-            border-[--color-border]
-
-            shadow-2xl
-
-            p-6
-            md:p-8
-
-            text-center
-          "
-        >
-          <div
-            className="
-              w-16
-              h-16
-
-              mx-auto
-
-              flex
-              items-center
-              justify-center
-
-              rounded-full
-
-              bg-red-100
-              text-red-600
-            "
-          >
+      <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md text-center animate-fadeIn">
+          <div className="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg
-              className="w-8 h-8"
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-10 w-10"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -353,121 +170,26 @@ export default function WizardModal({
               />
             </svg>
           </div>
-
-          <h2
-            className="
-              mt-5
-
-              text-xl
-              md:text-2xl
-
-              font-bold
-
-              text-[--color-text-primary]
-            "
-          >
-            Error en la ingesta
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            Error en la Ingesta
           </h2>
-
-          <p
-            className="
-              mt-2
-              text-sm
-              text-[--color-text-secondary]
-            "
-          >
-            Hubo un problema al procesar el archivo.
+          <p className="text-gray-600 mb-6 text-sm">
+            Hubo un problema procesando el archivo:
+            <br />
+            <span className="font-mono bg-red-50 text-red-700 p-1 rounded mt-2 block">
+              {uploadError}
+            </span>
           </p>
-
-          <div
-            className="
-              mt-5
-
-              p-3
-
-              max-h-[180px]
-              overflow-y-auto
-
-              rounded-xl
-
-              bg-red-50
-
-              border
-              border-red-100
-
-              font-mono
-              text-xs
-              sm:text-sm
-
-              text-red-700
-
-              break-words
-              text-left
-            "
-          >
-            {uploadError}
-          </div>
-
-          <div
-            className="
-              mt-6
-
-              flex
-              flex-col-reverse
-              sm:flex-row
-
-              gap-3
-            "
-          >
+          <div className="flex gap-3">
             <button
-              type="button"
               onClick={onClose}
-              className="
-                w-full
-
-                px-4
-                py-2.5
-
-                rounded-[10px]
-
-                border
-                border-[--color-border]
-
-                bg-white
-
-                text-sm
-                font-semibold
-                text-[--color-text-secondary]
-
-                hover:bg-[--color-background]
-
-                transition-colors
-              "
+              className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 w-1/3 font-semibold transition-all"
             >
               Cancelar
             </button>
-
             <button
-              type="button"
               onClick={onClose}
-              className="
-                w-full
-
-                px-4
-                py-2.5
-
-                rounded-[10px]
-
-                bg-red-600
-
-                text-white
-                text-sm
-                font-semibold
-
-                hover:bg-red-700
-
-                transition-colors
-              "
+              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 w-2/3 font-bold shadow-md transition-all"
             >
               Entendido
             </button>
@@ -477,316 +199,49 @@ export default function WizardModal({
     );
   }
 
-  /* WIZARD */
   return (
-    <div
-      className="
-        fixed
-        inset-0
-        z-[9999]
-
-        bg-black/60
-        backdrop-blur-[2px]
-
-        flex
-        items-center
-        justify-center
-
-        p-3
-        sm:p-4
-        md:p-6
-      "
-    >
-      <div
-        className="
-          w-full
-
-          max-w-5xl
-
-          h-[calc(100dvh-24px)]
-          sm:h-[calc(100dvh-32px)]
-          md:h-auto
-
-          md:max-h-[calc(100dvh-48px)]
-          lg:max-h-[850px]
-
-          bg-white
-
-          rounded-2xl
-
-          border
-          border-[--color-border]
-
-          shadow-2xl
-
-          flex
-          flex-col
-
-          overflow-hidden
-        "
-      >
-        {/* HEADER */}
-        <header
-          className="
-            flex-shrink-0
-
-            px-4
-            py-5
-
-            sm:px-6
-            md:px-8
-            md:py-6
-
-            border-b
-            border-[--color-border]
-
-            bg-white
-          "
-        >
-          {/* STEPPER */}
-          <div
-            className="
-              w-full
-              max-w-2xl
-              mx-auto
-
-              flex
-              items-start
-              justify-center
-            "
-          >
-            {[1, 2, 3].map((step, index) => {
-              const isActive = step === currentStep;
-
-              const isCompleted = step < currentStep;
-
-              return (
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl h-[720px] flex flex-col relative transition-all">
+        <div className="p-6 border-b">
+          <div className="flex justify-center items-center gap-4">
+            {[1, 2, 3].map((s) => (
+              <div key={s} className="flex items-center">
                 <div
-                  key={step}
-                  className={`
-                      flex
-                      items-start
-
-                      ${step < 3 ? "flex-1" : ""}
-                    `}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-colors
+                  ${s === currentStep ? "bg-orange-500 text-white" : s < currentStep ? "bg-green-500 text-white" : "bg-gray-200 text-gray-500"}`}
                 >
-                  <div
-                    className="
-                        flex
-                        flex-col
-                        items-center
-                        min-w-0
-                      "
-                  >
-                    <div
-                      className={`
-                          w-8
-                          h-8
-                          md:w-9
-                          md:h-9
-
-                          flex
-                          items-center
-                          justify-center
-
-                          rounded-full
-
-                          text-xs
-                          md:text-sm
-
-                          font-bold
-
-                          border-2
-
-                          transition-colors
-
-                          ${
-                            isCompleted
-                              ? "bg-[--color-accent] border-[--color-accent] text-white"
-                              : isActive
-                                ? "bg-[--color-accent] border-[--color-accent] text-white"
-                                : "bg-white border-[--color-border] text-[--color-text-muted]"
-                          }
-                        `}
-                    >
-                      {isCompleted ? "✓" : step}
-                    </div>
-
-                    <span
-                      className={`
-                          hidden
-                          sm:block
-
-                          mt-2
-
-                          text-xs
-                          font-medium
-                          text-center
-
-                          ${
-                            isActive || isCompleted
-                              ? "text-[--color-text-primary]"
-                              : "text-[--color-text-muted]"
-                          }
-                        `}
-                    >
-                      {STEP_LABELS[index]}
-                    </span>
-                  </div>
-
-                  {step < 3 && (
-                    <div
-                      className="
-                          flex-1
-
-                          h-[2px]
-
-                          mt-4
-                          md:mt-[17px]
-
-                          mx-2
-                          sm:mx-4
-
-                          bg-[--color-border]
-
-                          overflow-hidden
-                        "
-                    >
-                      <div
-                        className={`
-                            h-full
-                            bg-[--color-accent]
-
-                            transition-all
-                            duration-300
-
-                            ${isCompleted ? "w-full" : "w-0"}
-                          `}
-                      />
-                    </div>
-                  )}
+                  {s < currentStep ? "✓" : s}
                 </div>
-              );
-            })}
+                {s < 3 && (
+                  <div
+                    className={`w-12 h-1 mx-2 transition-colors ${s < currentStep ? "bg-green-500" : "bg-gray-200"}`}
+                  />
+                )}
+              </div>
+            ))}
           </div>
+          <h2 className="text-center font-bold text-gray-700 mt-4">
+            {currentStep === 1 && "Paso 1: Confirmación de archivo"}
+            {currentStep === 2 && "Paso 2: Análisis de estructura"}
+            {currentStep === 3 &&
+              (isNewTable
+                ? "Paso 3: Definición de Metadatos (GCP)"
+                : "Paso 3: Validación final")}
+          </h2>
+        </div>
 
-          {/* STEP TITLE */}
-          <div className="mt-5 text-center">
-            <p
-              className="
-                text-xs
-                md:text-sm
-
-                font-semibold
-                uppercase
-                tracking-wide
-
-                text-[--color-accent]
-              "
-            >
-              Paso {currentStep} de 3
-            </p>
-
-            <h2
-              className="
-                mt-1
-
-                text-lg
-                md:text-xl
-                lg:text-2xl
-
-                font-bold
-
-                text-[--color-text-primary]
-              "
-            >
-              {stepTitle}
-            </h2>
-          </div>
-        </header>
-
-        {/* CONTENT */}
-        <div
-          className="
-            flex-1
-            min-h-0
-
-            overflow-y-auto
-
-            bg-gray-50
-
-            p-4
-            sm:p-5
-            md:p-6
-            lg:p-8
-          "
-        >
+        <div className="flex-grow p-6 overflow-hidden bg-gray-50">
           {isLoading ? (
-            <div
-              className="
-                h-full
-                min-h-[300px]
-
-                flex
-                flex-col
-                items-center
-                justify-center
-
-                text-center
-              "
-            >
-              <div
-                className="
-                  w-12
-                  h-12
-
-                  rounded-full
-
-                  border-4
-                  border-[--color-accent-light]
-                  border-t-[--color-accent]
-
-                  animate-spin
-                "
-              />
-
-              <h3
-                className="
-                  mt-5
-
-                  text-base
-                  md:text-lg
-
-                  font-semibold
-
-                  text-[--color-text-primary]
-                "
-              >
-                Analizando archivo
-              </h3>
-
-              <p
-                className="
-                  mt-1
-                  text-sm
-                  text-[--color-text-secondary]
-                "
-              >
-                Estamos revisando la estructura y el esquema de los datos.
+            <div className="flex flex-col items-center justify-center h-full">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+              <p className="mt-4 text-gray-600 font-medium">
+                Analizando esquema del archivo...
               </p>
             </div>
           ) : (
-            <div
-              className="
-                w-full
-                max-w-4xl
-                mx-auto
-              "
-            >
+            <div className="h-full">
               {currentStep === 1 && <Step1Confirmation data={stepData} />}
-
               {currentStep === 2 && <Step2Structure data={stepData} />}
-
               {currentStep === 3 &&
                 (isNewTable ? (
                   <Step3NewTableDescription
@@ -801,107 +256,21 @@ export default function WizardModal({
             </div>
           )}
         </div>
-
-        {/* FOOTER */}
-        <footer
-          className="
-            flex-shrink-0
-
-            px-4
-            py-4
-
-            sm:px-6
-            md:px-8
-
-            bg-white
-
-            border-t
-            border-[--color-border]
-
-            flex
-            flex-col-reverse
-            sm:flex-row
-
-            sm:items-center
-            sm:justify-between
-
-            gap-3
-          "
-        >
+        <div className="p-6 border-t bg-white rounded-b-xl flex justify-between items-center">
           <button
-            type="button"
             onClick={onClose}
+            className="text-gray-500 hover:text-gray-800 font-medium transition-colors"
             disabled={isUploading}
-            className="
-              w-full
-              sm:w-auto
-
-              px-4
-              py-2.5
-
-              rounded-[10px]
-
-              text-sm
-              font-semibold
-
-              text-[--color-text-secondary]
-
-              hover:bg-[--color-background]
-
-              transition-colors
-
-              disabled:opacity-50
-              disabled:cursor-not-allowed
-            "
           >
             Cancelar
           </button>
 
-          <div
-            className="
-              w-full
-              sm:w-auto
-
-              flex
-              flex-col-reverse
-              sm:flex-row
-
-              gap-3
-            "
-          >
+          <div className="flex gap-3">
             {currentStep > 1 && (
               <button
-                type="button"
                 onClick={onPrevious}
+                className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                 disabled={isUploading || isLoading}
-                className="
-                  w-full
-                  sm:w-auto
-
-                  min-w-[110px]
-
-                  px-5
-                  py-2.5
-
-                  rounded-[10px]
-
-                  border
-                  border-[--color-border]
-
-                  bg-white
-
-                  text-sm
-                  font-semibold
-
-                  text-[--color-text-secondary]
-
-                  hover:bg-[--color-background]
-
-                  transition-colors
-
-                  disabled:opacity-50
-                  disabled:cursor-not-allowed
-                "
               >
                 Anterior
               </button>
@@ -909,103 +278,45 @@ export default function WizardModal({
 
             {currentStep < 3 ? (
               <button
-                type="button"
                 onClick={onNext}
+                className="px-6 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 shadow-md disabled:opacity-50 transition-all font-bold"
                 disabled={isLoading}
-                className="
-                  w-full
-                  sm:w-auto
-
-                  min-w-[120px]
-
-                  px-5
-                  py-2.5
-
-                  rounded-[10px]
-
-                  bg-[--color-accent]
-
-                  text-white
-                  text-sm
-                  font-semibold
-
-                  hover:opacity-90
-
-                  transition-opacity
-
-                  disabled:opacity-50
-                  disabled:cursor-not-allowed
-                "
               >
                 Siguiente
               </button>
             ) : (
-              <button
-                type="button"
-                onClick={handleConfirmIngestion}
-                disabled={isButtonDisabled}
-                title={
-                  hasMissingMetadata
-                    ? "Completa todas las descripciones para continuar"
-                    : ""
-                }
-                className={`
-                  w-full
-                  sm:w-auto
-
-                  min-w-[170px]
-
-                  px-5
-                  py-2.5
-
-                  rounded-[10px]
-
-                  text-sm
-                  font-semibold
-
-                  transition-all
-
-                  ${
-                    isButtonDisabled
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : "bg-[--color-accent] text-white hover:opacity-90"
+              <div className="flex flex-col items-end">
+                <button
+                  onClick={handleConfirmIngestion}
+                  disabled={isButtonDisabled}
+                  className={`px-8 py-2 rounded-lg text-white shadow-lg flex items-center gap-2 transition-all font-bold
+                    ${
+                      isButtonDisabled
+                        ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
+                        : "bg-green-600 hover:bg-green-700 active:scale-95"
+                    }`}
+                  title={
+                    hasMissingMetadata
+                      ? "Completa todas las descripciones para continuar"
+                      : ""
                   }
-                `}
-              >
-                {isUploading
-                  ? `Subiendo ${uploadProgress}%...`
-                  : isNewTable
-                    ? "Crear tabla y cargar"
-                    : "Confirmar ingesta"}
-              </button>
+                >
+                  {isUploading
+                    ? `Subiendo ${uploadProgress}%...`
+                    : isNewTable
+                      ? "Crear Tabla y Cargar"
+                      : "Confirmar Ingesta"}
+                </button>
+              </div>
             )}
           </div>
-        </footer>
+        </div>
 
-        {/* PROGRESS */}
         {isUploading && (
-          <div
-            className="
-              flex-shrink-0
-
-              w-full
-              h-1.5
-
-              bg-[--color-background]
-            "
-          >
+          <div className="absolute bottom-0 left-0 w-full h-1.5 bg-gray-100 rounded-b-xl overflow-hidden">
             <div
-              className="
-                h-full
-
-                bg-[--color-accent]
-
-                transition-all
-                duration-300
-              "
-              style={{
-                width: `${uploadProgress}%`,
-              }}
+              className="h-full bg-green-500 transition-all duration-300"
+              style={{ width: `${uploadProgress}%` }}
             />
           </div>
         )}

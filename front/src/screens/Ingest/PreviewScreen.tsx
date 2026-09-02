@@ -1,5 +1,4 @@
 import DataGridEditor from "components/DataProduct/DataGridEditor";
-
 import {
   EndpointName,
   EndpointStatus,
@@ -22,168 +21,74 @@ const PreviewScreen = ({
   onDownloadExcel,
 }: Props) => {
   const isLoading = endpoints?.GetLatestDataset?.loading;
-
   const isSaving = endpoints?.SaveDataset?.loading;
-
   const isDownloading = endpoints?.DownloadExcel?.loading;
 
-  const isBusy = isSaving || isLoading || isDownloading;
-
   return (
-    <main
-      className="
-        w-full
-        min-h-full
-        bg-gray-50
-        text-left
-        py-6
-        md:py-8
-      "
-    >
-      <div
-        className="
-          w-full
-          max-w-[1600px]
-          mx-auto
-          px-4
-          md:px-6
-          lg:px-8
-        "
-      >
-        {/* Navegación / acciones */}
-        <div
-          className="
-            w-full
-            flex
-            flex-col
-            sm:flex-row
-            sm:items-center
-            sm:justify-between
-            gap-3
-          "
+    <div className="w-full">
+      <div className="pt-5 px-10 flex justify-between">
+        {/* BACK */}
+        <button
+          onClick={onBack}
+          disabled={isSaving || isDownloading}
+          className={`flex items-center px-4 py-3 bg-white rounded-lg shadow-sm
+            text-orange-600 border border-orange-300
+            hover:bg-orange-50 hover:border-orange-400 hover:shadow-md
+            text-sm font-semibold transition-all duration-200
+            ${isSaving || isDownloading ? "opacity-50 cursor-not-allowed" : ""}`}
         >
-          {/* Volver */}
-          <button
-            type="button"
-            onClick={onBack}
-            disabled={isSaving || isDownloading}
-            className="
-              w-fit
+          <span className="mr-2 text-lg">←</span>
+          Volver a tablas
+        </button>
 
-              flex
-              items-center
-              gap-2
-
-              text-sm
-              md:text-base
-              font-semibold
-
-              text-[--color-text-secondary]
-
-              hover:text-[--color-accent]
-
-              transition-colors
-
-              disabled:opacity-50
-              disabled:cursor-not-allowed
-            "
-          >
-            <span className="text-lg">←</span>
-            Volver a tablas
-          </button>
-
-          {/* Descargar */}
-          <button
-            type="button"
-            onClick={onDownloadExcel}
-            disabled={isBusy}
-            className="
-              w-full
-              sm:w-auto
-
-              flex
-              items-center
-              justify-center
-              gap-2
-
-              px-4
-              py-2.5
-
-              rounded-[10px]
-
-              bg-[--color-accent]
-
-              text-white
-              text-sm
-              font-semibold
-
-              hover:opacity-90
-
-              transition-opacity
-
-              disabled:bg-gray-200
-              disabled:text-gray-400
-              disabled:cursor-not-allowed
-            "
-          >
-            {isDownloading ? (
-              <>
-                <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                    fill="none"
-                  />
-
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v4l3-3-3-3v4a12 12 0 00-12 12h4z"
-                  />
-                </svg>
-                Descargando...
-              </>
-            ) : (
-              <>
-                <svg
-                  className="w-4 h-4"
+        <button
+          onClick={onDownloadExcel}
+          disabled={isSaving || isLoading || isDownloading}
+          className={`flex items-center px-4 py-3 rounded-lg shadow-sm
+            bg-orange-600 text-white
+            hover:bg-orange-700
+            text-sm font-semibold transition-all duration-200
+            ${isSaving || isLoading || isDownloading ? "opacity-50 cursor-not-allowed" : ""}`}
+        >
+          {isDownloading ? (
+            <>
+              {/* Spinner */}
+              <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="white"
+                  strokeWidth="4"
                   fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v12m0 0l-4-4m4 4l4-4M5 20h14"
-                  />
-                </svg>
-                Descargar Excel
-              </>
-            )}
-          </button>
-        </div>
-
-        {/* Editor */}
-        <section className="w-full mt-6 md:mt-8">
-          <DataGridEditor
-            loading={isLoading || isSaving}
-            file={model?.currentFile}
-            breadcrumbs={{
-              envId: model?.envId,
-              bucketName: model?.bucketName,
-              productName: model?.productName,
-              tableName: model?.tableName,
-            }}
-            onSave={onSave}
-          />
-        </section>
+                />
+                <path
+                  className="opacity-75"
+                  fill="white"
+                  d="M4 12a8 8 0 018-8v4l3-3-3-3v4a12 12 0 00-12 12h4z"
+                />
+              </svg>
+              Descargando...
+            </>
+          ) : (
+            <>Descargar Excel</>
+          )}
+        </button>
       </div>
-    </main>
+
+      <DataGridEditor
+        loading={isLoading || isSaving}
+        file={model?.currentFile}
+        breadcrumbs={{
+          envId: model?.envId,
+          bucketName: model?.bucketName,
+          productName: model?.productName,
+          tableName: model?.tableName,
+        }}
+        onSave={onSave}
+      />
+    </div>
   );
 };
 

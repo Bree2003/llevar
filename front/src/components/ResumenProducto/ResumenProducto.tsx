@@ -4,7 +4,6 @@ import { ReactComponent as Ok } from "components/Global/Icons/tick-circle.svg";
 import { ReactComponent as Error } from "components/Global/Icons/close-circle.svg";
 
 import Skeleton from "react-loading-skeleton";
-import "react-loading-skeleton/dist/skeleton.css";
 
 const RefreshIcon = ({ className }: { className?: string }) => (
   <svg
@@ -49,6 +48,7 @@ export default function ResumenProducto({ productName }: ResumenProductoProps) {
         `${process.env.REACT_APP_BACKEND_URL}/api/logs/product/${productName}?limit=4`,
         {
           method: "GET",
+
           headers: {
             "Content-Type": "application/json",
           },
@@ -71,34 +71,49 @@ export default function ResumenProducto({ productName }: ResumenProductoProps) {
     fetchLogs();
   }, [fetchLogs]);
 
-  const formatDate = (timestamp: string) =>
-    new Date(timestamp).toLocaleDateString("es-CL");
+  const formatDate = (timestamp: string) => {
+    const date = new Date(timestamp);
 
-  const formatTime = (timestamp: string) =>
-    new Date(timestamp).toLocaleTimeString("es-CL", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    return `${date.getDate().toString().padStart(2, "0")}/${(
+      date.getMonth() + 1
+    )
+      .toString()
+      .padStart(2, "0")}/${date.getFullYear()}`;
+  };
+
+  const formatTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+
+    return `${date.getHours().toString().padStart(2, "0")}:${date
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}`;
+  };
 
   const SkeletonRow = () => (
-    <tr className="border-b border-[--color-border]">
-      <td className="px-5 md:px-6 py-4">
+    <tr
+      className="
+        border-b
+        border-[--color-border]
+      "
+    >
+      <td className="px-6 py-4">
         <Skeleton width={120} />
       </td>
 
-      <td className="px-5 md:px-6 py-4">
-        <Skeleton width={180} />
+      <td className="px-6 py-4">
+        <Skeleton width={200} />
       </td>
 
-      <td className="px-5 md:px-6 py-4">
+      <td className="px-6 py-4">
         <Skeleton width={80} />
       </td>
 
-      <td className="px-5 md:px-6 py-4">
-        <Skeleton width={55} />
+      <td className="px-6 py-4">
+        <Skeleton width={60} />
       </td>
 
-      <td className="px-5 md:px-6 py-4">
+      <td className="px-6 py-4">
         <Skeleton width={70} />
       </td>
     </tr>
@@ -107,96 +122,83 @@ export default function ResumenProducto({ productName }: ResumenProductoProps) {
   return (
     <div
       className="
-        w-full
-
         bg-white
 
-        border
-        border-[--color-border]
-
-        rounded-2xl
+        rounded-xl
 
         overflow-hidden
       "
     >
-      {/* HEADER */}
+      {/* Header */}
       <div
         className="
-          p-5
-          md:p-6
+          px-5
+          py-4
+
+          md:px-6
+
+          border-b
+          border-[--color-border]
 
           flex
           flex-col
           sm:flex-row
 
-          sm:items-center
           sm:justify-between
+          sm:items-center
 
-          gap-4
-
-          border-b
-          border-[--color-border]
+          gap-3
         "
       >
-        <div>
-          <h2
-            className="
-              text-xl
-              md:text-2xl
+        <h2
+          className="
+            text-lg
+            font-semibold
 
-              font-bold
-
-              text-[--color-text-primary]
-            "
-          >
-            Resumen de tablas
-          </h2>
-
-          <p
-            className="
-              mt-1
-
-              text-sm
-
-              text-[--color-text-secondary]
-            "
-          >
-            Revisa las cargas más recientes asociadas a este producto.
-          </p>
-        </div>
+            text-[--color-text-primary]
+          "
+        >
+          Resumen de tablas
+        </h2>
 
         <button
           type="button"
           onClick={fetchLogs}
           disabled={isLoading}
+          title="Actualizar lista"
           className="
+            group
+
             w-full
             sm:w-auto
 
             flex
             items-center
             justify-center
+
             gap-2
 
             px-3
-            py-2
-
-            rounded-[10px]
-
-            border
-            border-[--color-border]
+            py-1.5
 
             text-sm
             font-medium
 
             text-[--color-text-secondary]
 
-            bg-white
+            bg-[--color-background]
+
+            border
+            border-[--color-border]
+
+            rounded-lg
 
             hover:bg-[--color-accent-light]
             hover:text-[--color-accent]
 
-            transition-colors
+            transition-all
+
+            active:scale-95
 
             disabled:opacity-50
             disabled:cursor-not-allowed
@@ -207,19 +209,22 @@ export default function ResumenProducto({ productName }: ResumenProductoProps) {
               w-4
               h-4
 
-              ${isLoading ? "animate-spin" : ""}
+              transition-transform
+
+              ${isLoading ? "animate-spin" : "group-hover:rotate-180"}
             `}
           />
-          Actualizar
+
+          <span>Actualizar</span>
         </button>
       </div>
 
-      {/* TABLA */}
-      <div className="w-full overflow-x-auto">
+      {/* Tabla */}
+      <div className="overflow-x-auto">
         <table
           className="
-            w-full
             min-w-[760px]
+            w-full
 
             text-left
             text-sm
@@ -227,32 +232,26 @@ export default function ResumenProducto({ productName }: ResumenProductoProps) {
         >
           <thead
             className="
-              bg-[--color-background]
-
               border-b
               border-[--color-border]
+
+              font-medium
+
+              bg-[--color-background]
+
+              text-[--color-text-secondary]
             "
           >
             <tr>
-              <th className="px-5 md:px-6 py-3 font-semibold text-[--color-text-secondary]">
-                Tabla
-              </th>
+              <th className="px-6 py-3 font-semibold">Tabla</th>
 
-              <th className="px-5 md:px-6 py-3 font-semibold text-[--color-text-secondary]">
-                Nombre de archivo
-              </th>
+              <th className="px-6 py-3 font-semibold">Nombre de archivo</th>
 
-              <th className="px-5 md:px-6 py-3 font-semibold text-[--color-text-secondary]">
-                Última carga
-              </th>
+              <th className="px-6 py-3 font-semibold">Última carga</th>
 
-              <th className="px-5 md:px-6 py-3 font-semibold text-[--color-text-secondary]">
-                Hora
-              </th>
+              <th className="px-6 py-3 font-semibold">Hora</th>
 
-              <th className="px-5 md:px-6 py-3 font-semibold text-[--color-text-secondary]">
-                Estado
-              </th>
+              <th className="px-6 py-3 font-semibold">Estado</th>
             </tr>
           </thead>
 
@@ -270,46 +269,91 @@ export default function ResumenProducto({ productName }: ResumenProductoProps) {
                   className="
                       border-b
                       last:border-b-0
-
                       border-[--color-border]
 
-                      hover:bg-[--color-background]
-
                       transition-colors
+
+                      hover:bg-[--color-background]
                     "
                 >
-                  <td className="whitespace-nowrap px-5 md:px-6 py-4 font-semibold text-[--color-text-primary]">
+                  <td
+                    className="
+                        whitespace-nowrap
+
+                        px-6
+                        py-4
+
+                        font-medium
+
+                        text-[--color-text-primary]
+                      "
+                  >
                     {log.dataset}
                   </td>
 
-                  <td className="whitespace-nowrap px-5 md:px-6 py-4 text-[--color-text-secondary]">
+                  <td
+                    className="
+                        whitespace-nowrap
+
+                        px-6
+                        py-4
+
+                        text-[--color-text-secondary]
+                      "
+                  >
                     {log.file_name}
                   </td>
 
-                  <td className="whitespace-nowrap px-5 md:px-6 py-4 text-[--color-text-secondary]">
+                  <td
+                    className="
+                        whitespace-nowrap
+
+                        px-6
+                        py-4
+
+                        text-[--color-text-secondary]
+                      "
+                  >
                     {formatDate(log.timestamp)}
                   </td>
 
-                  <td className="whitespace-nowrap px-5 md:px-6 py-4 text-[--color-text-secondary]">
+                  <td
+                    className="
+                        whitespace-nowrap
+
+                        px-6
+                        py-4
+
+                        text-[--color-text-secondary]
+                      "
+                  >
                     {formatTime(log.timestamp)}
                   </td>
 
-                  <td className="whitespace-nowrap px-5 md:px-6 py-4">
+                  <td
+                    className="
+                        whitespace-nowrap
+
+                        px-6
+                        py-4
+                      "
+                  >
                     <div
                       className={`
-                          w-fit
-
                           flex
                           items-center
+
                           gap-1.5
 
-                          px-2.5
-                          py-1.5
+                          px-2
+                          py-1
 
                           rounded-full
 
                           text-xs
-                          font-semibold
+                          font-bold
+
+                          w-fit
 
                           ${
                             log.severity === "ERROR"
@@ -334,10 +378,9 @@ export default function ResumenProducto({ productName }: ResumenProductoProps) {
                 <td
                   colSpan={5}
                   className="
-                    p-8
-                    md:p-12
-
                     text-center
+
+                    p-8
 
                     text-[--color-text-secondary]
                   "

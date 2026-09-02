@@ -1,5 +1,4 @@
 import ProductDisplayGrid from "components/DataProduct/ProductDisplayGrid";
-
 import {
   EndpointName,
   EndpointStatus,
@@ -22,70 +21,33 @@ const ProductListScreen = ({
   const isLoading = endpoints?.GetProducts?.loading;
 
   return (
-    <main className="w-full min-h-full text-left py-6 md:py-8">
-      <div className="w-full max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8">
-        {/* Volver */}
+    <div className="w-full">
+      {/* El botón 'Volver' se queda aquí, ya que controla la navegación de la página */}
+      <div className="pt-5 pl-10">
+        {" "}
+        {/* Contenedor y separador */}
         <button
-          type="button"
           onClick={onBack}
-          className="
-            flex
-            items-center
-            gap-2
-            text-sm
-            md:text-base
-            font-semibold
-            text-[--color-text-secondary]
-            hover:text-[--color-accent]
-            transition-colors
-          "
+          className="flex items-center px-4 py-3 bg-white rounded-lg shadow-sm
+                       text-orange-600 border border-orange-300
+                       hover:bg-orange-50 hover:border-orange-400 hover:shadow-md
+                       text-sm font-semibold transition-all duration-200 justify-start"
         >
-          <span className="text-lg">←</span>
-          Volver a módulos
+          <span className="mr-2 text-lg">←</span>{" "}
+          {/* Flecha un poco más grande */}
+          Volver a dominios
         </button>
-
-        {/* Header */}
-        <section className="w-full mt-5 md:mt-6">
-          <h1
-            className="
-              text-3xl
-              md:text-4xl
-              xl:text-5xl
-              font-bold
-              text-[--color-accent]
-            "
-          >
-            Productos de Datos
-          </h1>
-
-          <p
-            className="
-              mt-4
-              md:mt-6
-              max-w-4xl
-              text-base
-              md:text-lg
-              font-medium
-              leading-relaxed
-              text-[--color-text-secondary]
-            "
-          >
-            Explora los productos de datos disponibles y accede a la información
-            necesaria para gestionar, analizar y utilizar los datos del negocio.
-          </p>
-        </section>
-
-        {/* Productos */}
-        <section className="w-full mt-8 md:mt-10">
-          <ProductDisplayGrid
-            products={model?.products || []}
-            loading={isLoading}
-            onProductClick={onSelectProduct}
-            bucketName={model?.bucketName}
-          />
-        </section>
       </div>
-    </main>
+
+      {/* --- CAMBIO CLAVE: El Screen ahora solo renderiza el componente de presentación --- */}
+      <ProductDisplayGrid
+        products={model?.products || []}
+        loading={isLoading}
+        onProductClick={onSelectProduct}
+        // Le pasamos el nombre del bucket para que lo renderice internamente
+        bucketName={model?.bucketName}
+      />
+    </div>
   );
 };
 

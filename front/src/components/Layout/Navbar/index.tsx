@@ -14,7 +14,7 @@ const Navbar = () => {
   return (
     <nav className="bg-[--color-grafito] flex justify-start items-center p-6">
       {/* Logo */}
-      <a href="/home" className="flex items-center">
+      <a href="/" className="flex items-center">
         <img
           src="/images/logo-blanco.png"
           alt="Logo Concha y Toro"
@@ -35,9 +35,7 @@ const Navbar = () => {
           <span className="w-full truncate text-center text-xs">
             {`${user.name} ${user.surname}`}
           </span>
-          <span className="w-full truncate text-center text-xs">
-            (Logout)
-          </span>
+          <span className="w-full truncate text-center text-xs">(Logout)</span>
         </button>
       </div>
     </nav>

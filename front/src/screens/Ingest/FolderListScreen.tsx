@@ -20,9 +20,9 @@ const FeedbackToast = ({ feedback }: { feedback: PipelineFeedback }) => {
   const type = feedback.type || "info";
 
   const styles: Record<string, string> = {
-    success: "border-green-200 bg-green-50 text-green-700",
-    error: "border-red-200 bg-red-50 text-red-700",
-    info: "border-blue-200 bg-blue-50 text-blue-700",
+    success: "border-l-green-500 text-green-600",
+    error: "border-l-red-500 text-red-600",
+    info: "border-l-[--color-accent] text-[--color-accent]",
   };
 
   const icon = {
@@ -35,51 +35,42 @@ const FeedbackToast = ({ feedback }: { feedback: PipelineFeedback }) => {
     <div
       className={`
         fixed
+        top-5
+        right-5
         z-[9999]
 
-        top-4
-        left-4
-        right-4
+        w-[calc(100%-2rem)]
+        sm:w-auto
+        sm:min-w-[360px]
+        max-w-sm
 
-        sm:left-auto
-        sm:right-5
-        sm:w-[360px]
+        px-4
+        py-3
 
-        lg:top-5
+        bg-white
 
-        p-4
-
-        rounded-xl
-        border
+        rounded-lg
         shadow-lg
+
+        border
+        border-[--color-border]
+        border-l-4
+
+        animate-fade-in-down
 
         flex
         items-start
         gap-3
 
-        animate-fade-in-down
-
         ${styles[type]}
       `}
     >
-      <div
-        className="
-          w-8
-          h-8
-          flex
-          items-center
-          justify-center
-          rounded-full
-          bg-white
-          flex-shrink-0
-          font-bold
-        "
-      >
+      <span className="text-xl font-bold leading-none mt-0.5">
         {icon[type]}
-      </div>
+      </span>
 
-      <div className="min-w-0">
-        <p className="font-bold text-sm text-[--color-text-primary]">
+      <div>
+        <p className="font-bold text-[--color-text-primary] text-sm capitalize">
           {type === "success"
             ? "Iniciado"
             : type === "error"
@@ -87,7 +78,9 @@ const FeedbackToast = ({ feedback }: { feedback: PipelineFeedback }) => {
               : "Información"}
         </p>
 
-        <p className="text-sm mt-1 break-words">{feedback.message}</p>
+        <p className="text-sm text-[--color-text-secondary] mt-1">
+          {feedback.message}
+        </p>
       </div>
     </div>
   );
@@ -95,28 +88,39 @@ const FeedbackToast = ({ feedback }: { feedback: PipelineFeedback }) => {
 
 interface Props {
   model: Partial<FolderStateModel>;
+
   endpoints: Partial<Record<EndpointName, EndpointStatus>> | undefined;
+
   uploadState: UploadState;
 
   onSelectTable: (tableName: string) => void;
+
   onBack: () => void;
 
   onFileChange: (file: File | null) => void;
+
   onTableChange: (tableId: string) => void;
+
   onStartWizard: () => void;
 
   setIsNewTable: (isNew: boolean) => void;
 
   onCloseWizard: () => void;
+
   onNextStep: () => void;
+
   onPrevStep: () => void;
+
   onFinalUpload: (metadata?: any) => void;
 
   onRunPipeline: () => void;
+
   isPipelineRunning: boolean;
+
   pipelineFeedback: PipelineFeedback;
 
   showCuadraturaModal: boolean;
+
   setShowCuadraturaModal: (v: boolean) => void;
 }
 
@@ -124,25 +128,19 @@ const FolderListScreen = ({
   model,
   endpoints,
   uploadState,
-
   onSelectTable,
   onBack,
-
   onFileChange,
   onTableChange,
   onStartWizard,
-
   setIsNewTable,
-
   onCloseWizard,
   onNextStep,
   onPrevStep,
   onFinalUpload,
-
   onRunPipeline,
   isPipelineRunning,
   pipelineFeedback,
-
   showCuadraturaModal,
   setShowCuadraturaModal,
 }: Props) => {
@@ -164,23 +162,19 @@ const FolderListScreen = ({
 
   const getBucketCode = (name: string) => name.split("-")[3] || "";
 
-  const displayTitle =
-    envId === "sap"
-      ? getBucketCode(pageTitle || "").toUpperCase()
-      : formatName(pageTitle || "") || "Producto de Datos";
-
   return (
     <div
       className="
+        flex
+        items-start
+
         w-full
         min-h-full
 
-        flex
-        flex-col
-        lg:flex-row
+        bg-[--color-background]
       "
     >
-      {/* SIDEBAR SECUNDARIO */}
+      {/* SIDEBAR DE PRODUCTO / TABLAS */}
       <ProductSidebar
         productName={pageTitle}
         tables={model?.tables || []}
@@ -189,132 +183,106 @@ const FolderListScreen = ({
         onBack={onBack}
       />
 
-      {/* CONTENIDO */}
+      {/* CONTENIDO PRINCIPAL */}
       <main
         className="
           flex-1
           min-w-0
-          min-h-full
-          text-left
 
-          py-6
-          md:py-8
+          relative
         "
       >
         <FeedbackToast feedback={pipelineFeedback} />
 
         <div
           className="
-            w-full
-            max-w-[1600px]
+            p-4
+            md:p-6
+            lg:p-8
+
+            max-w-7xl
             mx-auto
 
-            px-4
-            md:px-6
-            lg:px-8
+            w-full
+
+            space-y-8
           "
         >
           {/* HEADER */}
-          <section className="w-full">
+          <div>
             <h1
               className="
-                text-3xl
-                md:text-4xl
-                xl:text-5xl
+                text-2xl
+                md:text-3xl
+
                 font-bold
+
                 text-[--color-accent]
               "
             >
-              Gestión de {displayTitle}
+              Gestión de{" "}
+              {envId === "sap"
+                ? getBucketCode(pageTitle || "").toUpperCase()
+                : formatName(pageTitle || "") || "Producto de Datos"}
             </h1>
 
             <p
               className="
-                mt-4
-                md:mt-6
-
-                text-base
-                md:text-lg
-
-                font-medium
-                leading-relaxed
-
-                max-w-4xl
+                text-sm
 
                 text-[--color-text-secondary]
+
+                mt-1
               "
             >
-              Administra la ingesta de información y visualiza el estado de las
-              tablas asociadas.
+              Administra la ingesta y visualiza el estado de las tablas.
             </p>
-          </section>
+          </div>
 
           {/* INGESTA + PIPELINE */}
-          <section
-            className={`
-              w-full
-
-              mt-8
-              md:mt-10
-
+          <div
+            className="
               grid
               grid-cols-1
-
-              ${
-                showPipelineSection
-                  ? "xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_360px]"
-                  : ""
-              }
+              lg:grid-cols-3
 
               gap-6
-              md:gap-8
-
-              items-stretch
-            `}
+            "
           >
             {/* NUEVA INGESTA */}
             <div
-              className="
-                w-full
-                min-w-0
+              className={`
+                ${showPipelineSection ? "lg:col-span-2" : "lg:col-span-3"}
 
                 bg-white
 
-                border
-                border-[--color-border]
-
-                rounded-2xl
-
                 p-5
                 md:p-6
-                lg:p-8
-              "
+
+                rounded-xl
+
+                shadow-sm
+
+                border
+                border-[--color-border]
+              `}
             >
-              <div>
-                <h2
-                  className="
-                    text-xl
-                    md:text-2xl
-                    font-bold
-                    text-[--color-text-primary]
-                  "
-                >
-                  Nueva ingesta
-                </h2>
+              <h2
+                className="
+                  text-lg
+                  font-semibold
 
-                <p
-                  className="
-                    mt-2
-                    text-sm
-                    md:text-base
-                    text-[--color-text-secondary]
-                  "
-                >
-                  Selecciona el destino y carga el archivo que deseas procesar.
-                </p>
-              </div>
+                  text-[--color-text-primary]
 
-              <div className="w-full border-t border-[--color-border] my-6" />
+                  mb-6
+                  pb-2
+
+                  border-b
+                  border-[--color-border]
+                "
+              >
+                Nueva Ingesta
+              </h2>
 
               <FileUploadSection
                 tables={model?.tables || []}
@@ -329,84 +297,93 @@ const FolderListScreen = ({
 
             {/* PIPELINE */}
             {showPipelineSection && (
-              <aside
+              <div
                 className="
-                  w-full
+                  lg:col-span-1
 
                   bg-white
-
-                  border
-                  border-[--color-border]
-
-                  rounded-2xl
 
                   p-5
                   md:p-6
 
+                  rounded-xl
+
+                  shadow-sm
+
+                  border
+                  border-[--color-border]
+
                   flex
                   flex-col
-                  justify-between
+                  items-center
+                  justify-center
+
+                  text-center
+
+                  space-y-4
 
                   h-full
+                  min-h-[250px]
                 "
               >
-                <div>
-                  <div
+                <div
+                  className="
+                    p-3
+
+                    bg-[--color-accent-light]
+
+                    rounded-full
+                  "
+                >
+                  <svg
                     className="
-                      w-12
-                      h-12
+                      w-8
+                      h-8
 
-                      flex
-                      items-center
-                      justify-center
-
-                      rounded-xl
-
-                      bg-[--color-accent-light]
                       text-[--color-accent]
                     "
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
                   >
-                    <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      />
-                    </svg>
-                  </div>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                </div>
 
+                <div>
                   <h3
                     className="
-                      mt-5
-                      text-lg
-                      md:text-xl
-                      font-bold
+                      text-md
+                      font-semibold
+
                       text-[--color-text-primary]
                     "
                   >
-                    Reprocesar Producto de Datos
+                    Reprocesar Producto de Dato
                   </h3>
 
                   <p
                     className="
-                      mt-3
-                      text-sm
-                      leading-relaxed
+                      text-xs
+
                       text-[--color-text-secondary]
+
+                      mt-1
+                      px-4
                     "
                   >
                     Ejecuta el pipeline completo de Dataform para actualizar las
-                    transformaciones asociadas a este producto de datos.
+                    transformaciones.
                   </p>
                 </div>
 
-                <div className="mt-6">
+                <div className="w-full flex justify-center px-3 md:px-6">
                   <PipelineButton
                     onRun={onRunPipeline}
                     isLoading={isPipelineRunning}
@@ -415,16 +392,29 @@ const FolderListScreen = ({
                     }
                   />
                 </div>
-              </aside>
+              </div>
             )}
-          </section>
+          </div>
 
           {/* RESUMEN */}
-          {model?.bucketName && (
-            <section className="w-full mt-6 md:mt-8">
+          <div
+            className="
+              bg-white
+
+              rounded-xl
+
+              shadow-sm
+
+              border
+              border-[--color-border]
+
+              overflow-hidden
+            "
+          >
+            {model?.bucketName && (
               <ResumenProducto productName={pageTitle || ""} />
-            </section>
-          )}
+            )}
+          </div>
         </div>
       </main>
 
@@ -434,64 +424,64 @@ const FolderListScreen = ({
           className="
               fixed
               inset-0
-              z-50
 
-              bg-black/60
+              bg-black/70
 
               flex
-              items-center
               justify-center
+              items-center
+
+              z-50
 
               p-4
             "
         >
           <div
             className="
-                w-full
-                max-w-md
-
                 bg-white
 
-                rounded-2xl
-
-                border
-                border-[--color-border]
+                rounded-xl
 
                 shadow-2xl
 
                 p-6
                 md:p-8
 
+                w-full
+                max-w-md
+
                 text-center
+
+                animate-fadeIn
               "
           >
-            <div
-              className="
-                  w-14
-                  h-14
+            <div className="mb-6">
+              <div
+                className="
+                    animate-spin
 
-                  mx-auto
+                    rounded-full
 
-                  rounded-full
+                    h-12
+                    w-12
 
-                  border-4
-                  border-[--color-accent-light]
-                  border-t-[--color-accent]
+                    border-4
+                    border-[--color-accent-light]
+                    border-t-[--color-accent]
 
-                  animate-spin
-                "
-            />
+                    mx-auto
+                  "
+              />
+            </div>
 
             <h2
               className="
-                  mt-6
-
                   text-xl
-                  md:text-2xl
-
                   font-bold
 
                   text-[--color-text-primary]
+
+                  mb-2
                 "
             >
               Procesando archivo...
@@ -499,45 +489,24 @@ const FolderListScreen = ({
 
             <p
               className="
-                  mt-2
-                  text-sm
-                  md:text-base
                   text-[--color-text-secondary]
+
+                  text-sm
                 "
             >
-              Subiendo archivo y generando la tabla en BigQuery.
+              Subiendo archivo y generando tabla en BigQuery
             </p>
 
-            <div className="mt-6">
-              <div
-                className="
-                    w-full
-                    h-2
+            <div
+              className="
+                  mt-4
 
-                    overflow-hidden
+                  text-sm
 
-                    rounded-full
-
-                    bg-[--color-background]
-                  "
-              >
-                <div
-                  className="
-                      h-full
-                      rounded-full
-                      bg-[--color-accent]
-                      transition-all
-                      duration-300
-                    "
-                  style={{
-                    width: `${uploadState.uploadProgress}%`,
-                  }}
-                />
-              </div>
-
-              <p className="mt-2 text-sm text-[--color-text-secondary]">
-                {uploadState.uploadProgress}% completado
-              </p>
+                  text-[--color-text-muted]
+                "
+            >
+              {uploadState.uploadProgress}% completado
             </div>
           </div>
         </div>
@@ -561,7 +530,7 @@ const FolderListScreen = ({
         isNewTable={uploadState.isNewTable}
       />
 
-      {/* ÉXITO */}
+      {/* SUCCESS */}
       {showCuadraturaModal &&
         uploadState.uploadSuccess &&
         uploadState.uploadMessage && (
@@ -569,25 +538,23 @@ const FolderListScreen = ({
             className="
               fixed
               inset-0
-              z-50
 
-              bg-black/60
+              bg-black/70
 
               flex
-              items-center
               justify-center
+              items-center
+
+              z-50
 
               p-4
             "
           >
             <div
               className="
-                w-full
-                max-w-md
-
                 bg-white
 
-                rounded-2xl
+                rounded-xl
 
                 border
                 border-[--color-border]
@@ -597,28 +564,35 @@ const FolderListScreen = ({
                 p-6
                 md:p-8
 
+                w-full
+                max-w-md
+
                 text-center
+
+                animate-fadeIn
               "
             >
               <div
                 className="
-                  w-16
-                  h-16
+                  w-20
+                  h-20
 
-                  mx-auto
+                  bg-green-100
+                  text-green-600
+
+                  rounded-full
 
                   flex
                   items-center
                   justify-center
 
-                  rounded-full
-
-                  bg-green-100
-                  text-green-600
+                  mx-auto
+                  mb-6
                 "
               >
                 <svg
-                  className="w-8 h-8"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-10 w-10"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -634,51 +608,51 @@ const FolderListScreen = ({
 
               <h2
                 className="
-                  mt-5
-
-                  text-xl
-                  md:text-2xl
-
+                  text-2xl
                   font-bold
 
                   text-[--color-text-primary]
+
+                  mb-2
                 "
               >
-                ¡Ingesta completada!
+                ¡Ingesta Completada!
               </h2>
 
               <p
                 className="
-                  mt-2
-
-                  text-sm
-                  md:text-base
-
                   text-[--color-text-secondary]
+
+                  mb-6
                 "
               >
                 El archivo fue cargado correctamente en BigQuery.
+                <br />
+                <span
+                  className="
+                    font-mono
+
+                    bg-[--color-background]
+
+                    text-[--color-text-primary]
+
+                    border
+                    border-[--color-border]
+
+                    p-2
+
+                    rounded-lg
+
+                    mt-3
+
+                    block
+
+                    break-all
+                  "
+                >
+                  {uploadState.uploadMessage.b_query}
+                </span>
               </p>
-
-              <div
-                className="
-                  mt-5
-
-                  p-3
-
-                  rounded-xl
-
-                  bg-[--color-background]
-
-                  text-sm
-                  font-mono
-                  text-[--color-text-primary]
-
-                  break-all
-                "
-              >
-                {uploadState.uploadMessage.b_query}
-              </div>
 
               <button
                 type="button"
@@ -687,21 +661,20 @@ const FolderListScreen = ({
                   window.location.reload();
                 }}
                 className="
-                  w-full
+                  bg-[--color-accent]
 
-                  mt-6
+                  text-white
 
-                  px-5
+                  px-6
                   py-2.5
 
                   rounded-[10px]
 
-                  bg-[--color-accent]
-                  text-white
+                  hover:opacity-90
+
+                  w-full
 
                   font-semibold
-
-                  hover:opacity-90
 
                   transition-opacity
                 "

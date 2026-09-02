@@ -76,18 +76,26 @@ const Router = () => {
                       <Routes>
                         <Route path="401" element={<NotAuthorizedScreen />} />
                         <Route path="404" element={<NotFoundScreen />} />
-                        <Route
-                          path="/"
-                          element={<ProtectedRoute />}
-                        >
-                          <Route path="/" element={<MainController />} />
+                        <Route path="/" element={<ProtectedRoute />}>
                           <Route element={<AppLayout />}>
-                            <Route path="/home" element={<MainController />} />
-                            <Route path="/onboarding" element={<OnboardingController />} />
+                            <Route path="/" element={<MainController />} />
+                            <Route
+                              path="/onboarding"
+                              element={<OnboardingController />}
+                            />
                             <Route path="/faq" element={<FaqController />} />
-                            <Route path="/conceptos" element={<ConceptosController />} />
-                            <Route path="/marketplace" element={<MarketplaceController />} />
-                            <Route path="/marketplace/administracion" element={<AdminController />} />
+                            <Route
+                              path="/conceptos"
+                              element={<ConceptosController />}
+                            />
+                            <Route
+                              path="/marketplace"
+                              element={<MarketplaceController />}
+                            />
+                            <Route
+                              path="/marketplace/administracion"
+                              element={<AdminController />}
+                            />
                             <Route
                               path="/marketplace/:domainId"
                               element={<DomainController />}
@@ -96,7 +104,10 @@ const Router = () => {
                               path="/marketplace/:domainId/:reportId"
                               element={<ReportController />}
                             />
-                            <Route path="/dashboard" element={<IngestController />} />
+                            <Route
+                              path="/dashboard"
+                              element={<IngestController />}
+                            />
                             <Route
                               path="/dashboard/:envId"
                               element={<BucketListController />}

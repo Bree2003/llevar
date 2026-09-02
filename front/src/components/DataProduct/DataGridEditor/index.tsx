@@ -1,10 +1,8 @@
 import Skeleton from "react-loading-skeleton";
-
 import "react-loading-skeleton/dist/skeleton.css";
 
 import { DataGridPreviewProps } from "./types";
 import { useDataGridLogic } from "./useDataGridLogic";
-
 import { DataGridHeader } from "./parts/Header";
 import { DataGridToolbar } from "./parts/Toolbar";
 import { DataGridFooter } from "./parts/Footer";
@@ -20,30 +18,27 @@ export default function DataGridEditor({
   const logic = useDataGridLogic(file, onSave);
 
   return (
-    <div className="w-full relative">
-      {/* DESCARTAR */}
+    <div className="w-full text-left p-10 relative">
       <ConfirmationModal
         isOpen={logic.showDiscardModal}
         title="Descartar cambios"
         message="¿Estás seguro de que quieres descartar todos los cambios no guardados? Volverás al estado inicial del archivo."
         confirmText="Sí, descartar"
-        confirmButtonColor="bg-gray-600 hover:bg-gray-700"
+        confirmButtonColor="bg-gray-600 hover:bg-gray-700" // color distinto para distinguir de borrar
         onConfirm={logic.confirmDiscard}
         onCancel={() => logic.setShowDiscardModal(false)}
       />
 
-      {/* ELIMINAR */}
       <ConfirmationModal
         isOpen={logic.showDeleteModal}
         title="Eliminar registros"
-        message={`¿Estás seguro de que quieres eliminar ${logic.selectedRowIndices.size} registro(s)? Esta acción no se aplicará en la base de datos hasta que hagas clic en 'Guardar cambios'.`}
+        message={`¿Estás seguro de que quieres eliminar ${logic.selectedRowIndices.size} registro(s)? Esta acción no se aplicará en la base de datos hasta que hagas clic en 'Guardar Cambios'.`}
         confirmText="Eliminar"
         confirmButtonColor="bg-red-600 hover:bg-red-700"
         onConfirm={logic.confirmDelete}
         onCancel={() => logic.setShowDeleteModal(false)}
       />
 
-      {/* HEADER */}
       <DataGridHeader
         loading={loading}
         tableName={breadcrumbs?.tableName}
@@ -54,45 +49,18 @@ export default function DataGridEditor({
         setVisibleColumns={logic.setVisibleColumns}
       />
 
-      {/* CARD PRINCIPAL */}
-      <section
-        className="
-          w-full
+      <DataGridToolbar
+        loading={loading}
+        selectedCount={logic.selectedRowIndices.size}
+        isDirty={logic.isDirty}
+        onAdd={logic.handleAddRow}
+        onEdit={logic.handleEditSelected}
+        onDelete={logic.handleDeleteRequest}
+        onSave={logic.handleSave}
+        onDiscard={() => logic.setShowDiscardModal(true)}
+      />
 
-          bg-white
-
-          border
-          border-[--color-border]
-
-          rounded-2xl
-
-          shadow-sm
-
-          overflow-visible
-        "
-      >
-        <DataGridToolbar
-          loading={loading}
-          selectedCount={logic.selectedRowIndices.size}
-          isDirty={logic.isDirty}
-          onAdd={logic.handleAddRow}
-          onEdit={logic.handleEditSelected}
-          onDelete={logic.handleDeleteRequest}
-          onSave={logic.handleSave}
-          onDiscard={() => logic.setShowDiscardModal(true)}
-        />
-
-        {loading && (
-          <div
-            className="
-              p-6
-              md:p-10
-            "
-          >
-            <Skeleton count={7} height={24} />
-          </div>
-        )}
-
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-visible flex flex-col">
         {!loading && !file?.isEmpty && (
           <DataGridTable
             paginatedRows={logic.paginatedRows}
@@ -117,36 +85,13 @@ export default function DataGridEditor({
           />
         )}
 
-        {!loading && file?.isEmpty && (
-          <div
-            className="
-                py-12
-                md:py-16
-                px-5
-
-                text-center
-              "
-          >
-            <h3
-              className="
-                  text-lg
-                  font-semibold
-                  text-[--color-text-primary]
-                "
-            >
-              Sin datos disponibles
-            </h3>
-
-            <p
-              className="
-                  mt-2
-                  text-sm
-                  text-[--color-text-secondary]
-                "
-            >
-              Esta tabla todavía no contiene registros para visualizar.
-            </p>
+        {loading && (
+          <div className="p-10">
+            <Skeleton count={5} />
           </div>
+        )}
+        {!loading && file?.isEmpty && (
+          <div className="p-10 text-center text-gray-500">Sin datos</div>
         )}
 
         {!loading && !file?.isEmpty && (
@@ -157,15 +102,13 @@ export default function DataGridEditor({
             currentPage={logic.currentPage}
             totalPages={logic.totalPages}
             isDirty={logic.isDirty}
-            onPrev={() => logic.setCurrentPage((page) => Math.max(page - 1, 1))}
+            onPrev={() => logic.setCurrentPage((p) => Math.max(p - 1, 1))}
             onNext={() =>
-              logic.setCurrentPage((page) =>
-                Math.min(page + 1, logic.totalPages),
-              )
+              logic.setCurrentPage((p) => Math.min(p + 1, logic.totalPages))
             }
           />
         )}
-      </section>
+      </div>
     </div>
   );
 }

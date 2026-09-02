@@ -72,24 +72,25 @@ export default function ProductSidebar({
   return (
     <aside
       className="
-        w-full
-        lg:w-[270px]
-        xl:w-[290px]
+    w-full
 
-        lg:flex-shrink-0
+    lg:w-[270px]
+    xl:w-[290px]
 
-        bg-white
+    lg:flex-shrink-0
 
-        border-b
-        lg:border-b-0
-        lg:border-r
+    bg-white
 
-        border-[--color-border]
+    border-b
+    lg:border-r
+    border-[--color-border]
 
-        text-left
+    text-left
 
-        lg:min-h-full
-      "
+    self-stretch
+
+    lg:min-h-[calc(100dvh-85.33px)]
+  "
     >
       <div
         className="
@@ -98,22 +99,26 @@ export default function ProductSidebar({
           p-4
           md:p-5
           lg:p-6
-
-          lg:sticky
-          lg:top-0
         "
       >
         {loading ? (
           <>
             <Skeleton height={25} width="75%" />
 
-            <div className="border-t border-[--color-border] my-5" />
+            <div
+              className="
+                border-t
+                border-[--color-border]
+
+                my-5
+              "
+            />
 
             <Skeleton count={4} height={34} />
           </>
         ) : (
           <>
-            {/* Título */}
+            {/* TÍTULO */}
             <h2
               className="
                 text-lg
@@ -129,13 +134,19 @@ export default function ProductSidebar({
               {displayName}
             </h2>
 
-            <div className="border-t border-[--color-border] my-5" />
+            <div
+              className="
+                border-t
+                border-[--color-border]
 
-            {/* Tablas */}
+                my-5
+              "
+            />
+
+            {/* TABLAS */}
             <p
               className="
                 text-xs
-
                 font-bold
 
                 uppercase
@@ -170,33 +181,32 @@ export default function ProductSidebar({
                     type="button"
                     onClick={() => onSelectTable(table.id)}
                     className="
-                      flex-shrink-0
-                      lg:w-full
+                        flex-shrink-0
 
-                      px-3
-                      py-2.5
+                        lg:w-full
 
-                      rounded-lg
+                        px-3
+                        py-2.5
 
-                      text-sm
+                        rounded-lg
 
-                      font-medium
+                        text-sm
+                        font-medium
+                        text-left
 
-                      text-left
+                        text-[--color-text-secondary]
 
-                      text-[--color-text-secondary]
+                        bg-[--color-background]
+                        lg:bg-transparent
 
-                      bg-[--color-background]
-                      lg:bg-transparent
+                        hover:bg-[--color-accent-light]
+                        hover:text-[--color-accent]
 
-                      hover:bg-[--color-accent-light]
-                      hover:text-[--color-accent]
+                        transition-colors
 
-                      transition-colors
-
-                      whitespace-nowrap
-                      lg:whitespace-normal
-                    "
+                        whitespace-nowrap
+                        lg:whitespace-normal
+                      "
                   >
                     {table.label}
                   </button>
@@ -206,7 +216,9 @@ export default function ProductSidebar({
               <p
                 className="
                   mt-3
+
                   text-sm
+
                   text-[--color-text-secondary]
                 "
               >
@@ -214,8 +226,16 @@ export default function ProductSidebar({
               </p>
             )}
 
-            {/* Volver */}
-            <div className="border-t border-[--color-border] mt-5 pt-5">
+            {/* VOLVER */}
+            <div
+              className="
+                border-t
+                border-[--color-border]
+
+                mt-5
+                pt-5
+              "
+            >
               <button
                 type="button"
                 onClick={onBack}
@@ -225,7 +245,6 @@ export default function ProductSidebar({
                   gap-2
 
                   text-sm
-
                   font-semibold
 
                   text-[--color-text-secondary]

@@ -92,8 +92,8 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
     {
       label: "Inicio",
       icon: House,
-      path: "/home",
-      onClick: () => navigate("/home"),
+      path: "/",
+      onClick: () => navigate("/"),
     },
     {
       label: "Ingestas",
@@ -147,6 +147,7 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
         text-[var(--color-text-secondary)]
 
         font-semibold
+    border-r
 
         flex
         flex-col
