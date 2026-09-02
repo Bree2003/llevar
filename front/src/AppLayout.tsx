@@ -8,9 +8,7 @@ const NAVBAR_HEIGHT = 85.33;
 
 const AppLayout = () => {
   const location = useLocation();
-  const [isMenuOpen, setIsMenuOpen] = useState(true);
-
-  const isHome = location.pathname === "/home";
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
     <div className="h-screen overflow-hidden">
@@ -27,23 +25,16 @@ const AppLayout = () => {
           height: `calc(100vh - ${NAVBAR_HEIGHT}px)`,
         }}
       >
-        <LateralMenu
-          isOpen={isMenuOpen}
-          setIsOpen={setIsMenuOpen}
-        />
+        <LateralMenu isOpen={isMenuOpen} setIsOpen={setIsMenuOpen} />
       </div>
 
       {/* Contenido */}
       <div
         style={{
-          marginLeft: isHome
-            ? "0"
-            : isMenuOpen
-              ? "250px"
-              : "60px",
+          marginLeft: isMenuOpen ? "250px" : "60px",
           marginTop: `${NAVBAR_HEIGHT}px`,
           height: `calc(100vh - ${NAVBAR_HEIGHT}px)`,
-          transition: "margin-left 300ms ease-in-out"
+          transition: "margin-left 300ms ease-in-out",
         }}
       >
         <div
@@ -59,7 +50,7 @@ const AppLayout = () => {
           <Footer />
         </div>
       </div>
-    </div >
+    </div>
   );
 };
 

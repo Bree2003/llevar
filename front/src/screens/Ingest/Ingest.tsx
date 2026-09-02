@@ -3,9 +3,9 @@ import {
   EndpointStatus,
   IngestModel,
 } from "controllers/Ingest/controller";
-import Loading from "components/Global/Loading/Loading";
+
 import QuickAccess from "components/QuickAccess/QuickAccess";
-import DataProduct from "components/DataProduct/DataProduct"; // 1. Importamos el componente de diseño
+import DataProduct from "components/DataProduct/DataProduct";
 
 interface Props {
   model: Partial<IngestModel> | undefined;
@@ -17,20 +17,85 @@ const IngestScreen = ({ model, endpoints, onSelectEnvironment }: Props) => {
   const isLoading = endpoints?.GetEnvironments?.loading;
 
   return (
-    <div className="flex flex-col w-full">
-      {/* El título se puede mantener aquí o moverlo dentro de DataProduct si se prefiere */}
-      {/* 2. Reemplazamos el .map() por el componente DataProduct */}
-      <div className="flex-grow w-full flex">
-        <DataProduct
-          // Le pasamos el array completo de entornos. El "|| []" evita errores si es undefined.
-          products={model?.environments || []}
-          loading={isLoading}
-          // Le pasamos la función que se debe ejecutar al hacer clic en una tarjeta.
-          onProductClick={onSelectEnvironment}
-        />
-        <QuickAccess />
+    <main
+      className="
+        w-full
+        min-h-full
+        text-left
+        py-6
+        md:py-8
+      "
+    >
+      <div
+        className="
+          w-full
+          max-w-[1600px]
+          mx-auto
+          px-4
+          md:px-6
+          lg:px-8
+        "
+      >
+        {/* Header */}
+        <section className="w-full">
+          <h1
+            className="
+              text-3xl
+              md:text-4xl
+              xl:text-5xl
+              font-bold
+              text-[--color-accent]
+            "
+          >
+            Ingestas
+          </h1>
+
+          <p
+            className="
+              mt-4
+              md:mt-6
+              max-w-4xl
+              text-base
+              md:text-lg
+              font-medium
+              leading-relaxed
+              text-[--color-text-secondary]
+            "
+          >
+            Gestiona la incorporación y actualización de información de los
+            distintos dominios de datos de la organización.
+          </p>
+        </section>
+
+        {/* Contenido */}
+        <section
+          className="
+            w-full
+            mt-8
+            md:mt-10
+
+            grid
+            grid-cols-1
+
+            xl:grid-cols-[minmax(0,1fr)_320px]
+            2xl:grid-cols-[minmax(0,1fr)_380px]
+
+            gap-6
+            md:gap-8
+
+            items-start
+          "
+        >
+          <DataProduct
+            products={model?.environments || []}
+            loading={isLoading}
+            onProductClick={onSelectEnvironment}
+          />
+
+          <QuickAccess />
+        </section>
       </div>
-    </div>
+    </main>
   );
 };
 

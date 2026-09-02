@@ -8,125 +8,491 @@ import { ReactComponent as Danger } from "components/Global/Icons/danger.svg";
 import { ReactComponent as Warning } from "components/Global/Icons/warning.svg";
 import AlertMessage from "components/UI/AlertMessage";
 
-// --- HELPERS ---
 const DetailRow = ({ label, value }: { label: string; value: any }) => (
-  <div className="grid grid-cols-4 py-1.5 border-b border-gray-100 last:border-0">
-    <span className="font-medium text-gray-600">{label}:</span>
-    <span className="col-span-3 text-gray-900 text-sm font-semibold">
+  <div
+    className="
+      py-4
+
+      border-b
+      last:border-b-0
+      border-[--color-border]
+
+      grid
+      grid-cols-1
+      sm:grid-cols-[160px_minmax(0,1fr)]
+
+      gap-1
+      sm:gap-5
+    "
+  >
+    <span
+      className="
+        text-xs
+        sm:text-sm
+
+        font-semibold
+
+        text-[--color-text-secondary]
+      "
+    >
+      {label}
+    </span>
+
+    <span
+      className="
+        text-sm
+        sm:text-base
+
+        font-semibold
+
+        text-[--color-text-primary]
+
+        break-words
+      "
+    >
       {value || "-"}
     </span>
   </div>
 );
 
-// --- STEP 1: CONFIRMACIÓN ---
 export const Step1Confirmation = ({ data }: { data: AnalysisStep1Data }) => {
-  if (!data) return <div className="p-4 text-center">Error al cargar datos</div>;
+  if (!data) {
+    return (
+      <div
+        className="
+          py-12
+          text-center
+          text-[--color-text-secondary]
+        "
+      >
+        No fue posible cargar la información del archivo.
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-white p-4 rounded-lg border border-gray-200">
-      <h3 className="font-bold text-lg mb-4 text-gray-800">
-        Resumen del archivo
-      </h3>
-      <DetailRow label="Nombre" value={data.nombre_archivo} />
-      <DetailRow label="Tamaño" value={data.tamano} />
-      <DetailRow label="Tipo" value={data.tipo_archivo} />
-      <DetailRow label="Fecha carga" value={data.fecha_de_carga} />
-      <DetailRow label="Hora carga" value={data.hora_de_carga} />
-    </div>
+    <section
+      className="
+        w-full
+
+        bg-white
+
+        border
+        border-[--color-border]
+
+        rounded-2xl
+
+        overflow-hidden
+      "
+    >
+      <div
+        className="
+          p-5
+          md:p-6
+
+          border-b
+          border-[--color-border]
+        "
+      >
+        <h3
+          className="
+            text-lg
+            md:text-xl
+
+            font-bold
+
+            text-[--color-text-primary]
+          "
+        >
+          Resumen del archivo
+        </h3>
+
+        <p
+          className="
+            mt-1
+
+            text-sm
+
+            text-[--color-text-secondary]
+          "
+        >
+          Confirma que la información del archivo seleccionado sea correcta
+          antes de continuar.
+        </p>
+      </div>
+
+      <div className="px-5 md:px-6">
+        <DetailRow label="Nombre" value={data.nombre_archivo} />
+
+        <DetailRow label="Tamaño" value={data.tamano} />
+
+        <DetailRow label="Tipo" value={data.tipo_archivo} />
+
+        <DetailRow label="Fecha de carga" value={data.fecha_de_carga} />
+
+        <DetailRow label="Hora de carga" value={data.hora_de_carga} />
+      </div>
+    </section>
   );
 };
 
-// --- STEP 2: ESTRUCTURA ---
 export const Step2Structure = ({ data }: { data: AnalysisStep2Data }) => {
   const [tab, setTab] = useState<"columns" | "preview">("columns");
 
-  if (!data)
-    return <div className="p-4 text-center">Cargando estructura...</div>;
+  if (!data) {
+    return (
+      <div className="py-12 text-center text-[--color-text-secondary]">
+        Cargando estructura...
+      </div>
+    );
+  }
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="bg-blue-50 p-3 rounded text-center">
-          <span className="block text-xs text-gray-500">Columnas</span>
-          <span className="text-xl font-bold text-blue-700">
+    <div className="w-full flex flex-col gap-6">
+      {/* MÉTRICAS */}
+      <div
+        className="
+          grid
+          grid-cols-1
+          sm:grid-cols-2
+          gap-4
+        "
+      >
+        <div
+          className="
+            bg-white
+
+            border
+            border-[--color-border]
+
+            rounded-2xl
+
+            p-5
+            md:p-6
+          "
+        >
+          <span
+            className="
+              text-xs
+              md:text-sm
+
+              font-semibold
+              uppercase
+              tracking-wide
+
+              text-[--color-text-secondary]
+            "
+          >
+            Columnas detectadas
+          </span>
+
+          <p
+            className="
+              mt-2
+
+              text-3xl
+              md:text-4xl
+
+              font-bold
+
+              text-[--color-accent]
+            "
+          >
             {data.numero_columnas}
-          </span>
+          </p>
         </div>
-        <div className="bg-blue-50 p-3 rounded text-center">
-          <span className="block text-xs text-gray-500">Registros</span>
-          <span className="text-xl font-bold text-blue-700">
+
+        <div
+          className="
+            bg-white
+
+            border
+            border-[--color-border]
+
+            rounded-2xl
+
+            p-5
+            md:p-6
+          "
+        >
+          <span
+            className="
+              text-xs
+              md:text-sm
+
+              font-semibold
+              uppercase
+              tracking-wide
+
+              text-[--color-text-secondary]
+            "
+          >
+            Registros detectados
+          </span>
+
+          <p
+            className="
+              mt-2
+
+              text-3xl
+              md:text-4xl
+
+              font-bold
+
+              text-[--color-accent]
+            "
+          >
             {data.numero_registros}
-          </span>
+          </p>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex border-b mb-3">
-        <button
-          className={`px-4 py-2 text-sm font-medium ${
-            tab === "columns"
-              ? "text-blue-600 border-b-2 border-blue-600"
-              : "text-gray-500"
-          }`}
-          onClick={() => setTab("columns")}
-        >
-          Columnas
-        </button>
-        <button
-          className={`px-4 py-2 text-sm font-medium ${
-            tab === "preview"
-              ? "text-blue-600 border-b-2 border-blue-600"
-              : "text-gray-500"
-          }`}
-          onClick={() => setTab("preview")}
-        >
-          Vista previa
-        </button>
-      </div>
+      {/* ESTRUCTURA */}
+      <section
+        className="
+          bg-white
 
-      <div className="flex-grow overflow-y-auto border rounded bg-gray-50 p-2 h-full max-h-60">
+          border
+          border-[--color-border]
+
+          rounded-2xl
+
+          overflow-hidden
+        "
+      >
+        {/* Tabs */}
+        <div
+          className="
+            px-4
+            sm:px-5
+
+            border-b
+            border-[--color-border]
+
+            flex
+            overflow-x-auto
+          "
+        >
+          <button
+            type="button"
+            onClick={() => setTab("columns")}
+            className={`
+              px-3
+              sm:px-4
+              py-4
+
+              text-sm
+              font-semibold
+
+              whitespace-nowrap
+
+              border-b-2
+
+              transition-colors
+
+              ${
+                tab === "columns"
+                  ? "border-[--color-accent] text-[--color-accent]"
+                  : "border-transparent text-[--color-text-secondary] hover:text-[--color-text-primary]"
+              }
+            `}
+          >
+            Columnas
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setTab("preview")}
+            className={`
+              px-3
+              sm:px-4
+              py-4
+
+              text-sm
+              font-semibold
+
+              whitespace-nowrap
+
+              border-b-2
+
+              transition-colors
+
+              ${
+                tab === "preview"
+                  ? "border-[--color-accent] text-[--color-accent]"
+                  : "border-transparent text-[--color-text-secondary] hover:text-[--color-text-primary]"
+              }
+            `}
+          >
+            Vista previa
+          </button>
+        </div>
+
         {tab === "columns" ? (
-          <ul className="space-y-2">
-            {data.columnas_encontradas.map((col, idx) => (
-              <li
-                key={idx}
-                className="flex justify-between bg-white p-2 rounded shadow-sm text-sm"
-              >
-                <span className="font-medium text-gray-700">{col.nombre}</span>
-                <span className="bg-gray-200 px-2 py-0.5 rounded text-xs text-gray-600">
-                  {col.tipo}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <div
+            className="
+              p-4
+              md:p-5
+
+              max-h-[350px]
+              overflow-y-auto
+            "
+          >
+            <div
+              className="
+                grid
+                grid-cols-1
+                sm:grid-cols-2
+
+                gap-3
+              "
+            >
+              {data.columnas_encontradas.map((column, index) => (
+                <div
+                  key={index}
+                  className="
+                      flex
+                      items-center
+                      justify-between
+                      gap-3
+
+                      p-3
+
+                      rounded-xl
+
+                      bg-[--color-background]
+
+                      border
+                      border-[--color-border]
+                    "
+                >
+                  <span
+                    className="
+                        min-w-0
+
+                        text-sm
+                        font-semibold
+
+                        text-[--color-text-primary]
+
+                        truncate
+                      "
+                  >
+                    {column.nombre}
+                  </span>
+
+                  <span
+                    className="
+                        flex-shrink-0
+
+                        px-2
+                        py-1
+
+                        rounded-md
+
+                        bg-white
+
+                        border
+                        border-[--color-border]
+
+                        text-xs
+                        font-mono
+
+                        text-[--color-text-secondary]
+                      "
+                  >
+                    {column.tipo}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         ) : (
-          <table className="min-w-full text-xs bg-white">
-            <thead>
-              <tr className="bg-gray-100">
-                {data.columnas_encontradas.map((c) => (
-                  <th key={c.nombre} className="p-2 text-left">
-                    {c.nombre}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data.vista_previa.map((row, idx) => (
-                <tr key={idx} className="border-t">
-                  {data.columnas_encontradas.map((c) => (
-                    <td key={c.nombre} className="p-2 truncate max-w-[100px]">
-                      {row[c.nombre]}
-                    </td>
+          <div className="w-full overflow-x-auto">
+            <table
+              className="
+                w-full
+                min-w-[700px]
+
+                text-xs
+                md:text-sm
+
+                text-left
+              "
+            >
+              <thead
+                className="
+                  bg-[--color-background]
+
+                  border-b
+                  border-[--color-border]
+                "
+              >
+                <tr>
+                  {data.columnas_encontradas.map((column) => (
+                    <th
+                      key={column.nombre}
+                      className="
+                          px-4
+                          py-3
+
+                          font-semibold
+
+                          text-[--color-text-secondary]
+
+                          whitespace-nowrap
+                        "
+                    >
+                      {column.nombre}
+                    </th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {data.vista_previa.map((row, index) => (
+                  <tr
+                    key={index}
+                    className="
+                        border-b
+                        last:border-b-0
+                        border-[--color-border]
+
+                        hover:bg-[--color-background]
+                      "
+                  >
+                    {data.columnas_encontradas.map((column) => (
+                      <td
+                        key={column.nombre}
+                        className="
+                              px-4
+                              py-3
+
+                              max-w-[220px]
+
+                              truncate
+
+                              text-[--color-text-secondary]
+                            "
+                      >
+                        {row[column.nombre]}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
-      
-          <AlertMessage variant="compact" className="mt-8">
-            <span>Hemos ajustado los nombres de las columnas eliminando símbolos y caracteres especiales (ñ, -, $, etc.). Esto garantiza que tus datos se procesen correctamente.</span>
-          </AlertMessage>
+      </section>
+
+      <AlertMessage variant="compact">
+        <span>
+          Hemos ajustado los nombres de las columnas eliminando símbolos y
+          caracteres especiales (ñ, -, $, etc.). Esto garantiza que tus datos se
+          procesen correctamente.
+        </span>
+      </AlertMessage>
     </div>
   );
 };
@@ -139,11 +505,15 @@ const parseValidationMessage = (message: string) => {
     return {
       type: "EXTRA_COLUMNS",
       title: "Columnas inesperadas",
-      description: "Estas columnas están en tu archivo pero NO existen en la tabla de BigQuery.",
-      columns: columnsStr.split(",").map((c) => c.trim()).filter(Boolean),
+      description:
+        "Estas columnas están en tu archivo pero NO existen en la tabla de BigQuery.",
+      columns: columnsStr
+        .split(",")
+        .map((c) => c.trim())
+        .filter(Boolean),
     };
   }
-  
+
   // 2. Caso: Columnas que faltan (Están en BQ pero no en el archivo)
   if (message.includes("Faltan columnas requeridas")) {
     const parts = message.split(":");
@@ -151,8 +521,12 @@ const parseValidationMessage = (message: string) => {
     return {
       type: "MISSING_COLUMNS",
       title: "Columnas faltantes",
-      description: "Estas columnas son OBLIGATORIAS en BigQuery y no vienen en tu archivo.",
-      columns: columnsStr.split(",").map((c) => c.trim()).filter(Boolean),
+      description:
+        "Estas columnas son OBLIGATORIAS en BigQuery y no vienen en tu archivo.",
+      columns: columnsStr
+        .split(",")
+        .map((c) => c.trim())
+        .filter(Boolean),
     };
   }
 
@@ -160,189 +534,863 @@ const parseValidationMessage = (message: string) => {
   return { type: "GENERIC", message };
 };
 
-// --- STEP 3: VALIDACIÓN (Tablas Existentes) ---
 export const Step3Validation = ({ data }: { data: any }) => {
-  if (!data) return <div className="p-10 text-center text-gray-400">Cargando validaciones...</div>;
+  if (!data) {
+    return (
+      <div className="py-12 text-center text-[--color-text-secondary]">
+        Cargando validaciones...
+      </div>
+    );
+  }
 
   const errores = data.bloqueantes || [];
+
   const alertas = data.alertas || [];
+
   const isValid = errores.length === 0 && alertas.length === 0;
 
-  // Procesamos los errores crudos para convertirlos en objetos estructurados
   const parsedErrors = errores.map(parseValidationMessage);
 
   return (
-    <div className="h-full flex flex-col">
+    <div
+      className="
+        w-full
+        flex
+        flex-col
+        gap-6
+      "
+    >
+      {/* SUCCESS */}
+      {isValid && (
+        <div
+          className="
+            w-full
 
-      <div className="flex-grow overflow-y-auto px-1 space-y-6 custom-scrollbar">
-        
-        {/* CASO: ÉXITO */}
-        {isValid && (
-          <div className="flex flex-col items-center justify-center h-48 bg-green-50/50 border-2 border-dashed border-green-200 rounded-xl">
-            <div className="text-4xl mb-2">✅</div>
-          <p className="font-bold">Validación Exitosa</p>
-            <p className="text-green-600 text-sm">El archivo cumple con los requisitos para ser ingestada.</p>
+            bg-white
+
+            border
+            border-green-200
+
+            rounded-2xl
+
+            p-6
+            md:p-8
+
+            text-center
+          "
+        >
+          <div
+            className="
+              w-14
+              h-14
+
+              mx-auto
+
+              flex
+              items-center
+              justify-center
+
+              rounded-full
+
+              bg-green-100
+              text-green-600
+
+              text-2xl
+            "
+          >
+            ✓
           </div>
-        )}
 
-        {/* CASO: ERRORES (Grid de 2 columnas) */}
-        {errores.length > 0 && (
-          <div>
-            <div className="flex items-center gap-2 mb-3 text-red-700">
-                <h4 className="font-bold text-sm uppercase tracking-wide">Errores Bloqueantes</h4>
-                <div className="h-px bg-red-200 flex-grow"></div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {parsedErrors.map((err: any, idx: number) => {
-                
-                // Renderizado para error genérico (texto plano)
-                if (err.type === "GENERIC") {
-                  return (
-                    <div key={idx} className="md:col-span-2 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg text-red-800 text-sm shadow-sm">
-                      {err.message}
-                    </div>
-                  );
-                }
+          <h3
+            className="
+              mt-4
 
-                // Renderizado para errores de columnas (Tarjetas Visuales)
-                const isMissing = err.type === "MISSING_COLUMNS";
-                
+              text-lg
+              md:text-xl
+
+              font-bold
+
+              text-[--color-text-primary]
+            "
+          >
+            Validación exitosa
+          </h3>
+
+          <p
+            className="
+              mt-2
+
+              text-sm
+              md:text-base
+
+              text-[--color-text-secondary]
+            "
+          >
+            El archivo cumple con los requisitos necesarios para realizar la
+            ingesta.
+          </p>
+        </div>
+      )}
+
+      {/* ERRORES */}
+      {errores.length > 0 && (
+        <section>
+          <div
+            className="
+              flex
+              items-center
+              gap-3
+
+              mb-4
+            "
+          >
+            <h3
+              className="
+                text-sm
+
+                font-bold
+
+                uppercase
+                tracking-wide
+
+                text-red-700
+
+                whitespace-nowrap
+              "
+            >
+              Errores bloqueantes
+            </h3>
+
+            <div className="h-px flex-1 bg-red-200" />
+          </div>
+
+          <div
+            className="
+              grid
+              grid-cols-1
+              md:grid-cols-2
+
+              gap-4
+            "
+          >
+            {parsedErrors.map((error: any, index: number) => {
+              if (error.type === "GENERIC") {
                 return (
-                  <div key={idx} className={`rounded-xl border shadow-sm flex flex-col h-full overflow-hidden
-                    ${isMissing ? "bg-red-50 border-red-200" : "bg-orange-50 border-orange-200"}`}
+                  <div
+                    key={index}
+                    className="
+                        md:col-span-2
+
+                        p-4
+
+                        rounded-xl
+
+                        bg-red-50
+
+                        border
+                        border-red-200
+
+                        text-sm
+                        text-red-700
+                      "
                   >
-                    <div className={`px-4 py-3 border-b ${isMissing ? "border-red-200 bg-red-100/50" : "border-orange-200 bg-orange-100/50"}`}>
-                        <div className="flex items-center gap-2 mb-1">
-                            <span className="text-lg">{isMissing ? "🛑" : "⚠️"}</span>
-                            <h5 className={`font-bold text-sm ${isMissing ? "text-red-800" : "text-orange-800"}`}>
-                                {err.title}
-                            </h5>
-                        </div>
-                        <p className={`text-xs ${isMissing ? "text-red-600" : "text-orange-700"}`}>
-                            {err.description}
-                        </p>
-                    </div>
-                    
-                    <div className="p-4 bg-white/50 flex-grow">
-                        <div className="flex flex-wrap gap-2">
-                            {err.columns.map((col: string, cIdx: number) => (
-                                <span 
-                                    key={cIdx} 
-                                    className={`text-xs px-2 py-1 rounded font-mono font-medium border shadow-sm
-                                    ${isMissing 
-                                        ? "bg-white text-red-600 border-red-200" 
-                                        : "bg-white text-orange-600 border-orange-200"}`}
-                                >
-                                    {col}
-                                </span>
-                            ))}
-                        </div>
-                    </div>
+                    {error.message}
                   </div>
                 );
-              })}
-            </div>
-          </div>
-        )}
+              }
 
-        {/* CASO: ALERTAS */}
-        {alertas.length > 0 && (
-          <div className="mt-4">
-            <h4 className="text-yellow-700 font-bold text-sm mb-3 flex items-center gap-2">
-                <span className="text-lg">⚠️</span> Advertencias (No bloqueantes)
-            </h4>
-            <div className="space-y-2">
-              {alertas.map((warn: string, idx: number) => (
-                <div key={idx} className="bg-yellow-50 text-yellow-800 border border-yellow-200 p-3 rounded-lg text-sm flex items-start shadow-sm">
-                  <span className="mr-2 font-bold">•</span>
-                  <span>{warn}</span>
+              const isMissing = error.type === "MISSING_COLUMNS";
+
+              return (
+                <div
+                  key={index}
+                  className={`
+                      overflow-hidden
+
+                      rounded-2xl
+
+                      border
+
+                      bg-white
+
+                      ${isMissing ? "border-red-200" : "border-amber-200"}
+                    `}
+                >
+                  <div
+                    className={`
+                        p-4
+
+                        border-b
+
+                        ${
+                          isMissing
+                            ? "bg-red-50 border-red-200"
+                            : "bg-amber-50 border-amber-200"
+                        }
+                      `}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`
+                            w-8
+                            h-8
+
+                            rounded-full
+
+                            flex
+                            items-center
+                            justify-center
+
+                            flex-shrink-0
+
+                            ${
+                              isMissing
+                                ? "bg-red-100 text-red-700"
+                                : "bg-amber-100 text-amber-700"
+                            }
+                          `}
+                      >
+                        {isMissing ? "!" : "⚠"}
+                      </div>
+
+                      <h4
+                        className="
+                            text-sm
+                            font-bold
+                            text-[--color-text-primary]
+                          "
+                      >
+                        {error.title}
+                      </h4>
+                    </div>
+
+                    <p
+                      className="
+                          mt-2
+
+                          text-xs
+                          md:text-sm
+
+                          text-[--color-text-secondary]
+                        "
+                    >
+                      {error.description}
+                    </p>
+                  </div>
+
+                  <div className="p-4">
+                    <div
+                      className="
+                          flex
+                          flex-wrap
+                          gap-2
+                        "
+                    >
+                      {error.columns.map(
+                        (column: string, columnIndex: number) => (
+                          <span
+                            key={columnIndex}
+                            className={`
+                                px-2.5
+                                py-1.5
+
+                                rounded-lg
+
+                                border
+
+                                text-xs
+                                font-mono
+                                font-medium
+
+                                ${
+                                  isMissing
+                                    ? "bg-red-50 border-red-100 text-red-700"
+                                    : "bg-amber-50 border-amber-100 text-amber-700"
+                                }
+                              `}
+                          >
+                            {column}
+                          </span>
+                        ),
+                      )}
+                    </div>
+                  </div>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
-        )}
-      </div>
+        </section>
+      )}
+
+      {/* WARNINGS */}
+      {alertas.length > 0 && (
+        <section>
+          <div
+            className="
+              flex
+              items-center
+              gap-3
+
+              mb-4
+            "
+          >
+            <h3
+              className="
+                text-sm
+
+                font-bold
+
+                uppercase
+                tracking-wide
+
+                text-amber-700
+
+                whitespace-nowrap
+              "
+            >
+              Advertencias
+            </h3>
+
+            <div className="h-px flex-1 bg-amber-200" />
+          </div>
+
+          <div className="flex flex-col gap-3">
+            {alertas.map((warning: string, index: number) => (
+              <div
+                key={index}
+                className="
+                    flex
+                    items-start
+                    gap-3
+
+                    p-4
+
+                    rounded-xl
+
+                    bg-amber-50
+
+                    border
+                    border-amber-200
+                  "
+              >
+                <span
+                  className="
+                      flex-shrink-0
+
+                      text-amber-600
+                      font-bold
+                    "
+                >
+                  !
+                </span>
+
+                <p
+                  className="
+                      text-sm
+                      text-amber-800
+                    "
+                >
+                  {warning}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 };
-// --- STEP 3: DOCUMENTACIÓN (Tablas Nuevas) ---
-export const Step3NewTableDescription = ({ 
-  columns, 
-  metadata, 
-  onTableDescChange, 
-  onColumnDescChange 
-}: { 
-  columns: any[], 
-  metadata: any,
-  onTableDescChange: (v: string) => void,
-  onColumnDescChange: (col: string, v: string) => void
+export const Step3NewTableDescription = ({
+  columns,
+  metadata,
+  onTableDescChange,
+  onColumnDescChange,
+}: {
+  columns: any[];
+  metadata: any;
+  onTableDescChange: (value: string) => void;
+  onColumnDescChange: (column: string, value: string) => void;
 }) => {
   return (
-    <div className="h-full flex flex-col space-y-6 text-left">
-      {/* 1. Descripción General (Arriba) */}
-      <section className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-        <label className="block font-bold text-gray-800 mb-2">
-          Descripción de la Tabla (BigQuery Metadata) <span className="text-red-500 ml-1">*</span>
-        </label>
-        <textarea 
+    <div
+      className="
+        w-full
+
+        flex
+        flex-col
+
+        gap-6
+
+        text-left
+      "
+    >
+      {/* DESCRIPCIÓN GENERAL */}
+      <section
+        className="
+          bg-white
+
+          border
+          border-[--color-border]
+
+          rounded-2xl
+
+          p-5
+          md:p-6
+        "
+      >
+        <div
+          className="
+            flex
+            flex-col
+            sm:flex-row
+
+            sm:items-start
+            sm:justify-between
+
+            gap-2
+          "
+        >
+          <div>
+            <label
+              htmlFor="table-description"
+              className="
+                block
+
+                text-base
+                md:text-lg
+
+                font-bold
+
+                text-[--color-text-primary]
+              "
+            >
+              Descripción de la tabla
+              <span className="text-red-500 ml-1">*</span>
+            </label>
+
+            <p
+              className="
+                mt-1
+
+                text-sm
+
+                text-[--color-text-secondary]
+              "
+            >
+              Describe brevemente el propósito y contenido de esta tabla en
+              BigQuery.
+            </p>
+          </div>
+
+          <span
+            className="
+              text-xs
+
+              text-[--color-text-muted]
+
+              whitespace-nowrap
+            "
+          >
+            Campo obligatorio
+          </span>
+        </div>
+
+        <textarea
+          id="table-description"
           required
-          value={metadata.description}
-          onChange={(e) => onTableDescChange(e.target.value)}
-          placeholder="Ej: Tabla maestra de clientes sincronizada desde el CRM mensual... (Requerido)"
-          className={`w-full border rounded-md p-2 text-sm focus:ring-orange-500 outline-none min-h-[80px] ${
-            !metadata.description ? 'border-gray-300' : 'border-gray-300'
-          }`}
+          value={metadata.tableDescription || ""}
+          onChange={(event) => onTableDescChange(event.target.value)}
+          placeholder="Ej: Tabla maestra de clientes sincronizada mensualmente desde el CRM..."
+          className="
+            w-full
+
+            min-h-[110px]
+
+            mt-4
+
+            p-3
+
+            rounded-[10px]
+
+            bg-white
+
+            border
+            border-[--color-border]
+
+            text-sm
+            text-[--color-text-primary]
+
+            resize-y
+
+            outline-none
+
+            focus:border-[--color-accent]
+            focus:ring-2
+            focus:ring-[--color-accent-light]
+
+            transition-all
+          "
         />
-        {!metadata.description && (
-          <p className="text-xs text-red-400 mt-1">Este campo es obligatorio.</p>
+
+        {!metadata.tableDescription && (
+          <p
+            className="
+              mt-2
+              text-xs
+              text-red-500
+            "
+          >
+            Este campo es obligatorio.
+          </p>
         )}
       </section>
-      {/* 2. Tabla de Columnas (Scrollable) */}
-      <section className="flex-grow flex flex-col min-h-0">
-        <div className="flex justify-between items-end mb-2">
-            <label className="block font-bold text-gray-800">
-            Diccionario de Datos (Columnas)
-            </label>
-            <span className="text-xs text-gray-500">
-                <span className="text-red-500 font-bold">*</span> Todos los campos son requeridos
-            </span>
-        </div>
-        <div className="overflow-hidden border border-gray-200 rounded-lg flex flex-col flex-grow bg-white">
-          <div className="overflow-y-auto overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 table-fixed">
-              <thead className="bg-gray-50 sticky top-0 z-10">
-                <tr>
-                  <th className="w-1/4 px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Columna</th>
-                  <th className="w-1/6 px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Tipo</th>
-                  <th className="w-auto px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Descripción / Definición <span className="text-red-500 ml-1">*</span></th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {columns.map((col, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-2 text-sm font-medium text-gray-900 truncate">
-                      {col.nombre}
-                    </td>
-                    <td className="px-4 py-2">
-                      <span className="px-2 py-1 text-xs font-mono bg-gray-100 text-gray-600 rounded">
-                        {col.tipo}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2">
-                      <input
-                        type="text"
-                        value={metadata.columnDescriptions[col.nombre] || ""}
-                        onChange={(e) => onColumnDescChange(col.nombre, e.target.value)}
-                        placeholder={`Definir ${col.nombre}...`}
-                        className="w-full text-sm border-b border-transparent focus:border-orange-500 focus:ring-0 bg-transparent py-1 outline-none"
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+      {/* DICCIONARIO */}
+      <section
+        className="
+          bg-white
+
+          border
+          border-[--color-border]
+
+          rounded-2xl
+
+          overflow-hidden
+        "
+      >
+        <div
+          className="
+            p-5
+            md:p-6
+
+            border-b
+            border-[--color-border]
+
+            flex
+            flex-col
+            sm:flex-row
+
+            sm:items-end
+            sm:justify-between
+
+            gap-2
+          "
+        >
+          <div>
+            <h3
+              className="
+                text-base
+                md:text-lg
+
+                font-bold
+
+                text-[--color-text-primary]
+              "
+            >
+              Diccionario de datos
+            </h3>
+
+            <p
+              className="
+                mt-1
+                text-sm
+                text-[--color-text-secondary]
+              "
+            >
+              Define el significado de cada columna antes de crear la tabla.
+            </p>
           </div>
+
+          <span
+            className="
+              text-xs
+              text-[--color-text-muted]
+            "
+          >
+            <span className="text-red-500">*</span> Todos los campos son
+            requeridos
+          </span>
+        </div>
+
+        {/* DESKTOP / TABLET */}
+        <div className="hidden md:block overflow-x-auto">
+          <table
+            className="
+              w-full
+              min-w-[700px]
+
+              text-left
+            "
+          >
+            <thead
+              className="
+                bg-[--color-background]
+
+                border-b
+                border-[--color-border]
+              "
+            >
+              <tr>
+                <th
+                  className="
+                    w-[28%]
+
+                    px-5
+                    py-3
+
+                    text-xs
+                    font-semibold
+                    uppercase
+
+                    text-[--color-text-secondary]
+                  "
+                >
+                  Columna
+                </th>
+
+                <th
+                  className="
+                    w-[18%]
+
+                    px-5
+                    py-3
+
+                    text-xs
+                    font-semibold
+                    uppercase
+
+                    text-[--color-text-secondary]
+                  "
+                >
+                  Tipo
+                </th>
+
+                <th
+                  className="
+                    px-5
+                    py-3
+
+                    text-xs
+                    font-semibold
+                    uppercase
+
+                    text-[--color-text-secondary]
+                  "
+                >
+                  Descripción / definición
+                  <span className="text-red-500 ml-1">*</span>
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {columns.map((column, index) => (
+                <tr
+                  key={index}
+                  className="
+                      border-b
+                      last:border-b-0
+                      border-[--color-border]
+
+                      hover:bg-[--color-background]
+
+                      transition-colors
+                    "
+                >
+                  <td
+                    className="
+                        px-5
+                        py-4
+
+                        text-sm
+                        font-semibold
+
+                        text-[--color-text-primary]
+                      "
+                  >
+                    {column.nombre}
+                  </td>
+
+                  <td className="px-5 py-4">
+                    <span
+                      className="
+                          px-2.5
+                          py-1
+
+                          rounded-md
+
+                          bg-[--color-background]
+
+                          text-xs
+                          font-mono
+
+                          text-[--color-text-secondary]
+                        "
+                    >
+                      {column.tipo}
+                    </span>
+                  </td>
+
+                  <td className="px-5 py-3">
+                    <input
+                      type="text"
+                      value={metadata.columnDescriptions[column.nombre] || ""}
+                      onChange={(event) =>
+                        onColumnDescChange(column.nombre, event.target.value)
+                      }
+                      placeholder={`Define ${column.nombre}...`}
+                      className="
+                          w-full
+
+                          px-3
+                          py-2.5
+
+                          rounded-[10px]
+
+                          border
+                          border-[--color-border]
+
+                          bg-white
+
+                          text-sm
+
+                          outline-none
+
+                          focus:border-[--color-accent]
+                          focus:ring-2
+                          focus:ring-[--color-accent-light]
+
+                          transition-all
+                        "
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* CELULAR */}
+        <div
+          className="
+            md:hidden
+
+            p-4
+
+            flex
+            flex-col
+            gap-4
+          "
+        >
+          {columns.map((column, index) => (
+            <div
+              key={index}
+              className="
+                  p-4
+
+                  rounded-xl
+
+                  bg-[--color-background]
+
+                  border
+                  border-[--color-border]
+                "
+            >
+              <div
+                className="
+                    flex
+                    items-center
+                    justify-between
+                    gap-3
+                  "
+              >
+                <p
+                  className="
+                      min-w-0
+
+                      text-sm
+                      font-bold
+
+                      text-[--color-text-primary]
+
+                      break-words
+                    "
+                >
+                  {column.nombre}
+                </p>
+
+                <span
+                  className="
+                      flex-shrink-0
+
+                      px-2
+                      py-1
+
+                      rounded-md
+
+                      bg-white
+
+                      border
+                      border-[--color-border]
+
+                      text-xs
+                      font-mono
+
+                      text-[--color-text-secondary]
+                    "
+                >
+                  {column.tipo}
+                </span>
+              </div>
+
+              <label
+                className="
+                    block
+
+                    mt-4
+                    mb-2
+
+                    text-xs
+                    font-semibold
+
+                    text-[--color-text-secondary]
+                  "
+              >
+                Descripción
+                <span className="text-red-500 ml-1">*</span>
+              </label>
+
+              <input
+                type="text"
+                value={metadata.columnDescriptions[column.nombre] || ""}
+                onChange={(event) =>
+                  onColumnDescChange(column.nombre, event.target.value)
+                }
+                placeholder="Define esta columna..."
+                className="
+                    w-full
+
+                    px-3
+                    py-2.5
+
+                    rounded-[10px]
+
+                    border
+                    border-[--color-border]
+
+                    bg-white
+
+                    text-sm
+
+                    outline-none
+
+                    focus:border-[--color-accent]
+                    focus:ring-2
+                    focus:ring-[--color-accent-light]
+                  "
+              />
+            </div>
+          ))}
         </div>
       </section>
     </div>

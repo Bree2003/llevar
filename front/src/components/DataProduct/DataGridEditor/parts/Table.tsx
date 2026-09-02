@@ -1,26 +1,47 @@
-import React, { useRef, useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 interface DataGridTableProps {
-  paginatedRows: Array<{ data: Record<string, any>; originalIndex: number }>;
+  paginatedRows: Array<{
+    data: Record<string, any>;
+    originalIndex: number;
+  }>;
+
   visibleColumns: string[];
+
   startIndex: number;
+
   filteredRowsWithIndex: any[];
+
   selectedRowIndices: Set<number>;
   editingRowIndices: Set<number>;
+
   activeFilters: Record<string, string[]>;
+
   openFilterColumn: string | null;
+
   filterSearchTerm: string;
-  sortConfig: { key: string; direction: "asc" | "desc" } | null;
+
+  sortConfig: {
+    key: string;
+    direction: "asc" | "desc";
+  } | null;
 
   onToggleRowSelection: (index: number) => void;
+
   onToggleSelectAll: (indices: number[]) => void;
+
   onInputChange: (rowIdx: number, col: string, val: string) => void;
 
   onOpenFilter: (col: string | null) => void;
+
   onFilterSearch: (term: string) => void;
+
   onFilterValueChange: (col: string, val: string) => void;
+
   onSelectAllFilter: (col: string, select: boolean) => void;
+
   getUniqueValues: (col: string) => string[];
+
   onSort: (col: string, direction: "asc" | "desc") => void;
 }
 
@@ -29,19 +50,24 @@ export const DataGridTable = ({
   visibleColumns,
   startIndex,
   filteredRowsWithIndex,
+
   selectedRowIndices,
   editingRowIndices,
+
   activeFilters,
   openFilterColumn,
   filterSearchTerm,
   sortConfig,
+
   onToggleRowSelection,
   onToggleSelectAll,
   onInputChange,
+
   onOpenFilter,
   onFilterSearch,
   onFilterValueChange,
   onSelectAllFilter,
+
   getUniqueValues,
   onSort,
 }: DataGridTableProps) => {
@@ -57,94 +83,242 @@ export const DataGridTable = ({
         onFilterSearch("");
       }
     }
+
     if (openFilterColumn) {
       document.addEventListener("mousedown", handleClickOutside);
     }
+
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [openFilterColumn, onOpenFilter, onFilterSearch]);
 
+  const allSelected =
+    filteredRowsWithIndex.length > 0 &&
+    filteredRowsWithIndex.every((row) =>
+      selectedRowIndices.has(row.originalIndex),
+    );
+
   return (
-    <div className="overflow-x-auto overflow-y-auto max-h-[70vh] min-h-[500px] relative">
-      <table className="min-w-full divide-y divide-gray-200 text-sm text-left border-collapse">
-        <thead className="bg-gray-50">
+    <div
+      className="
+        w-full
+
+        overflow-auto
+
+        max-h-[65vh]
+        min-h-[420px]
+
+        relative
+      "
+    >
+      <table
+        className="
+          w-full
+          min-w-max
+
+          border-collapse
+
+          text-sm
+          text-left
+        "
+      >
+        {/* HEADER */}
+        <thead>
           <tr>
-            {/* Checkbox */}
-            <th className="px-4 py-3 w-10 sticky left-0 top-0 z-30 bg-gray-50 border-b border-gray-200 shadow-[0_2px_2px_-1px_rgba(0,0,0,0.1)]">
+            {/* CHECK */}
+            <th
+              className="
+                w-12
+                min-w-12
+
+                px-4
+                py-3
+
+                sticky
+                left-0
+                top-0
+
+                z-40
+
+                bg-[--color-background]
+
+                border-b
+                border-r
+                border-[--color-border]
+              "
+            >
               <input
                 type="checkbox"
-                className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500 border-gray-300 cursor-pointer"
-                checked={
-                  filteredRowsWithIndex.length > 0 &&
-                  filteredRowsWithIndex.every((r) =>
-                    selectedRowIndices.has(r.originalIndex)
-                  )
-                }
+                checked={allSelected}
                 onChange={() =>
                   onToggleSelectAll(
-                    filteredRowsWithIndex.map((r) => r.originalIndex)
+                    filteredRowsWithIndex.map((row) => row.originalIndex),
                   )
                 }
+                className="
+                  w-4
+                  h-4
+
+                  accent-[--color-accent]
+
+                  cursor-pointer
+                "
               />
             </th>
 
-            {/* # */}
-            <th className="px-4 py-3 w-10 font-bold text-gray-400 bg-gray-50 sticky left-10 top-0 z-30 border-b border-gray-200 shadow-[2px_2px_5px_-2px_rgba(0,0,0,0.1)]">
+            {/* INDEX */}
+            <th
+              className="
+                w-14
+                min-w-14
+
+                px-4
+                py-3
+
+                sticky
+                left-12
+                top-0
+
+                z-40
+
+                bg-[--color-background]
+
+                border-b
+                border-r
+                border-[--color-border]
+
+                text-xs
+                font-semibold
+
+                text-[--color-text-muted]
+              "
+            >
               #
             </th>
 
-            {/* Columns */}
-            {visibleColumns.map((col) => {
-              const isFilterActive = !!activeFilters[col];
-              const isSortedAsc =
-                sortConfig?.key === col && sortConfig?.direction === "asc";
-              const isSortedDesc =
-                sortConfig?.key === col && sortConfig?.direction === "desc";
-              const isOpen = openFilterColumn === col;
+            {/* COLUMNAS */}
+            {visibleColumns.map((column) => {
+              const isFilterActive = !!activeFilters[column];
 
-              const uniqueValues = getUniqueValues(col);
-              const displayedValues = uniqueValues.filter((v) =>
-                v.toLowerCase().includes(filterSearchTerm.toLowerCase())
+              const isSortedAsc =
+                sortConfig?.key === column && sortConfig.direction === "asc";
+
+              const isSortedDesc =
+                sortConfig?.key === column && sortConfig.direction === "desc";
+
+              const isOpen = openFilterColumn === column;
+
+              const uniqueValues = getUniqueValues(column);
+
+              const displayedValues = uniqueValues.filter((value) =>
+                value.toLowerCase().includes(filterSearchTerm.toLowerCase()),
               );
-              const currentSelected = activeFilters[col] || uniqueValues;
+
+              const currentSelected = activeFilters[column] || uniqueValues;
 
               return (
                 <th
-                  key={col}
-                  className="px-6 py-3 whitespace-nowrap border-b border-gray-200 relative group sticky top-0 z-20 bg-gray-50"
+                  key={column}
+                  className="
+                      min-w-[180px]
+
+                      px-5
+                      py-3
+
+                      sticky
+                      top-0
+
+                      z-30
+
+                      bg-[--color-background]
+
+                      border-b
+                      border-[--color-border]
+
+                      relative
+                      group
+                    "
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1">
+                  <div
+                    className="
+                        flex
+                        items-center
+                        justify-between
+                        gap-3
+                      "
+                  >
+                    <div
+                      className="
+                          flex
+                          items-center
+                          gap-1.5
+
+                          min-w-0
+                        "
+                    >
                       <span
-                        className={`uppercase tracking-wider font-semibold select-none ${
-                          isSortedAsc || isSortedDesc
-                            ? "text-orange-700"
-                            : "text-[--color-naranjo] opacity-80"
-                        }`}
+                        className={`
+                            text-xs
+
+                            font-semibold
+                            uppercase
+                            tracking-wide
+
+                            truncate
+
+                            ${
+                              isSortedAsc || isSortedDesc
+                                ? "text-[--color-accent]"
+                                : "text-[--color-text-secondary]"
+                            }
+                          `}
                       >
-                        {col}
+                        {column}
                       </span>
-                      {/* Indicador visual de Sort activo en el header */}
+
                       {isSortedAsc && (
-                        <span className="text-orange-600 text-[10px]">▲</span>
+                        <span className="text-[--color-accent] text-[10px]">
+                          ▲
+                        </span>
                       )}
+
                       {isSortedDesc && (
-                        <span className="text-orange-600 text-[10px]">▼</span>
+                        <span className="text-[--color-accent] text-[10px]">
+                          ▼
+                        </span>
                       )}
                     </div>
 
+                    {/* FILTRO */}
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onOpenFilter(isOpen ? null : col);
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+
+                        onOpenFilter(isOpen ? null : column);
                       }}
-                      className={`p-1 rounded hover:bg-gray-200 transition-colors ${
-                        isFilterActive || isSortedAsc || isSortedDesc
-                          ? "text-orange-600 bg-orange-50"
-                          : "text-gray-400 opacity-0 group-hover:opacity-100"
-                      }`}
+                      className={`
+                          w-7
+                          h-7
+
+                          flex
+                          items-center
+                          justify-center
+
+                          rounded-md
+
+                          transition-colors
+
+                          ${
+                            isFilterActive ||
+                            isSortedAsc ||
+                            isSortedDesc ||
+                            isOpen
+                              ? "bg-[--color-accent-light] text-[--color-accent] opacity-100"
+                              : "text-[--color-text-muted] opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-white"
+                          }
+                        `}
                     >
                       <svg
-                        xmlns="http://www.w3.org/2000/svg"
                         width="14"
                         height="14"
                         viewBox="0 0 24 24"
@@ -154,88 +328,249 @@ export const DataGridTable = ({
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       >
-                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
                       </svg>
                     </button>
                   </div>
 
-                  {/* Dropdown */}
+                  {/* FILTER MENU */}
                   {isOpen && (
                     <div
                       ref={filterMenuRef}
-                      className="absolute top-full left-0 mt-1 w-64 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 text-left font-normal"
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(event) => event.stopPropagation()}
+                      className="
+                          absolute
+
+                          top-[calc(100%+8px)]
+                          right-0
+
+                          z-50
+
+                          w-64
+                          max-w-[calc(100vw-3rem)]
+
+                          rounded-xl
+
+                          bg-white
+
+                          border
+                          border-[--color-border]
+
+                          shadow-xl
+
+                          overflow-hidden
+
+                          font-normal
+                          text-left
+                        "
                     >
-                      {/* SECCION SORTING */}
-                      <div className="flex border-b border-gray-100">
+                      {/* SORT */}
+                      <div
+                        className="
+                            grid
+                            grid-cols-2
+
+                            border-b
+                            border-[--color-border]
+                          "
+                      >
                         <button
-                          onClick={() => onSort(col, "asc")}
-                          className={`flex-1 px-4 py-2 text-xs font-medium hover:bg-orange-50 flex items-center justify-center gap-1 ${
-                            isSortedAsc
-                              ? "text-orange-600 bg-orange-50"
-                              : "text-gray-600"
-                          }`}
+                          type="button"
+                          onClick={() => onSort(column, "asc")}
+                          className={`
+                              px-3
+                              py-2.5
+
+                              text-xs
+                              font-medium
+
+                              transition-colors
+
+                              ${
+                                isSortedAsc
+                                  ? "bg-[--color-accent-light] text-[--color-accent]"
+                                  : "text-[--color-text-secondary] hover:bg-[--color-background]"
+                              }
+                            `}
                         >
-                          <span>Ascendente</span> <span>▲</span>
+                          Ascendente ↑
                         </button>
-                        <div className="w-px bg-gray-100"></div>
+
                         <button
-                          onClick={() => onSort(col, "desc")}
-                          className={`flex-1 px-4 py-2 text-xs font-medium hover:bg-orange-50 flex items-center justify-center gap-1 ${
-                            isSortedDesc
-                              ? "text-orange-600 bg-orange-50"
-                              : "text-gray-600"
-                          }`}
+                          type="button"
+                          onClick={() => onSort(column, "desc")}
+                          className={`
+                              px-3
+                              py-2.5
+
+                              text-xs
+                              font-medium
+
+                              border-l
+                              border-[--color-border]
+
+                              transition-colors
+
+                              ${
+                                isSortedDesc
+                                  ? "bg-[--color-accent-light] text-[--color-accent]"
+                                  : "text-[--color-text-secondary] hover:bg-[--color-background]"
+                              }
+                            `}
                         >
-                          <span>Descendente</span> <span>▼</span>
+                          Descendente ↓
                         </button>
                       </div>
 
-                      <div className="p-2 border-b border-gray-100">
+                      {/* SEARCH */}
+                      <div
+                        className="
+                            p-3
+
+                            border-b
+                            border-[--color-border]
+                          "
+                      >
                         <input
                           type="text"
-                          placeholder="Buscar valor..."
-                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-orange-500 focus:outline-none"
                           value={filterSearchTerm}
-                          onChange={(e) => onFilterSearch(e.target.value)}
+                          onChange={(event) =>
+                            onFilterSearch(event.target.value)
+                          }
+                          placeholder="Buscar valor..."
                           autoFocus
+                          className="
+                              w-full
+
+                              px-3
+                              py-2
+
+                              rounded-[8px]
+
+                              border
+                              border-[--color-border]
+
+                              text-sm
+                              text-[--color-text-primary]
+
+                              outline-none
+
+                              focus:border-[--color-accent]
+                              focus:ring-2
+                              focus:ring-[--color-accent-light]
+                            "
                         />
                       </div>
-                      <div className="px-2 py-1 flex gap-2 text-xs border-b border-gray-100 bg-gray-50">
+
+                      {/* TODOS */}
+                      <div
+                        className="
+                            px-3
+                            py-2
+
+                            flex
+                            items-center
+                            gap-3
+
+                            bg-[--color-background]
+
+                            border-b
+                            border-[--color-border]
+                          "
+                      >
                         <button
-                          onClick={() => onSelectAllFilter(col, true)}
-                          className="text-orange-600 hover:underline"
+                          type="button"
+                          onClick={() => onSelectAllFilter(column, true)}
+                          className="
+                              text-xs
+                              font-semibold
+                              text-[--color-accent]
+                            "
                         >
-                          Selec. Todo
+                          Seleccionar todo
                         </button>
-                        <span className="text-gray-300">|</span>
+
+                        <span className="text-[--color-border]">|</span>
+
                         <button
-                          onClick={() => onSelectAllFilter(col, false)}
-                          className="text-gray-500 hover:underline"
+                          type="button"
+                          onClick={() => onSelectAllFilter(column, false)}
+                          className="
+                              text-xs
+                              text-[--color-text-secondary]
+                            "
                         >
-                          Borrar
+                          Limpiar
                         </button>
                       </div>
-                      <div className="max-h-48 overflow-y-auto p-2 space-y-1">
+
+                      {/* VALUES */}
+                      <div
+                        className="
+                            max-h-52
+
+                            overflow-y-auto
+
+                            p-2
+                          "
+                      >
                         {displayedValues.length > 0 ? (
-                          displayedValues.map((val) => (
+                          displayedValues.map((value) => (
                             <label
-                              key={val}
-                              className="flex items-center gap-2 px-2 py-1 hover:bg-gray-50 rounded cursor-pointer"
+                              key={value}
+                              className="
+                                    flex
+                                    items-center
+                                    gap-2
+
+                                    px-2
+                                    py-2
+
+                                    rounded-lg
+
+                                    cursor-pointer
+
+                                    hover:bg-[--color-background]
+                                  "
                             >
                               <input
                                 type="checkbox"
-                                checked={currentSelected.includes(val)}
-                                onChange={() => onFilterValueChange(col, val)}
-                                className="rounded text-orange-600 focus:ring-orange-500 border-gray-300 w-3.5 h-3.5"
+                                checked={currentSelected.includes(value)}
+                                onChange={() =>
+                                  onFilterValueChange(column, value)
+                                }
+                                className="
+                                      w-4
+                                      h-4
+
+                                      accent-[--color-accent]
+                                    "
                               />
-                              <span className="text-sm text-gray-600 truncate">
-                                {val}
+
+                              <span
+                                className="
+                                      min-w-0
+
+                                      text-sm
+
+                                      text-[--color-text-secondary]
+
+                                      truncate
+                                    "
+                              >
+                                {value}
                               </span>
                             </label>
                           ))
                         ) : (
-                          <p className="text-xs text-gray-400 text-center py-2">
+                          <p
+                            className="
+                                py-4
+                                text-xs
+                                text-center
+                                text-[--color-text-muted]
+                              "
+                          >
                             No hay resultados
                           </p>
                         )}
@@ -248,65 +583,169 @@ export const DataGridTable = ({
           </tr>
         </thead>
 
-        {/* Body */}
-        <tbody className="bg-white divide-y divide-gray-200">
+        {/* BODY */}
+        <tbody className="bg-white">
           {paginatedRows.length > 0 ? (
             paginatedRows.map(({ data: row, originalIndex }, viewIndex) => {
               const isSelected = selectedRowIndices.has(originalIndex);
+
               const isEditingRow = editingRowIndices.has(originalIndex);
+
               const globalIndex = startIndex + viewIndex + 1;
+
               return (
                 <tr
                   key={originalIndex}
-                  className={`transition-colors group ${
-                    isSelected ? "bg-orange-50" : "hover:bg-gray-50"
-                  }`}
+                  className={`
+                      group
+
+                      border-b
+                      last:border-b-0
+                      border-[--color-border]
+
+                      transition-colors
+
+                      ${
+                        isSelected
+                          ? "bg-[--color-accent-light]"
+                          : "hover:bg-[--color-background]"
+                      }
+                    `}
                 >
+                  {/* CHECK */}
                   <td
-                    className={`px-4 py-4 sticky left-0 border-r border-transparent z-10 ${
-                      isSelected
-                        ? "bg-orange-50"
-                        : "bg-white group-hover:bg-gray-50"
-                    }`}
+                    className={`
+                        w-12
+                        min-w-12
+
+                        px-4
+                        py-4
+
+                        sticky
+                        left-0
+
+                        z-20
+
+                        border-r
+                        border-[--color-border]
+
+                        ${
+                          isSelected
+                            ? "bg-[--color-accent-light]"
+                            : "bg-white group-hover:bg-[--color-background]"
+                        }
+                      `}
                   >
                     <input
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => onToggleRowSelection(originalIndex)}
-                      className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500 border-gray-300 cursor-pointer"
+                      className="
+                          w-4
+                          h-4
+
+                          accent-[--color-accent]
+
+                          cursor-pointer
+                        "
                     />
                   </td>
+
+                  {/* INDEX */}
                   <td
-                    className={`px-4 py-4 text-gray-400 font-mono text-xs sticky left-10 border-r border-gray-100 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] ${
-                      isSelected
-                        ? "bg-orange-50"
-                        : "bg-white group-hover:bg-gray-50"
-                    }`}
+                    className={`
+                        w-14
+                        min-w-14
+
+                        px-4
+                        py-4
+
+                        sticky
+                        left-12
+
+                        z-20
+
+                        border-r
+                        border-[--color-border]
+
+                        font-mono
+                        text-xs
+
+                        text-[--color-text-muted]
+
+                        ${
+                          isSelected
+                            ? "bg-[--color-accent-light]"
+                            : "bg-white group-hover:bg-[--color-background]"
+                        }
+                      `}
                   >
                     {globalIndex}
                   </td>
-                  {visibleColumns.map((col) => {
-                    const cellValue = row[col];
+
+                  {/* CELLS */}
+                  {visibleColumns.map((column) => {
+                    const cellValue = row[column];
+
                     return (
                       <td
-                        key={`${originalIndex}-${col}`}
-                        className="px-6 py-4 whitespace-nowrap text-gray-700"
+                        key={`${originalIndex}-${column}`}
+                        className="
+                              min-w-[180px]
+
+                              px-5
+                              py-4
+
+                              text-sm
+
+                              text-[--color-text-secondary]
+
+                              whitespace-nowrap
+                            "
                       >
                         {isEditingRow ? (
                           <input
                             type="text"
-                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-orange-500 focus:ring-2 focus:ring-orange-100 focus:outline-none transition-shadow"
                             value={cellValue || ""}
-                            onChange={(e) =>
-                              onInputChange(originalIndex, col, e.target.value)
+                            onChange={(event) =>
+                              onInputChange(
+                                originalIndex,
+                                column,
+                                event.target.value,
+                              )
                             }
+                            className="
+                                  w-full
+                                  min-w-[150px]
+
+                                  px-3
+                                  py-2
+
+                                  rounded-[8px]
+
+                                  border
+                                  border-[--color-border]
+
+                                  bg-white
+
+                                  text-sm
+                                  text-[--color-text-primary]
+
+                                  outline-none
+
+                                  focus:border-[--color-accent]
+                                  focus:ring-2
+                                  focus:ring-[--color-accent-light]
+
+                                  transition-all
+                                "
                           />
                         ) : cellValue !== null &&
                           cellValue !== undefined &&
                           cellValue !== "" ? (
                           cellValue.toString()
                         ) : (
-                          <span className="text-gray-300 italic">-</span>
+                          <span className="text-[--color-text-muted]">—</span>
                         )}
                       </td>
                     );
@@ -318,7 +757,14 @@ export const DataGridTable = ({
             <tr>
               <td
                 colSpan={visibleColumns.length + 2}
-                className="px-6 py-8 text-center text-gray-500"
+                className="
+                  px-6
+                  py-12
+
+                  text-center
+
+                  text-[--color-text-secondary]
+                "
               >
                 No se encontraron registros.
               </td>

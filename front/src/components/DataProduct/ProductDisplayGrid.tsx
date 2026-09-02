@@ -1,14 +1,15 @@
 import React from "react";
+
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 
 import { ReactComponent as Calendar } from "components/Global/Icons/calendar.svg";
 import { ReactComponent as Notification } from "components/Global/Icons/notification.svg";
-import { ReactComponent as Mantenimiento } from "components/Global/Icons/mantenimiento.svg";
 import { ReactComponent as Mermas } from "components/Global/Icons/mermas.svg";
 import { ReactComponent as MTS } from "components/Global/Icons/mts.svg";
 import { ReactComponent as Stock } from "components/Global/Icons/stock.svg";
 import { ReactComponent as Export } from "components/Global/Icons/export.svg";
+import { ReactComponent as Download } from "components/Global/Icons/download.svg";
 
 import DocAvisos from "assets/docs/Documentacion - PD - Avisos Mantenimiento.pdf";
 import DocMermas from "assets/docs/Documentacion - PD - Mermas.pdf";
@@ -47,7 +48,8 @@ interface ProductDisplayGridProps {
 interface ProductConfig {
   description: string;
   icon: React.ComponentType<any>;
-  file?: string; 
+  file?: string;
+  fileName?: string;
 }
 
 const PRODUCT_CONFIG: Record<string, ProductConfig> = {
@@ -55,60 +57,91 @@ const PRODUCT_CONFIG: Record<string, ProductConfig> = {
     description: "Plan o cronograma que organiza y controla la fabricación.",
     icon: Calendar,
     file: DocPrograma,
+    fileName: "Documentacion-Programa-Fabricacion.pdf",
   },
+
   "version-de-fabricacion": {
-    description: "",
+    description:
+      "Información asociada a las distintas versiones utilizadas dentro del proceso de fabricación.",
     icon: MTS,
     file: DocVersion,
+    fileName: "Documentacion-Version-Fabricacion.pdf",
   },
-  "notificaciones": {
+
+  notificaciones: {
     description: "Registro semanal que consolida y valida la producción.",
     icon: Notification,
   },
+
   "avisos-de-mantenimiento": {
-    description: "M4 se refiere a los avisos de mantención correctiva.",
+    description: "Información asociada a avisos de mantención correctiva.",
     icon: GenericDatabaseIcon,
     file: DocAvisos,
+    fileName: "Documentacion-Avisos-Mantenimiento.pdf",
   },
-  "mermas": {
-    description: "Información que mide las mermas de los insumos secos.",
+
+  mermas: {
+    description:
+      "Información que permite medir y analizar las mermas de los insumos secos.",
     icon: Mermas,
     file: DocMermas,
+    fileName: "Documentacion-Mermas.pdf",
   },
-  "mts": {
-    description: "Sistema externo que almacena los tiempos de producción.",
+
+  mts: {
+    description:
+      "Sistema externo que almacena los tiempos asociados a los procesos de producción.",
     icon: MTS,
   },
+
   "stock-materiales": {
-    description: "Mantiene el stock existente y solicitado.",
+    description:
+      "Información que permite consultar y gestionar el stock existente y solicitado.",
     icon: Stock,
   },
+
   "venta-exportacion": {
-    description: "Contiene el stock SD y MM.",
+    description:
+      "Información relacionada con el stock y procesos asociados a ventas y exportación.",
     icon: Export,
   },
 };
 
-// Configuración por defecto (Fallback)
 const DEFAULT_CONFIG: ProductConfig = {
-  description: "Descripción no disponible.",
+  description:
+    "Producto de datos disponible para consulta y gestión dentro de la plataforma.",
   icon: GenericDatabaseIcon,
-  file: undefined,
 };
 
 const ProductCardSkeleton = () => (
-  <div className="bg-[--color-gris-claro] p-5 rounded-xl w-[290px] h-48 flex flex-col justify-between">
-    <div>
-      <div className="flex items-center gap-5 mb-2 h-16">
-        <Skeleton circle width={32} height={32} />
-        <div className="flex-grow">
-          <Skeleton height={28} width={`80%`} />
-        </div>
-      </div>
-      <Skeleton count={2} />
+  <div
+    className="
+      w-full
+      min-h-[240px]
+      bg-white
+      border
+      border-[--color-border]
+      rounded-2xl
+      p-5
+      md:p-6
+    "
+  >
+    <div className="flex items-start justify-between gap-4">
+      <Skeleton width={48} height={48} borderRadius={10} />
+
+      <Skeleton width={90} height={26} borderRadius={8} />
     </div>
-    <div className="flex justify-end mt-2">
-      <Skeleton width={80} height={20} />
+
+    <div className="mt-5">
+      <Skeleton height={24} width="75%" />
+
+      <div className="mt-3">
+        <Skeleton count={2} />
+      </div>
+    </div>
+
+    <div className="mt-6 pt-4 border-t border-[--color-border]">
+      <Skeleton width={120} height={30} />
     </div>
   </div>
 );
@@ -121,9 +154,13 @@ export default function ProductDisplayGrid({
 }: ProductDisplayGridProps) {
   const formatLabel = (text: string): string => {
     if (!text) return "";
-    if (text.length === 3) return text.toUpperCase();
+
+    if (text.length === 3) {
+      return text.toUpperCase();
+    }
 
     const cleanText = text.replace(/-/g, " ");
+
     const connectors = ["de", "del", "el", "la", "los", "las", "en", "y", "o"];
 
     return cleanText
@@ -132,35 +169,119 @@ export default function ProductDisplayGrid({
         if (index > 0 && connectors.includes(word.toLowerCase())) {
           return word.toLowerCase();
         }
+
         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
       })
       .join(" ");
   };
 
+  const formatBucketName = (text?: string) => {
+    if (!text) return "";
+
+    return text
+      .replace(/-/g, " ")
+      .replace(/\b\w/g, (letter) => letter.toUpperCase());
+  };
+
   const handleDownload = (
-    e: React.MouseEvent,
+    event: React.MouseEvent,
     fileUrl: string,
-    fileName: string
+    fileName: string,
   ) => {
-    e.stopPropagation(); // Evita navegar al hacer click en descargar
+    event.stopPropagation();
 
     const link = document.createElement("a");
+
     link.href = fileUrl;
     link.download = fileName;
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
   return (
-    <div className="w-full text-left p-10 bg-gray-50 min-h-screen"> 
-      <div className="mb-10">
-        <h1 className="text-3xl text-[--color-naranjo] font-bold">
-          {loading ? <Skeleton width={400} /> : "Productos de Datos"}
-        </h1>
+    <div className="w-full">
+      {/* Header sección */}
+      <div
+        className="
+          flex
+          flex-col
+          sm:flex-row
+          sm:items-end
+          sm:justify-between
+          gap-3
+          mb-6
+        "
+      >
+        <div>
+          <h2
+            className="
+              text-xl
+              md:text-2xl
+              font-bold
+              text-[--color-text-primary]
+            "
+          >
+            {loading ? <Skeleton width={220} /> : "Productos disponibles"}
+          </h2>
+
+          {!loading && (
+            <p
+              className="
+                mt-2
+                text-sm
+                md:text-base
+                text-[--color-text-secondary]
+              "
+            >
+              {bucketName
+                ? `Productos de datos disponibles en ${formatBucketName(
+                    bucketName,
+                  )}.`
+                : "Selecciona un producto para continuar."}
+            </p>
+          )}
+        </div>
+
+        {!loading && products.length > 0 && (
+          <span
+            className="
+              w-fit
+              px-3
+              py-1.5
+              rounded-full
+              bg-white
+              border
+              border-[--color-border]
+              text-xs
+              md:text-sm
+              font-medium
+              text-[--color-text-secondary]
+              whitespace-nowrap
+            "
+          >
+            {products.length === 1
+              ? "1 producto disponible"
+              : `${products.length} productos disponibles`}
+          </span>
+        )}
       </div>
 
-      <div className="flex flex-wrap gap-5">
+      {/* Grid */}
+      <div
+        className="
+          grid
+          grid-cols-1
+          sm:grid-cols-2
+          xl:grid-cols-3
+          2xl:grid-cols-4
+          gap-5
+          md:gap-6
+          xl:gap-8
+          w-full
+        "
+      >
         {loading ? (
           Array.from({ length: 6 }).map((_, index) => (
             <ProductCardSkeleton key={index} />
@@ -168,74 +289,273 @@ export default function ProductDisplayGrid({
         ) : products.length > 0 ? (
           products.map((product) => {
             const config = PRODUCT_CONFIG[product.id] || DEFAULT_CONFIG;
+
             const IconComponent = config.icon;
 
             return (
-              <div
+              <button
+                type="button"
                 key={product.id}
                 onClick={() => onProductClick(product.id)}
-                className="group relative bg-white p-5 rounded-xl w-[290px] h-48 cursor-pointer flex flex-col justify-between transition-all hover:shadow-lg border border-gray-100 hover:border-gray-200" // Fondo blanco y sombra para las tarjetas
+                className="
+                  group
+                  w-full
+                  min-w-0
+                  min-h-[240px]
+
+                  bg-white
+
+                  p-5
+                  md:p-6
+
+                  rounded-2xl
+
+                  text-left
+
+                  border
+                  border-[--color-border]
+
+                  shadow-sm
+
+                  hover:shadow-md
+                  hover:-translate-y-0.5
+
+                  transition-all
+                  duration-200
+
+                  flex
+                  flex-col
+                  justify-between
+                "
               >
-                {/* Contenido Principal */}
                 <div>
-                  <div className="flex items-center gap-4 mb-3">
-                    <div className="p-2 bg-gray-50 rounded-lg shadow-sm group-hover:scale-110 transition-transform"> {/* Fondo gris claro para el círculo del icono */}
-                      {/* Icono */}
-                      <IconComponent className="w-6 h-6 text-[--color-naranjo]" />
+                  {/* Header card */}
+                  <div className="flex items-start justify-between gap-3">
+                    {/* Icono */}
+                    <div
+                      className="
+                        w-11
+                        h-11
+                        md:w-12
+                        md:h-12
+
+                        flex
+                        items-center
+                        justify-center
+
+                        rounded-[10px]
+
+                        bg-[--color-background]
+                        text-[--color-accent]
+
+                        flex-shrink-0
+
+                        group-hover:bg-[--color-accent-light]
+
+                        transition-colors
+                      "
+                    >
+                      <IconComponent className="w-6 h-6" />
                     </div>
-                    <h2 className="text-xl font-semibold leading-tight text-gray-800 group-hover:text-[--color-naranjo] transition-colors line-clamp-2">
-                      {formatLabel(product.label)}
-                    </h2>
+
+                    {/* Tipo */}
+                    <span
+                      className="
+                        uppercase
+                        h-fit
+
+                        px-2.5
+                        py-2
+
+                        rounded-md
+
+                        bg-[--color-background]
+
+                        text-[10px]
+                        sm:text-xs
+
+                        font-medium
+
+                        text-[--color-text-secondary]
+
+                        whitespace-nowrap
+                      "
+                    >
+                      Producto de datos
+                    </span>
                   </div>
-                  <p className="text-sm text-gray-500 line-clamp-3">
+
+                  {/* Título */}
+                  <h3
+                    className="
+                      mt-5
+
+                      text-lg
+                      md:text-xl
+
+                      font-bold
+
+                      text-[--color-text-primary]
+
+                      leading-snug
+                      break-words
+
+                      group-hover:text-[--color-accent]
+
+                      transition-colors
+                    "
+                  >
+                    {formatLabel(product.label)}
+                  </h3>
+
+                  {/* Descripción */}
+                  <p
+                    className="
+                      mt-3
+
+                      text-sm
+                      md:text-base
+
+                      leading-relaxed
+
+                      text-[--color-text-secondary]
+
+                      line-clamp-3
+                    "
+                  >
                     {config.description}
                   </p>
                 </div>
 
-                {/* Footer de la tarjeta con Botón de Descarga */}
-                <div className="flex justify-end items-center mt-3 pt-3 border-t border-gray-100"> 
+                {/* Footer */}
+                <div
+                  className="
+                    mt-6
+                    pt-4
+
+                    border-t
+                    border-[--color-border]
+
+                    flex
+                    flex-col
+                    sm:flex-row
+
+                    gap-3
+
+                    sm:items-center
+                    sm:justify-between
+                  "
+                >
+                  {/* Documentación */}
                   {config.file ? (
                     <button
-                      onClick={(e) =>
+                      type="button"
+                      onClick={(event) =>
                         handleDownload(
-                          e,
+                          event,
                           config.file!,
-                          `doc_${config.file}.pdf`
+                          config.fileName || "documentacion.pdf",
                         )
                       }
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-gray-700 font-semibold text-sm transition-all shadow-sm border border-gray-200
-                                 hover:bg-orange-50 hover:text-[--color-naranjo] hover:border-orange-300 active:scale-[0.98]"
-                      title="Descargar documentación técnica"
+                      className="
+                        w-full
+                        sm:w-auto
+
+                        flex
+                        items-center
+                        justify-center
+                        gap-2
+
+                        px-3
+                        py-2
+
+                        rounded-[10px]
+
+                        border
+                        border-[--color-border]
+
+                        bg-white
+
+                        text-sm
+                        font-medium
+                        text-[--color-text-secondary]
+
+                        hover:bg-[--color-background]
+                        hover:text-[--color-accent]
+
+                        transition-colors
+                      "
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 text-gray-500 hover:text-[--color-naranjo] transition-colors" 
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                        />
-                      </svg>
-                      <span>Documentación</span>
+                      <Download className="w-4 h-4 flex-shrink-0" />
+                      Documentación
                     </button>
                   ) : (
-                    <span className="text-xs text-gray-400 italic select-none"> 
+                    <span
+                      className="
+                        text-xs
+                        text-[--color-text-muted]
+                      "
+                    >
                       Sin documentación
                     </span>
                   )}
+
+                  {/* CTA principal */}
+                  <span
+                    className="
+                      text-sm
+                      font-semibold
+                      text-[--color-accent]
+                      whitespace-nowrap
+                    "
+                  >
+                    Acceder →
+                  </span>
                 </div>
-              </div>
+              </button>
             );
           })
         ) : (
-          <div className="w-full py-12 text-center bg-white rounded-lg border border-dashed border-gray-300 shadow-sm">
-            <p className="text-gray-500">
-              No se encontraron productos en este bucket.
+          <div
+            className="
+              col-span-full
+
+              w-full
+
+              py-10
+              md:py-14
+              px-5
+
+              text-center
+
+              bg-white
+
+              rounded-2xl
+
+              border
+              border-[--color-border]
+            "
+          >
+            <h3
+              className="
+                text-lg
+                md:text-xl
+                font-semibold
+                text-[--color-text-primary]
+              "
+            >
+              No se encontraron productos de datos
+            </h3>
+
+            <p
+              className="
+                mt-2
+                text-sm
+                md:text-base
+                text-[--color-text-secondary]
+              "
+            >
+              Esta fuente todavía no tiene productos de datos configurados.
             </p>
           </div>
         )}

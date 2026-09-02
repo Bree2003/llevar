@@ -1,9 +1,10 @@
-import { MouseEventHandler } from 'react';
-import Skeleton from 'react-loading-skeleton';
-import 'react-loading-skeleton/dist/skeleton.css';
-import { useParams } from 'react-router-dom';
+import { MouseEventHandler } from "react";
 
-// El modelo de una tabla individual
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+
+import { useParams } from "react-router-dom";
+
 interface Table {
   id: string;
   label: string;
@@ -13,116 +14,234 @@ interface ProductSidebarProps {
   productName?: string;
   tables: Table[];
   loading?: boolean;
-  onSelectTable: (tableId: string) => void; // Función para manejar el clic
+  onSelectTable: (tableId: string) => void;
   onBack: MouseEventHandler<HTMLButtonElement>;
 }
 
+export default function ProductSidebar({
+  productName,
+  tables,
+  loading,
+  onSelectTable,
+  onBack,
+}: ProductSidebarProps) {
+  const { envId } = useParams<{
+    envId: string;
+  }>();
 
+  const getSapModuleLabel = (bucketName: string): string => {
+    const parts = bucketName.split("-");
 
-export default function ProductSidebar({ productName, tables, loading, onSelectTable, onBack }: ProductSidebarProps) {
-    // 2. Obtener el parámetro 'envid' de la URL
-  const { envId } = useParams<{ envId: string }>(); 
-  console.log("env id:", envId)
+    const code = parts[3];
 
-      // Esta función extrae las siglas del módulo (ej: "mm") y las formatea
-const getSapModuleLabel = (bucketName: string): string => {
-  // Asumiendo formato: raw-dev-ddo-[MODULO]-bucket
-  const parts = bucketName.split('-');
-  
-  // El código suele estar en la posición 3 (índice 3)
-  // raw(0) - dev(1) - ddo(2) - mm(3) - bucket(4)
-  const code = parts[3]; 
+    if (code && code.length <= 3) {
+      return `Módulo ${code.toUpperCase()}`;
+    }
 
-  if (code && code.length === 2) {
-    return `Módulo ${code.toUpperCase()}`;
-  }
-  
-  // Si no cumple el formato, devolvemos el nombre original o una limpieza básica
-  return bucketName;
-};
+    return bucketName;
+  };
 
-const formatLabel = (text: string): string => {
-  if (!text) return "";
+  const formatLabel = (text: string): string => {
+    if (!text) return "";
 
-  // 1. Regla: Si tiene exactamente 3 letras, todo a mayúsculas (ej: MTS, SAP)
-  if (text.length === 3) {
-    return text.toUpperCase();
-  }
+    if (text.length === 3) {
+      return text.toUpperCase();
+    }
 
-  // 2. Reemplazamos guiones por espacios
-  const cleanText = text.replace(/-/g, ' ');
+    const cleanText = text.replace(/-/g, " ");
 
-  // 3. Convertimos a Title Case (respetando conectores en minúscula)
-  const connectors = ['de', 'del', 'el', 'la', 'los', 'las', 'en', 'y', 'o'];
-  
-  return cleanText
-    .split(' ')
-    .map((word, index) => {
-      // Siempre capitalizar la primera palabra, ignorar conectores en las siguientes
-      if (index > 0 && connectors.includes(word.toLowerCase())) {
-        return word.toLowerCase();
-      }
-      // Capitalizar primera letra y el resto minúscula
-      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-    })
-    .join(' ');
-};
+    const connectors = ["de", "del", "el", "la", "los", "las", "en", "y", "o"];
+
+    return cleanText
+      .split(" ")
+      .map((word, index) => {
+        if (index > 0 && connectors.includes(word.toLowerCase())) {
+          return word.toLowerCase();
+        }
+
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      })
+      .join(" ");
+  };
+
+  const displayName =
+    envId === "sap"
+      ? getSapModuleLabel(productName || "")
+      : formatLabel(productName || "");
+
   return (
-    <div className="w-[300px] h-full bg-[--color-gris-claro] p-6 text-left flex-shrink-0 overflow-y-auto">
-      {loading ? (
-        // Estado de carga con esqueletos
-        <div>
-          <div className="flex gap-3 items-center mb-4">
-            <Skeleton circle width={32} height={32} />
-            <Skeleton height={28} width={180} />
-          </div>
-          <hr className="border-black mb-4" />
-          <div className="flex flex-col gap-4">
-            {Array.from({ length: 8 }).map((_, index) => (
-              <Skeleton key={index} height={24} />
-            ))}
-          </div>
-        </div>
-      ) : (
-        // Contenido real
-        <>
-          <div className="flex gap-3 items-center mb-4">
-            {/* <TableIcon className="w-8 h-8 text-[--color-naranjo]" /> */}
-            <h2 className="text-2xl text-[--color-naranjo] font-semibold">
-              {envId === "sap" ? getSapModuleLabel(productName || "") : formatLabel(productName || "")}
+    <aside
+      className="
+        w-full
+        lg:w-[270px]
+        xl:w-[290px]
+
+        lg:flex-shrink-0
+
+        bg-white
+
+        border-b
+        lg:border-b-0
+        lg:border-r
+
+        border-[--color-border]
+
+        text-left
+
+        lg:min-h-full
+      "
+    >
+      <div
+        className="
+          w-full
+
+          p-4
+          md:p-5
+          lg:p-6
+
+          lg:sticky
+          lg:top-0
+        "
+      >
+        {loading ? (
+          <>
+            <Skeleton height={25} width="75%" />
+
+            <div className="border-t border-[--color-border] my-5" />
+
+            <Skeleton count={4} height={34} />
+          </>
+        ) : (
+          <>
+            {/* Título */}
+            <h2
+              className="
+                text-lg
+                md:text-xl
+
+                font-bold
+
+                text-[--color-accent]
+
+                break-words
+              "
+            >
+              {displayName}
             </h2>
-          </div>
-          <hr className="border-black mb-4" />
-          <div className="flex flex-col gap-2">
-            <p className="text-sm font-bold text-gray-500 mb-2">TABLAS DISPONIBLES</p>
+
+            <div className="border-t border-[--color-border] my-5" />
+
+            {/* Tablas */}
+            <p
+              className="
+                text-xs
+
+                font-bold
+
+                uppercase
+                tracking-wide
+
+                text-[--color-text-muted]
+              "
+            >
+              Tablas disponibles
+            </p>
+
             {tables.length > 0 ? (
-              tables.map(table => (
-                <div
-                  key={table.id}
-                  onClick={() => onSelectTable(table.id)}
-                  className="text-lg p-2 rounded-md font-semibold hover:text-white hover:bg-[--color-gris-oscuro] cursor-pointer transition-colors"
-                >
-                  {table.label}
-                </div>
-              ))
+              <div
+                className="
+                  mt-3
+
+                  flex
+                  lg:flex-col
+
+                  gap-2
+
+                  overflow-x-auto
+                  lg:overflow-visible
+
+                  pb-2
+                  lg:pb-0
+                "
+              >
+                {tables.map((table) => (
+                  <button
+                    key={table.id}
+                    type="button"
+                    onClick={() => onSelectTable(table.id)}
+                    className="
+                      flex-shrink-0
+                      lg:w-full
+
+                      px-3
+                      py-2.5
+
+                      rounded-lg
+
+                      text-sm
+
+                      font-medium
+
+                      text-left
+
+                      text-[--color-text-secondary]
+
+                      bg-[--color-background]
+                      lg:bg-transparent
+
+                      hover:bg-[--color-accent-light]
+                      hover:text-[--color-accent]
+
+                      transition-colors
+
+                      whitespace-nowrap
+                      lg:whitespace-normal
+                    "
+                  >
+                    {table.label}
+                  </button>
+                ))}
+              </div>
             ) : (
-              <p className="text-gray-500 text-sm p-2">No hay tablas en este producto.</p>
+              <p
+                className="
+                  mt-3
+                  text-sm
+                  text-[--color-text-secondary]
+                "
+              >
+                No hay tablas en este producto.
+              </p>
             )}
-          </div>
-        </>
-      )}
-      <div className="pt-5 pl-10"> {/* Contenedor y separador */}
-        <button
-            onClick={onBack}
-            className="flex items-center px-4 py-3 bg-white rounded-lg shadow-sm
-                       text-orange-600 border border-orange-300
-                       hover:bg-orange-50 hover:border-orange-400 hover:shadow-md
-                       text-sm font-semibold transition-all duration-200 justify-start"
-        >
-            <span className="mr-2 text-lg">←</span> {/* Flecha un poco más grande */}
-            Volver a {envId === "sap" ? "módulos" : "productos de datos"}
-        </button>
-    </div>
-    </div>
+
+            {/* Volver */}
+            <div className="border-t border-[--color-border] mt-5 pt-5">
+              <button
+                type="button"
+                onClick={onBack}
+                className="
+                  flex
+                  items-center
+                  gap-2
+
+                  text-sm
+
+                  font-semibold
+
+                  text-[--color-text-secondary]
+
+                  hover:text-[--color-accent]
+
+                  transition-colors
+                "
+              >
+                <span className="text-lg">←</span>
+                Volver a {envId === "sap" ? "módulos" : "productos de datos"}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </aside>
   );
 }

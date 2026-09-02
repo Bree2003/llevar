@@ -101,8 +101,33 @@ const MainScreen = () => {
   ];
 
   return (
-    <main className="flex flex-col items-start w-full h-full text-left py-8">
-      <div className="w-full max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8">
+    <main
+      className="
+      flex-1
+      min-w-0
+      min-h-full
+
+      flex
+      flex-col
+      items-start
+
+      text-left
+
+      py-6
+      md:py-8
+    "
+    >
+      <div
+        className="
+        w-full
+        max-w-[1600px]
+        mx-auto
+
+        px-4
+        md:px-6
+        lg:px-8
+      "
+      >
         {/* Banner */}
         <BannerCarousel images={banner_images} />
         {/* Hero */}
@@ -338,7 +363,9 @@ const MainScreen = () => {
                     </h3>
 
                     <p className="text-[--color-text-secondary]">
-                      Tu puerta de entrada a información certificada, insights relevantes y decisiones basadas en datos para tu gestión diaria
+                      Tu puerta de entrada a información certificada, insights
+                      relevantes y decisiones basadas en datos para tu gestión
+                      diaria
                     </p>
                   </div>
 
@@ -414,10 +441,11 @@ const MainScreen = () => {
 
           xl:px-5
 
-          ${index !== next_steps.length - 1
-                    ? "xl:border-r xl:border-[--color-border]"
-                    : ""
-                  }
+          ${
+            index !== next_steps.length - 1
+              ? "xl:border-r xl:border-[--color-border]"
+              : ""
+          }
 
           ${index === 0 ? "xl:pl-0" : ""}
           ${index === next_steps.length - 1 ? "xl:pr-0" : ""}

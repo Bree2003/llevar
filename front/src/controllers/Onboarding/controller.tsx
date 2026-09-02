@@ -93,7 +93,6 @@ const OnboardingController = () => {
     }
   };
 
-  // --- CAMBIO CLAVE: Llamamos a MainScreen sin pasarle ninguna prop ---
   return <OnboardingScreen />;
 };
 

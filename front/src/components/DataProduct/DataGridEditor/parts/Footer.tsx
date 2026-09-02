@@ -1,12 +1,13 @@
-import React from "react";
-
 interface DataGridFooterProps {
   startIndex: number;
   pageSize: number;
   totalItems: number;
+
   currentPage: number;
   totalPages: number;
+
   isDirty: boolean;
+
   onPrev: () => void;
   onNext: () => void;
 }
@@ -21,38 +22,117 @@ export const DataGridFooter = ({
   onPrev,
   onNext,
 }: DataGridFooterProps) => {
+  const firstItem = totalItems === 0 ? 0 : startIndex + 1;
+
+  const lastItem = Math.min(startIndex + pageSize, totalItems);
+
   return (
-    <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 flex items-center justify-between">
-      {/* LADO IZQUIERDO: Información */}
-      <div className="text-xs text-gray-500 flex items-center gap-4">
+    <div
+      className="
+        w-full
+
+        px-4
+        py-4
+
+        md:px-6
+
+        bg-[--color-background]
+
+        border-t
+        border-[--color-border]
+
+        flex
+        flex-col
+        md:flex-row
+
+        md:items-center
+        md:justify-between
+
+        gap-4
+      "
+    >
+      {/* INFO */}
+      <div
+        className="
+          flex
+          flex-col
+          sm:flex-row
+
+          sm:items-center
+
+          gap-2
+          sm:gap-4
+
+          text-xs
+          md:text-sm
+
+          text-[--color-text-secondary]
+        "
+      >
         <span>
-          Mostrando{" "}
-          <span className="font-semibold">
-            {Math.min(startIndex + 1, totalItems)}
-          </span>{" "}
-          a{" "}
-          <span className="font-semibold">
-            {Math.min(startIndex + pageSize, totalItems)}
-          </span>{" "}
-          de <span className="font-semibold">{totalItems}</span> registros
+          Mostrando <strong>{firstItem}</strong> a <strong>{lastItem}</strong>{" "}
+          de <strong>{totalItems}</strong> registros
         </span>
+
         {isDirty && (
-          <span className="text-orange-600 font-bold ml-2 animate-pulse">
-            • Cambios sin guardar
+          <span
+            className="
+              w-fit
+
+              px-2.5
+              py-1
+
+              rounded-full
+
+              bg-[--color-accent-light]
+
+              text-xs
+              font-semibold
+
+              text-[--color-accent]
+            "
+          >
+            Cambios sin guardar
           </span>
         )}
       </div>
 
-      {/* LADO DERECHO: Botones */}
-      <div className="flex items-center gap-2">
+      {/* PAGINACIÓN */}
+      <div
+        className="
+          flex
+          items-center
+          justify-between
+          md:justify-end
+
+          gap-3
+        "
+      >
         <button
+          type="button"
+          aria-label="Página anterior"
           onClick={onPrev}
           disabled={currentPage === 1}
-          className={`p-2 rounded-lg border ${
-            currentPage === 1
-              ? "bg-gray-100 text-gray-300 border-gray-200 cursor-not-allowed"
-              : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50 hover:text-[--color-naranjo] hover:border-[--color-naranjo]"
-          }`}
+          className={`
+            w-9
+            h-9
+
+            flex
+            items-center
+            justify-center
+
+            rounded-[10px]
+
+            border
+
+            transition-colors
+
+            ${
+              currentPage === 1
+                ? "bg-gray-100 text-gray-300 border-gray-200 cursor-not-allowed"
+                : "bg-white text-[--color-text-secondary] border-[--color-border] hover:bg-[--color-accent-light] hover:text-[--color-accent]"
+            }
+          `}
         >
           <svg
             className="w-4 h-4"
@@ -69,18 +149,48 @@ export const DataGridFooter = ({
           </svg>
         </button>
 
-        <span className="text-xs font-medium text-gray-600">
+        <span
+          className="
+            min-w-[100px]
+
+            text-center
+
+            text-xs
+            md:text-sm
+
+            font-medium
+
+            text-[--color-text-secondary]
+          "
+        >
           Página {currentPage} de {totalPages || 1}
         </span>
 
         <button
+          type="button"
+          aria-label="Página siguiente"
           onClick={onNext}
           disabled={currentPage >= totalPages}
-          className={`p-2 rounded-lg border ${
-            currentPage >= totalPages
-              ? "bg-gray-100 text-gray-300 border-gray-200 cursor-not-allowed"
-              : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50 hover:text-[--color-naranjo] hover:border-[--color-naranjo]"
-          }`}
+          className={`
+            w-9
+            h-9
+
+            flex
+            items-center
+            justify-center
+
+            rounded-[10px]
+
+            border
+
+            transition-colors
+
+            ${
+              currentPage >= totalPages
+                ? "bg-gray-100 text-gray-300 border-gray-200 cursor-not-allowed"
+                : "bg-white text-[--color-text-secondary] border-[--color-border] hover:bg-[--color-accent-light] hover:text-[--color-accent]"
+            }
+          `}
         >
           <svg
             className="w-4 h-4"

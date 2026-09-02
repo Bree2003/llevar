@@ -43,21 +43,20 @@ const IngestController = () => {
     loadEnvironments();
   }, []);
 
-// --- LÓGICA DE NAVEGACIÓN ---
+  // --- LÓGICA DE NAVEGACIÓN ---
   const handleSelectEnvironment = (envId: string) => {
     if (envId === "pd") {
-     const envSuffix = process.env.REACT_APP_ENVIRONMENT || "dev"; 
-     console.log("env", process.env.REACT_APP_ENVIRONMENT)
-      
+      const envSuffix = process.env.REACT_APP_ENVIRONMENT || "dev";
+      console.log("env", process.env.REACT_APP_ENVIRONMENT);
+
       console.log("[DEBUG] Environment detectado (env var):", envSuffix);
 
       // El nombre del bucket se construye usando la variable (ej: dev o prd)
       const bucketName = `raw-${envSuffix}-osc-manual-bucket`;
-      
+
       console.log("[DEBUG] Bucket seleccionado:", bucketName);
 
       navigate(`/dashboard/${envId}/${bucketName}/products`);
-      
     } else {
       navigate(`/dashboard/${envId}`);
     }
@@ -68,7 +67,7 @@ const IngestController = () => {
   const updateModel = (
     partialModel:
       | Partial<IngestModel>
-      | ((model: Partial<IngestModel> | undefined) => Partial<IngestModel>)
+      | ((model: Partial<IngestModel> | undefined) => Partial<IngestModel>),
   ) => {
     setModel((prev) => {
       const newModel =
@@ -84,7 +83,7 @@ const IngestController = () => {
 
   const setEndpointStatus = (
     endpoint: EndpointName,
-    status: Partial<EndpointStatus>
+    status: Partial<EndpointStatus>,
   ) => {
     setEndpoints((prev) => ({
       ...prev,
@@ -135,7 +134,7 @@ const IngestController = () => {
     <IngestScreen
       model={model}
       endpoints={endpoints}
-      onSelectEnvironment={handleSelectEnvironment} // <--- Pasamos la función a la vista
+      onSelectEnvironment={handleSelectEnvironment}
     />
   );
 };
