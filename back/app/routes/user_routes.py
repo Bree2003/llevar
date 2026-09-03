@@ -42,5 +42,8 @@ def update_user():
     if not "oid" in data:
         return jsonify({"error": "Missing 'oid' in request data"}), 400
 
-    updated_user = users_service.update_user(data["oid"], **data)
+    payload = dict(data)
+    target_oid = payload.pop("oid")
+
+    updated_user = users_service.update_user(target_oid, **payload)
     return jsonify(updated_user), 200
