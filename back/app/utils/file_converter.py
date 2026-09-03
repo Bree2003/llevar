@@ -5,29 +5,34 @@ import unicodedata
 import re
 def clean_text_series(series: pd.Series) -> pd.Series:
     """
-    Limpia una serie: 
+    Limpia una serie:
     1. Rellena nulos con "" (vacío).
     2. Convierte a string.
-    3. ñ->ni, elimina tildes, normaliza a ASCII.
+    3. Elimina tildes / caracteres no-ASCII, PERO conserva la ñ/Ñ.
     """
-    
-    # --- CAMBIO IMPORTANTE ---
-    # 1. Primero rellenamos los NaN/None con cadena vacía.
-    # Si no hacemos esto, astype(str) convierte el NaN en la palabra literal "nan".
+    # 1. Rellenar NaN/None con cadena vacía (evita el literal "nan").
     series = series.fillna("")
-    
-    # 2. Ahora convertimos todo a string (asegura que números sean texto)
-    series = series.astype(str)
-    
-    # 3. Reemplazo de ñ/Ñ
-    series = series.str.replace('ñ', 'ni', case=False, regex=False)
-    series = series.str.replace('Ñ', 'Ni', case=False, regex=False)
 
-    # 4. Normalización (quitar tildes y caracteres raros)
-    return (series
-            .str.normalize('NFKD')
-            .str.encode('ascii', errors='ignore')
-            .str.decode('utf-8'))
+    # 2. Convertir todo a string.
+    series = series.astype(str)
+
+    # 3. Blindar la ñ/Ñ con marcadores de control ASCII
+    series = (series
+              .str.replace('ñ', '\x01', regex=False)
+              .str.replace('Ñ', '\x02', regex=False))
+
+    # 4. Normalización (quita tildes y caracteres raros).
+    series = (series
+              .str.normalize('NFKD')
+              .str.encode('ascii', errors='ignore')
+              .str.decode('utf-8'))
+
+    # 5. Restaurar la ñ/Ñ.
+    series = (series
+              .str.replace('\x01', 'ñ', regex=False)
+              .str.replace('\x02', 'Ñ', regex=False))
+
+    return series
 
 
 def dataframe_to_parquet_tempfile(df: pd.DataFrame, original_filename: str) -> str:

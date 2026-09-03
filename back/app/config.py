@@ -15,9 +15,23 @@ class Config:
     GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID")
     GOOGLE_APPLICATION_CREDENTIALS = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
     GCP_LOGGER_NAME = os.environ.get("GCP_LOGGER_NAME")
-    
+
     CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "").split(",")
-    
+
+    # Variables de entorno especificas para Azure AD.
+    AZURE_TENANT_ID = os.environ["AZURE_TENANT_ID"]
+    AZURE_API_CLIENT_ID = os.environ["AZURE_API_CLIENT_ID"]
+    AZURE_AUDIENCES = [
+        AZURE_API_CLIENT_ID,
+        f"api://{AZURE_API_CLIENT_ID}",
+    ]
+    JWKS_URL = f"https://login.microsoftonline.com/{AZURE_TENANT_ID}/discovery/v2.0/keys"
+    ISSUERS = [
+        f"https://login.microsoftonline.com/{AZURE_TENANT_ID}/v2.0",
+        f"https://sts.windows.net/{AZURE_TENANT_ID}/",
+    ]
+    AUTH_EXEMPT_PATHS = ("/health", "/api/health")
+
     # Cargar la configuración de entornos GCP desde un archivo fijo
     #    Esto garantiza que la variable siempre exista.
     config_filename = "environments.json"

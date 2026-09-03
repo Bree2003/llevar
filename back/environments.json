@@ -26,7 +26,8 @@
             "name": "Dominio de Negocio",
             "project_id": "cyt-dev-hq-osc-gcp",
             "buckets": [
-                "raw-dev-osc-manual-bucket"
+                "raw-dev-osc-manual-bucket",
+                "raw-dev-osc-cdp-bucket"
             ]
         }
     ],
@@ -57,7 +58,8 @@
             "name": "Dominio de Negocio",
             "project_id": "cyt-prd-hq-osc-gcp",
             "buckets": [
-                "raw-prd-osc-manual-bucket"
+                "raw-prd-osc-manual-bucket",
+                " raw-prd-osc-cdp-bucket"
             ]
         }
     ]
