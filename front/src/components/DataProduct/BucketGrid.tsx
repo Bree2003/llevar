@@ -1,11 +1,5 @@
 import Skeleton from "react-loading-skeleton";
 
-import "react-loading-skeleton/dist/skeleton.css";
-
-/* =========================================================
-   ICONOS
-========================================================= */
-
 const BucketIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -48,10 +42,6 @@ const ProductIcon = () => (
   </svg>
 );
 
-/* =========================================================
-   CONFIGURACIÓN MÓDULOS SAP
-========================================================= */
-
 const SAP_MODULES_CONFIG: Record<string, string> = {
   fi: "Contabilidad financiera, reportes legales, balances.",
 
@@ -84,10 +74,6 @@ const SAP_MODULES_CONFIG: Record<string, string> = {
   bc: "Módulo base y conectividad.",
 };
 
-/* =========================================================
-   TYPES
-========================================================= */
-
 type GridItem =
   | string
   | {
@@ -106,10 +92,6 @@ interface ProductCardGridProps {
 
   onItemClick: (itemName: string) => void;
 }
-
-/* =========================================================
-   SKELETON
-========================================================= */
 
 const ProductCardSkeleton = () => (
   <div
@@ -158,10 +140,6 @@ const ProductCardSkeleton = () => (
     <Skeleton width={100} />
   </div>
 );
-
-/* =========================================================
-   COMPONENT
-========================================================= */
 
 export default function ProductCardGrid({
   title,

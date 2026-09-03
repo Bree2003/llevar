@@ -68,7 +68,7 @@ function ModuleIcon({ name }: { name: ModuleIconName }) {
 }
 
 const AdminScreen = () => (
-  <main className="flex min-h-full w-full flex-col items-start bg-gray-50 py-6 text-left md:py-8">
+  <main className="flex min-h-full w-full flex-col items-start py-6 text-left md:py-8">
     <div className="mx-auto w-full max-w-[1600px] px-4 md:px-6 lg:px-8">
       <header>
         <h1 className="text-3xl font-bold text-[--color-accent] md:text-4xl xl:text-5xl">

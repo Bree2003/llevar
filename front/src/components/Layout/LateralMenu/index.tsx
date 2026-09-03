@@ -249,10 +249,6 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
       >
         {isOpen ? (
           <>
-            {/* =============================================
-                PADRE
-            ============================================== */}
-
             <div
               className={`
                 w-full

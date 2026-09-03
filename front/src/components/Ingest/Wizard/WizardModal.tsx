@@ -200,29 +200,145 @@ export default function WizardModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl h-[720px] flex flex-col relative transition-all">
-        <div className="p-6 border-b">
-          <div className="flex justify-center items-center gap-4">
+    <div
+      className="
+      fixed
+      inset-0
+      z-50
+
+      flex
+      items-center
+      justify-center
+
+      bg-black/70
+
+      p-3
+      md:p-4
+    "
+    >
+      <div
+        className="
+        relative
+
+        flex
+        flex-col
+
+        w-full
+        max-w-3xl
+
+        h-[calc(100dvh-2rem)]
+        max-h-[680px]
+
+        bg-white
+
+        rounded-xl
+
+        shadow-2xl
+
+        overflow-hidden
+
+        transition-all
+      "
+      >
+        <div
+          className="
+          flex-shrink-0
+
+          px-5
+          py-4
+
+          border-b
+          border-[--color-border]
+
+          bg-white
+        "
+        >
+          {/* STEPPER */}
+          <div
+            className="
+            flex
+            justify-center
+            items-center
+
+            gap-2
+            sm:gap-3
+          "
+          >
             {[1, 2, 3].map((s) => (
-              <div key={s} className="flex items-center">
+              <div
+                key={s}
+                className="
+                flex
+                items-center
+              "
+              >
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-colors
-                  ${s === currentStep ? "bg-orange-500 text-white" : s < currentStep ? "bg-green-500 text-white" : "bg-gray-200 text-gray-500"}`}
+                  className={`
+                  w-8
+                  h-8
+
+                  rounded-full
+
+                  flex
+                  items-center
+                  justify-center
+
+                  font-bold
+                  text-sm
+
+                  transition-colors
+
+                  ${
+                    s === currentStep
+                      ? "bg-[--color-accent] text-white"
+                      : s < currentStep
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-200 text-gray-500"
+                  }
+                `}
                 >
                   {s < currentStep ? "✓" : s}
                 </div>
+
                 {s < 3 && (
                   <div
-                    className={`w-12 h-1 mx-2 transition-colors ${s < currentStep ? "bg-green-500" : "bg-gray-200"}`}
+                    className={`
+                    w-8
+                    sm:w-12
+
+                    h-1
+
+                    mx-1
+                    sm:mx-2
+
+                    transition-colors
+
+                    ${s < currentStep ? "bg-green-500" : "bg-gray-200"}
+                  `}
                   />
                 )}
               </div>
             ))}
           </div>
-          <h2 className="text-center font-bold text-gray-700 mt-4">
+
+          {/* TÍTULO */}
+          <h2
+            className="
+            mt-3
+
+            text-center
+            text-sm
+            sm:text-base
+
+            font-bold
+
+            text-[--color-text-primary]
+          "
+          >
             {currentStep === 1 && "Paso 1: Confirmación de archivo"}
+
             {currentStep === 2 && "Paso 2: Análisis de estructura"}
+
             {currentStep === 3 &&
               (isNewTable
                 ? "Paso 3: Definición de Metadatos (GCP)"
@@ -230,18 +346,67 @@ export default function WizardModal({
           </h2>
         </div>
 
-        <div className="flex-grow p-6 overflow-hidden bg-gray-50">
+        <div
+          className="
+          flex-1
+          min-h-0
+
+          overflow-y-auto
+          overflow-x-hidden
+
+          bg-[--color-background]
+
+          p-4
+          md:p-5
+
+          overscroll-contain
+        "
+        >
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center h-full">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
-              <p className="mt-4 text-gray-600 font-medium">
+            <div
+              className="
+              min-h-[280px]
+
+              flex
+              flex-col
+              items-center
+              justify-center
+            "
+            >
+              <div
+                className="
+                animate-spin
+
+                rounded-full
+
+                h-10
+                w-10
+
+                border-2
+                border-[--color-border]
+                border-t-[--color-accent]
+              "
+              />
+
+              <p
+                className="
+                mt-4
+
+                text-sm
+                font-medium
+
+                text-[--color-text-secondary]
+              "
+              >
                 Analizando esquema del archivo...
               </p>
             </div>
           ) : (
-            <div className="h-full">
+            <div className="min-h-0">
               {currentStep === 1 && <Step1Confirmation data={stepData} />}
+
               {currentStep === 2 && <Step2Structure data={stepData} />}
+
               {currentStep === 3 &&
                 (isNewTable ? (
                   <Step3NewTableDescription
@@ -256,21 +421,82 @@ export default function WizardModal({
             </div>
           )}
         </div>
-        <div className="p-6 border-t bg-white rounded-b-xl flex justify-between items-center">
+
+        <div
+          className="
+          flex-shrink-0
+
+          flex
+          items-center
+          justify-between
+          gap-3
+
+          px-5
+          py-4
+
+          border-t
+          border-[--color-border]
+
+          bg-white
+        "
+        >
           <button
+            type="button"
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-800 font-medium transition-colors"
             disabled={isUploading}
+            className="
+            text-sm
+            font-medium
+
+            text-[--color-text-secondary]
+
+            hover:text-[--color-text-primary]
+
+            disabled:opacity-50
+            disabled:cursor-not-allowed
+
+            transition-colors
+          "
           >
             Cancelar
           </button>
 
-          <div className="flex gap-3">
+          <div
+            className="
+            flex
+            items-center
+            gap-2
+            sm:gap-3
+          "
+          >
             {currentStep > 1 && (
               <button
+                type="button"
                 onClick={onPrevious}
-                className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                 disabled={isUploading || isLoading}
+                className="
+                px-4
+                sm:px-5
+
+                py-2
+
+                rounded-lg
+
+                border
+                border-[--color-border]
+
+                text-sm
+                font-semibold
+
+                text-[--color-text-secondary]
+
+                hover:bg-[--color-background]
+
+                disabled:opacity-50
+                disabled:cursor-not-allowed
+
+                transition-colors
+              "
               >
                 Anterior
               </button>
@@ -278,45 +504,117 @@ export default function WizardModal({
 
             {currentStep < 3 ? (
               <button
+                type="button"
                 onClick={onNext}
-                className="px-6 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 shadow-md disabled:opacity-50 transition-all font-bold"
                 disabled={isLoading}
+                className="
+                px-4
+                sm:px-5
+
+                py-2
+
+                rounded-lg
+
+                bg-[--color-accent]
+
+                text-white
+                text-sm
+                font-semibold
+
+                hover:opacity-90
+
+                disabled:opacity-50
+                disabled:cursor-not-allowed
+
+                transition-opacity
+              "
               >
                 Siguiente
               </button>
             ) : (
-              <div className="flex flex-col items-end">
-                <button
-                  onClick={handleConfirmIngestion}
-                  disabled={isButtonDisabled}
-                  className={`px-8 py-2 rounded-lg text-white shadow-lg flex items-center gap-2 transition-all font-bold
-                    ${
-                      isButtonDisabled
-                        ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
-                        : "bg-green-600 hover:bg-green-700 active:scale-95"
-                    }`}
-                  title={
-                    hasMissingMetadata
-                      ? "Completa todas las descripciones para continuar"
-                      : ""
-                  }
-                >
-                  {isUploading
-                    ? `Subiendo ${uploadProgress}%...`
-                    : isNewTable
-                      ? "Crear Tabla y Cargar"
-                      : "Confirmar Ingesta"}
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleConfirmIngestion}
+                disabled={isButtonDisabled}
+                title={
+                  hasMissingMetadata
+                    ? "Completa todas las descripciones para continuar"
+                    : ""
+                }
+                className={`
+                px-4
+                sm:px-6
+
+                py-2
+
+                rounded-lg
+
+                text-sm
+                font-bold
+
+                flex
+                items-center
+                gap-2
+
+                transition-all
+
+                ${
+                  isButtonDisabled
+                    ? `
+                      bg-gray-300
+                      text-gray-500
+                      cursor-not-allowed
+                    `
+                    : `
+                      bg-green-600
+                      text-white
+
+                      hover:bg-green-700
+
+                      active:scale-95
+                    `
+                }
+              `}
+              >
+                {isUploading
+                  ? `Subiendo ${uploadProgress}%...`
+                  : isNewTable
+                    ? "Crear Tabla y Cargar"
+                    : "Confirmar Ingesta"}
+              </button>
             )}
           </div>
         </div>
 
+        {/* PROGRESO DE CARGA */}
         {isUploading && (
-          <div className="absolute bottom-0 left-0 w-full h-1.5 bg-gray-100 rounded-b-xl overflow-hidden">
+          <div
+            className="
+            absolute
+
+            bottom-0
+            left-0
+
+            w-full
+            h-1
+
+            bg-gray-100
+
+            overflow-hidden
+          "
+          >
             <div
-              className="h-full bg-green-500 transition-all duration-300"
-              style={{ width: `${uploadProgress}%` }}
+              className="
+              h-full
+
+              bg-green-500
+
+              transition-all
+              duration-300
+            "
+              style={{
+                width: `${uploadProgress}%`,
+              }}
             />
           </div>
         )}
