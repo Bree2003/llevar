@@ -1,31 +1,46 @@
 import { useMemo, useState } from "react";
-import UserAdminTable from "components/Tables/UserAdminTable";
-import { UserModel } from 'models/Admin/usersModel';
+import PermissionModal from "./PermissionModal";
+import PermissionAdminTable from "components/Tables/PermissionAdminTable";
+import { PermissionModel } from 'models/Admin/permissionsModel';
 
-const UsersAdminSection = ({
-    userData,
+const PermissionAdminSection = ({
+    permissionData,
     isLoading,
-    handleUserUpdate,
+    handlePermissionCreate,
+    handlePermissionUpdate,
 }: {
-    userData: UserModel[] | undefined;
+    permissionData: PermissionModel[] | undefined;
     isLoading: boolean | undefined;
-    handleUserUpdate: (user: UserModel) => void;
+    handlePermissionCreate: (permission: PermissionModel) => void;
+    handlePermissionUpdate: (permission: PermissionModel) => void;
 }) => {
   const [search, setSearch] = useState("");
 
-  const filteredUsers = useMemo(() => {
+  const [editingPermission, setEditingPermission] = useState<PermissionModel | null>(null);
+
+  const filteredPermissions = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    if (!query) {
-      return userData || [];
+    if (!permissionData) {
+      return [];
     }
 
-    return userData?.filter(
-      (user) =>
-        user.name.toLowerCase().includes(query) ||
-        user.email.toLowerCase().includes(query),
-    ) || [];
-  }, [userData, search]);
+    if (!query) {
+      return permissionData || [];
+    }
+
+    return permissionData.filter(
+      (permission) =>
+        permission.id.toLowerCase().includes(query) ||
+        permission.name.toLowerCase().includes(query) ||
+        permission.description.toLowerCase().includes(query),
+    );
+  }, [permissionData, search]);
+
+  const handleSave = (savedPermission: PermissionModel) => {
+    handlePermissionCreate(savedPermission);
+    setEditingPermission(null);
+  };
 
   return (
     <>
@@ -69,7 +84,7 @@ const UsersAdminSection = ({
                 text-[--color-text-primary]
               "
             >
-              Usuarios
+              Permisos
             </h2>
 
             <p
@@ -81,9 +96,41 @@ const UsersAdminSection = ({
                 text-[--color-text-secondary]
               "
             >
-              Administra los usuarios y sus accesos dentro de la plataforma.
+              Administra los permisos disponibles para los usuarios de la plataforma.
             </p>
           </div>
+
+          <button
+            type="button"
+            onClick={() =>
+              setEditingPermission({
+                id: "",
+                name: "",
+                description: "",
+                active: true,
+                createdAt: "",
+                updatedAt: "",
+              })
+            }
+            className="
+              px-4
+              py-2.5
+
+              rounded-lg
+
+              bg-[--color-accent]
+
+              text-white
+              text-sm
+              font-semibold
+
+              hover:opacity-90
+
+              transition-opacity
+            "
+          >
+            + Nuevo permiso
+          </button>
         </div>
 
         {/* SEARCH */}
@@ -132,7 +179,7 @@ const UsersAdminSection = ({
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar usuario..."
+              placeholder="Buscar permiso..."
               className="
                 w-full
 
@@ -165,15 +212,23 @@ const UsersAdminSection = ({
             divide-[--color-border]
           "
         >
-          <UserAdminTable
-            userData={filteredUsers}
+          <PermissionAdminTable
+            permissionData={filteredPermissions}
             isLoading={isLoading}
-            handleUserUpdate={handleUserUpdate}
+            handlePermissionUpdate={handlePermissionUpdate}
           />
         </div>
       </section>
+
+      {editingPermission && (
+        <PermissionModal
+          permission={editingPermission}
+          onClose={() => setEditingPermission(null)}
+          onSave={handleSave}
+        />
+      )}
     </>
   );
 };
 
-export default UsersAdminSection;
+export default PermissionAdminSection;

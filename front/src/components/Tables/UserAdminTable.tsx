@@ -1,4 +1,4 @@
-import { useState, ChangeEvent } from 'react';
+import { useState, useMemo, ChangeEvent } from 'react';
 import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
 import Switch from '@mui/material/Switch';
@@ -41,7 +41,7 @@ export default function UserAdminTable({
     };
 
     const handleSwitchChange = (event: ChangeEvent<HTMLInputElement>, u: UserModel) => {
-        if(u.email === userEmail) {
+        if (u.email === userEmail) {
             return;
         }
 
@@ -49,6 +49,14 @@ export default function UserAdminTable({
         handleUserUpdate(updatedUser);
         return;
     };
+
+    const paginatedData = useMemo(() => {
+        if (!userData) {
+            return [];
+        }
+
+        return userData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+    }, [userData, page, rowsPerPage]);
 
     return (
         <Box sx={{ width: '100%' }}>
@@ -72,14 +80,14 @@ export default function UserAdminTable({
                                         Cargando los datos...
                                     </TableCell>
                                 </TableRow>
-                            ) : userData === undefined || userData.length === 0 ? (
+                            ) : paginatedData.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={6} align="center">
                                         No hay datos para mostrar
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                userData.map((u) => (
+                                paginatedData.map((u) => (
                                     <TableRow
                                         key={u.oid}
                                         sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
@@ -119,6 +127,7 @@ export default function UserAdminTable({
                 </TableContainer>
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25, 50]}
+                    labelRowsPerPage="Filas por p&aacute;gina"
                     component="div"
                     count={userData?.length || 0}
                     rowsPerPage={rowsPerPage}

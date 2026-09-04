@@ -17,6 +17,8 @@ import {
 import loadUsersData from "services/Admin/get-users-data";
 import loadDomainsData from "services/Admin/get-domains-data";
 import loadPermissionsData from "services/Admin/get-permissions-data";
+import createDomainData from "services/Admin/create-domains-data";
+import createPermissionData from "services/Admin/create-permissions-data";
 import updateUserData from "services/Admin/update-users-data";
 import updateDomainData from "services/Admin/update-domains-data";
 import updatePermissionData from "services/Admin/update-permissions-data";
@@ -28,7 +30,7 @@ export interface EndpointStatus {
   error?: boolean;
 };
 
-export type EndpointName = "loadUsers" | "updateUser" | "loadDomains" | "updateDomain" | "loadPermissions" | "updatePermission";
+export type EndpointName = "loadUsers" | "updateUser" | "loadDomains" | "updateDomain" | "loadPermissions" | "updatePermission" | "createDomain" | "createPermission";
 
 export interface Model {
   users: UserModel[] | undefined;
@@ -145,6 +147,42 @@ const AdminPlatformController = () => {
     }
   };
 
+  const createDomain = async (domain: DomainModel) => {
+    const statusEndpoint = buildStatusEndpoint("createDomain");
+    try {
+      statusEndpoint.loading();
+      const response = await createDomainData(domain);
+      const newDomain = DomainDataToModel(response);
+      if (newDomain) {
+        const newDomains = [...(model?.domains || []), newDomain];
+        updateModel({ domains: newDomains });
+      }
+    } catch (e) {
+      console.error("Error al crear dominio:", e);
+      statusEndpoint.error();
+    } finally {
+      statusEndpoint.done();
+    }
+  };
+
+  const createPermission = async (permission: PermissionModel) => {
+    const statusEndpoint = buildStatusEndpoint("createPermission");
+    try {
+      statusEndpoint.loading();
+      const response = await createPermissionData(permission);
+      const newPermission = PermissionDataToModel(response);
+      if (newPermission) {
+        const newPermissions = [...(model?.permissions || []), newPermission];
+        updateModel({ permissions: newPermissions });
+      }
+    } catch (e) {
+      console.error("Error al crear permiso:", e);
+      statusEndpoint.error();
+    } finally {
+      statusEndpoint.done();
+    }
+  };
+
   const updateDomain = async (domain: DomainModel) => {
     const statusEndpoint = buildStatusEndpoint("updateDomain");
     try {
@@ -185,6 +223,8 @@ const AdminPlatformController = () => {
     <AdminPlatformScreen
       model={model}
       endpoints={endpoints}
+      handleDomainCreate={createDomain}
+      handlePermissionCreate={createPermission}
       handleUserUpdate={updateUser}
       handleDomainUpdate={updateDomain}
       handlePermissionUpdate={updatePermission}

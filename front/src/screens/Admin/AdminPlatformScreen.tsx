@@ -14,28 +14,28 @@ import AdminPlatformMenu, {
   AdminPlatformSection,
 } from "components/AdminPlatform/AdminPlatformMenu";
 
-import UserAdminTable from "components/Tables/UserAdminTable";
-import DomainAdminTable from "components/Tables/DomainAdminTable";
-import PermissionAdminTable from "components/Tables/PermissionAdminTable";
+import UsersAdminSection from "components/AdminPlatform/UsersAdminSection";
+import DomainAdminSection from "components/AdminPlatform/DomainAdminSection";
+import PermissionAdminSection from "components/AdminPlatform/PermissionAdminSection";
 import BannersAdminSection from "components/AdminPlatform/BannersAdminSection";
 import FaqAdminSection from "components/AdminPlatform/FaqAdminSection";
 import ConceptsAdminSection from "components/AdminPlatform/ConceptsAdminSection";
 
 interface AdminPlatformScreenProps {
   model: Partial<Model> | undefined;
-
   endpoints: Partial<Record<EndpointName, EndpointStatus>> | undefined;
-
+  handleDomainCreate: (domain: DomainModel) => void;
+  handlePermissionCreate: (permission: PermissionModel) => void;
   handleUserUpdate: (user: UserModel) => void;
-
   handleDomainUpdate: (domain: DomainModel) => void;
-
   handlePermissionUpdate: (permission: PermissionModel) => void;
 }
 
 const AdminPlatformScreen = ({
   model,
   endpoints,
+  handleDomainCreate,
+  handlePermissionCreate,
   handleUserUpdate,
   handleDomainUpdate,
   handlePermissionUpdate,
@@ -67,48 +67,47 @@ const AdminPlatformScreen = ({
           mx-auto
         "
       >
-        {/* HEADER */}
-        <header className="mb-7">
-          <p
-            className="
-              mb-1
-
-              text-sm
-              font-semibold
-
-              text-[--color-accent]
-            "
-          >
-            Administración
-          </p>
-
+        {/* Header */}
+        <section className="w-full text-left mb-7">
           <h1
             className="
-              text-2xl
-              md:text-3xl
-
-              font-bold
-
-              text-[--color-text-primary]
-            "
+            text-3xl
+            md:text-4xl
+            xl:text-5xl
+            font-bold
+            text-[--color-accent]
+          "
           >
-            Configuración de plataforma
+            Gestión de Plataforma
           </h1>
 
-          <p
+          {/* Descripción */}
+          <div
             className="
-              mt-2
-
-              text-sm
-              md:text-base
-
+            mt-4
+            md:mt-6
+            flex
+            flex-col
+            lg:flex-row
+            lg:items-end
+            lg:justify-between
+            gap-5
+            lg:gap-8
+          "
+          >
+            <p
+              className="
+              text-base
+              md:text-lg
+              font-medium
+              max-w-4xl
               text-[--color-text-secondary]
             "
-          >
-            Administra usuarios, dominios, permisos y contenido transversal de
-            la plataforma.
-          </p>
-        </header>
+            >
+              Aquí puedes agregar, editar y deshabilitar dominios, permisos y usuarios.
+            </p>
+          </div>
+        </section>
 
         {/* ADMIN CONSOLE */}
         <div
@@ -138,44 +137,31 @@ const AdminPlatformScreen = ({
           >
             {/* USUARIOS */}
             {section === "users" && (
-              <AdminSectionContainer
-                title="Usuarios"
-                description="Administra los usuarios y sus accesos dentro de la plataforma."
-              >
-                <UserAdminTable
-                  userData={model?.users}
-                  isLoading={endpoints?.loadUsers?.loading}
-                  handleUserUpdate={handleUserUpdate}
-                />
-              </AdminSectionContainer>
+              <UsersAdminSection
+                userData={model?.users}
+                isLoading={endpoints?.loadUsers?.loading}
+                handleUserUpdate={handleUserUpdate}
+              />
             )}
 
             {/* DOMINIOS */}
             {section === "domains" && (
-              <AdminSectionContainer
-                title="Dominios"
-                description="Administra los dominios disponibles dentro de la plataforma."
-              >
-                <DomainAdminTable
-                  domainData={model?.domains}
-                  isLoading={endpoints?.loadDomains?.loading}
-                  handleDomainUpdate={handleDomainUpdate}
-                />
-              </AdminSectionContainer>
+              <DomainAdminSection
+                domainData={model?.domains}
+                isLoading={endpoints?.loadDomains?.loading}
+                handleDomainCreate={handleDomainCreate}
+                handleDomainUpdate={handleDomainUpdate}
+              />
             )}
 
             {/* PERMISOS */}
             {section === "permissions" && (
-              <AdminSectionContainer
-                title="Permisos"
-                description="Administra los permisos disponibles para los usuarios de la plataforma."
-              >
-                <PermissionAdminTable
-                  permissionData={model?.permissions}
-                  isLoading={endpoints?.loadPermissions?.loading}
-                  handlePermissionUpdate={handlePermissionUpdate}
-                />
-              </AdminSectionContainer>
+              <PermissionAdminSection
+                permissionData={model?.permissions}
+                isLoading={endpoints?.loadPermissions?.loading}
+                handlePermissionCreate={handlePermissionCreate}
+                handlePermissionUpdate={handlePermissionUpdate}
+              />
             )}
 
             {/* NOTICIAS */}
@@ -190,70 +176,6 @@ const AdminPlatformScreen = ({
         </div>
       </div>
     </main>
-  );
-};
-
-interface AdminSectionContainerProps {
-  title: string;
-  description: string;
-  children: React.ReactNode;
-}
-
-const AdminSectionContainer = ({
-  title,
-  description,
-  children,
-}: AdminSectionContainerProps) => {
-  return (
-    <section
-      className="
-        w-full
-
-        bg-white
-
-        border
-        border-[--color-border]
-
-        rounded-xl
-
-        overflow-hidden
-      "
-    >
-      <div
-        className="
-          p-5
-          md:p-6
-
-          border-b
-          border-[--color-border]
-        "
-      >
-        <h2
-          className="
-            text-xl
-            font-bold
-
-            text-[--color-text-primary]
-          "
-        >
-          {title}
-        </h2>
-
-        <p
-          className="
-            mt-1
-
-            text-sm
-
-            text-[--color-text-secondary]
-          "
-        >
-          {description}
-        </p>
-      </div>
-
-      <div className="p-4 md:p-5">{children}</div>
-    </section>
   );
 };
 

@@ -1,31 +1,46 @@
 import { useMemo, useState } from "react";
-import UserAdminTable from "components/Tables/UserAdminTable";
-import { UserModel } from 'models/Admin/usersModel';
+import DomainModal from "./DomainModal";
+import DomainAdminTable from "components/Tables/DomainAdminTable";
+import { DomainModel } from 'models/Admin/domainsModel';
 
-const UsersAdminSection = ({
-    userData,
+const DomainAdminSection = ({
+    domainData,
     isLoading,
-    handleUserUpdate,
+    handleDomainCreate,
+    handleDomainUpdate,
 }: {
-    userData: UserModel[] | undefined;
+    domainData: DomainModel[] | undefined;
     isLoading: boolean | undefined;
-    handleUserUpdate: (user: UserModel) => void;
+    handleDomainCreate: (domain: DomainModel) => void;
+    handleDomainUpdate: (domain: DomainModel) => void;
 }) => {
   const [search, setSearch] = useState("");
 
-  const filteredUsers = useMemo(() => {
+  const [editingDomain, setEditingDomain] = useState<DomainModel | null>(null);
+
+  const filteredDomains = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    if (!query) {
-      return userData || [];
+    if (!domainData) {
+      return [];
     }
 
-    return userData?.filter(
-      (user) =>
-        user.name.toLowerCase().includes(query) ||
-        user.email.toLowerCase().includes(query),
-    ) || [];
-  }, [userData, search]);
+    if (!query) {
+      return domainData || [];
+    }
+
+    return domainData.filter(
+      (domain) =>
+        domain.id.toLowerCase().includes(query) ||
+        domain.name.toLowerCase().includes(query) ||
+        domain.description.toLowerCase().includes(query),
+    );
+  }, [domainData, search]);
+
+  const handleSave = (savedDomain: DomainModel) => {
+    handleDomainCreate(savedDomain);
+    setEditingDomain(null);
+  };
 
   return (
     <>
@@ -69,7 +84,7 @@ const UsersAdminSection = ({
                 text-[--color-text-primary]
               "
             >
-              Usuarios
+              Dominios
             </h2>
 
             <p
@@ -81,9 +96,41 @@ const UsersAdminSection = ({
                 text-[--color-text-secondary]
               "
             >
-              Administra los usuarios y sus accesos dentro de la plataforma.
+              Administra los dominios disponibles dentro de la plataforma.
             </p>
           </div>
+
+          <button
+            type="button"
+            onClick={() =>
+              setEditingDomain({
+                id: "",
+                name: "",
+                description: "",
+                active: true,
+                createdAt: "",
+                updatedAt: "",
+              })
+            }
+            className="
+              px-4
+              py-2.5
+
+              rounded-lg
+
+              bg-[--color-accent]
+
+              text-white
+              text-sm
+              font-semibold
+
+              hover:opacity-90
+
+              transition-opacity
+            "
+          >
+            + Nuevo dominio
+          </button>
         </div>
 
         {/* SEARCH */}
@@ -132,7 +179,7 @@ const UsersAdminSection = ({
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar usuario..."
+              placeholder="Buscar dominio..."
               className="
                 w-full
 
@@ -165,15 +212,23 @@ const UsersAdminSection = ({
             divide-[--color-border]
           "
         >
-          <UserAdminTable
-            userData={filteredUsers}
+          <DomainAdminTable
+            domainData={filteredDomains}
             isLoading={isLoading}
-            handleUserUpdate={handleUserUpdate}
+            handleDomainUpdate={handleDomainUpdate}
           />
         </div>
       </section>
+
+      {editingDomain && (
+        <DomainModal
+          domain={editingDomain}
+          onClose={() => setEditingDomain(null)}
+          onSave={handleSave}
+        />
+      )}
     </>
   );
 };
 
-export default UsersAdminSection;
+export default DomainAdminSection;

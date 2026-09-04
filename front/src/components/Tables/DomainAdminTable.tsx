@@ -1,4 +1,4 @@
-import { useState, ChangeEvent } from 'react';
+import { useState, useMemo, ChangeEvent } from 'react';
 import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
 import Switch from '@mui/material/Switch';
@@ -10,6 +10,9 @@ import TablePagination from '@mui/material/TablePagination';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
+import IconButton from '@mui/material/IconButton';
+import SettingsIcon from '@mui/icons-material/Settings';
+import DomainModal from "components/AdminPlatform/DomainModal";
 import { DomainModel } from 'models/Admin/domainsModel';
 
 
@@ -24,6 +27,7 @@ export default function DomainAdminTable({
 }) {
     const [page, setPage] = useState<number>(0);
     const [rowsPerPage, setRowsPerPage] = useState<number>(5);
+    const [editingDomain, setEditingDomain] = useState<DomainModel | null>(null);
 
     const handleChangePage = (event: unknown, newPage: number) => {
         setPage(newPage);
@@ -34,9 +38,25 @@ export default function DomainAdminTable({
         setPage(0);
     };
 
-    const handleSwitchChange = (event: ChangeEvent<HTMLInputElement>, d: DomainModel) => {
+    const handleOnDomainUpdate = (updatedDomain: DomainModel) => {
+        handleDomainUpdate(updatedDomain);
+        setEditingDomain(null);
         return;
     };
+
+    const handleSwitchChange = (event: ChangeEvent<HTMLInputElement>, d: DomainModel) => {
+        const updatedDomain = { ...d, active: d.active ? false : true };
+        handleDomainUpdate(updatedDomain);
+        return;
+    };
+
+    const paginatedData = useMemo(() => {
+        if(!domainData){
+            return [];
+        }
+
+        return domainData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+    }, [domainData, page, rowsPerPage]);
 
     return (
         <Box sx={{ width: '100%' }}>
@@ -45,34 +65,44 @@ export default function DomainAdminTable({
                     <Table sx={{ minWidth: 650 }} aria-label="simple table">
                         <TableHead>
                             <TableRow>
-                                <TableCell align="left">Dominio</TableCell>
-                                <TableCell align="left">Descripcion</TableCell>
+                                <TableCell align="left">ID</TableCell>
+                                <TableCell align="left">Nombre</TableCell>
+                                <TableCell align="left">Descripción</TableCell>
+                                <TableCell align="center">Editar</TableCell>
                                 <TableCell align="center">Activo</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {isLoading !== false ? (
                                 <TableRow>
-                                    <TableCell colSpan={3} align="center">
+                                    <TableCell colSpan={5} align="center">
                                         Cargando los datos...
                                     </TableCell>
                                 </TableRow>
-                            ) : domainData === undefined || domainData.length === 0 ? (
+                            ) : paginatedData.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={3} align="center">
+                                    <TableCell colSpan={5} align="center">
                                         No hay datos para mostrar
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                domainData.map((d) => (
+                                paginatedData.map((d) => (
                                     <TableRow
                                         key={d.id}
                                         sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                     >
+                                        <TableCell align="left">{d.id}</TableCell>
                                         <TableCell align="left">{d.name}</TableCell>
                                         <TableCell align="left">{d.description}</TableCell>
                                         <TableCell align="center">
-                                            <Tooltip title="Activar/Desactivar usuario">
+                                            <Tooltip title="Modificar dominio">
+                                                <IconButton onClick={() => setEditingDomain(d)}>
+                                                    <SettingsIcon />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            <Tooltip title="Activar/Desactivar dominio">
                                                 <Switch
                                                     checked={d.active}
                                                     onChange={(event) => handleSwitchChange(event, d)}
@@ -88,6 +118,7 @@ export default function DomainAdminTable({
                 </TableContainer>
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25, 50]}
+                    labelRowsPerPage="Filas por p&aacute;gina"
                     component="div"
                     count={domainData?.length || 0}
                     rowsPerPage={rowsPerPage}
@@ -96,6 +127,13 @@ export default function DomainAdminTable({
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
             </Paper>
+            {editingDomain && (
+                <DomainModal
+                    domain={editingDomain}
+                    onClose={() => setEditingDomain(null)}
+                    onSave={handleOnDomainUpdate}
+                />
+            )}
         </Box>
     );
 }
