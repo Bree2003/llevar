@@ -1,149 +1,260 @@
-import { useState } from 'react';
+import { useState } from "react";
+
 import {
   Model,
   EndpointStatus,
-  EndpointName
-} from 'controllers/Admin/AdminPlatformController';
+  EndpointName,
+} from "controllers/Admin/AdminPlatformController";
+
 import { UserModel } from "models/Admin/usersModel";
 import { DomainModel } from "models/Admin/domainsModel";
 import { PermissionModel } from "models/Admin/permissionsModel";
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import Box from '@mui/material/Box';
-import UserAdminTable from 'components/Tables/UserAdminTable';
-import DomainAdminTable from 'components/Tables/DomainAdminTable';
-import PermissionAdminTable from 'components/Tables/PermissionAdminTable';
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-};
+import AdminPlatformMenu, {
+  AdminPlatformSection,
+} from "components/AdminPlatform/AdminPlatformMenu";
 
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
+import UserAdminTable from "components/Tables/UserAdminTable";
+import DomainAdminTable from "components/Tables/DomainAdminTable";
+import PermissionAdminTable from "components/Tables/PermissionAdminTable";
+import BannersAdminSection from "components/AdminPlatform/BannersAdminSection";
+import FaqAdminSection from "components/AdminPlatform/FaqAdminSection";
+import ConceptsAdminSection from "components/AdminPlatform/ConceptsAdminSection";
 
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      tabIndex={0}
-      id={`platform-tabpanel-${index}`}
-      aria-labelledby={`platform-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
-  );
-};
+interface AdminPlatformScreenProps {
+  model: Partial<Model> | undefined;
 
-function tabProps(index: number) {
-  return {
-    id: `platform-tab-${index}`,
-    'aria-controls': `platform-tabpanel-${index}`,
-  };
-};
+  endpoints: Partial<Record<EndpointName, EndpointStatus>> | undefined;
+
+  handleUserUpdate: (user: UserModel) => void;
+
+  handleDomainUpdate: (domain: DomainModel) => void;
+
+  handlePermissionUpdate: (permission: PermissionModel) => void;
+}
 
 const AdminPlatformScreen = ({
   model,
   endpoints,
   handleUserUpdate,
   handleDomainUpdate,
-  handlePermissionUpdate
-}: {
-  model: Partial<Model> | undefined;
-  endpoints: Partial<Record<EndpointName, EndpointStatus>> | undefined;
-  handleUserUpdate: (user: UserModel) => void;
-  handleDomainUpdate: (domain: DomainModel) => void;
-  handlePermissionUpdate: (permission: PermissionModel) => void;
-}) => {
-  const [value, setValue] = useState<number>(0);
-
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue);
-  };
+  handlePermissionUpdate,
+}: AdminPlatformScreenProps) => {
+  const [section, setSection] = useState<AdminPlatformSection>("users");
 
   return (
-    <main className="flex flex-col items-start w-full min-h-full bg-gray-50 text-left py-6 md:py-8">
-      <div className="w-full max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8">
-        {/* Header */}
-        <section className="w-full">
+    <main
+      className="
+        w-full
+        min-h-full
+
+        bg-[--color-background]
+
+        px-4
+        py-6
+
+        md:px-6
+        md:py-8
+
+        lg:px-8
+      "
+    >
+      <div
+        className="
+          w-full
+          max-w-[1600px]
+
+          mx-auto
+        "
+      >
+        {/* HEADER */}
+        <header className="mb-7">
+          <p
+            className="
+              mb-1
+
+              text-sm
+              font-semibold
+
+              text-[--color-accent]
+            "
+          >
+            Administración
+          </p>
+
           <h1
             className="
-            text-3xl
-            md:text-4xl
-            xl:text-5xl
-            font-bold
-            text-[--color-accent]
-          "
+              text-2xl
+              md:text-3xl
+
+              font-bold
+
+              text-[--color-text-primary]
+            "
           >
-            Gestión de Plataforma
+            Configuración de plataforma
           </h1>
 
-          {/* Descripción */}
-          <div
+          <p
             className="
-            mt-4
-            md:mt-6
-            flex
-            flex-col
-            lg:flex-row
-            lg:items-end
-            lg:justify-between
-            gap-5
-            lg:gap-8
-          "
-          >
-            <p
-              className="
-              text-base
-              md:text-lg
-              font-medium
-              max-w-4xl
+              mt-2
+
+              text-sm
+              md:text-base
+
               text-[--color-text-secondary]
             "
-            >
-              Aquí puedes agregar, editar y deshabilitar dominios, permisos y usuarios.
-            </p>
-          </div>
-        </section>
+          >
+            Administra usuarios, dominios, permisos y contenido transversal de
+            la plataforma.
+          </p>
+        </header>
 
-        {/* Tabla */}
-        <section className="w-full mt-6 md:mt-8">
-          <Box sx={{ width: '100%' }}>
-            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-              <Tabs value={value} onChange={handleChange} aria-label="platform admin tabs">
-                <Tab label="Usuarios" {...tabProps(0)} />
-                <Tab label="Dominios" {...tabProps(1)} />
-                <Tab label="Permisos" {...tabProps(2)} />
-              </Tabs>
-            </Box>
-            <TabPanel value={value} index={0}>
-              <UserAdminTable
-                userData={model?.users}
-                isLoading={endpoints?.loadUsers?.loading}
-                handleUserUpdate={handleUserUpdate}
-              />
-            </TabPanel>
-            <TabPanel value={value} index={1}>
-              <DomainAdminTable
-                domainData={model?.domains}
-                isLoading={endpoints?.loadDomains?.loading}
-                handleDomainUpdate={handleDomainUpdate}
-              />
-            </TabPanel>
-            <TabPanel value={value} index={2}>
-              <PermissionAdminTable
-                permissionData={model?.permissions}
-                isLoading={endpoints?.loadPermissions?.loading}
-                handlePermissionUpdate={handlePermissionUpdate}
-              />
-            </TabPanel>
-          </Box>
-        </section>
+        {/* ADMIN CONSOLE */}
+        <div
+          className="
+            flex
+            flex-col
+
+            lg:flex-row
+
+            items-start
+
+            gap-5
+            lg:gap-6
+          "
+        >
+          {/* MENU */}
+          <AdminPlatformMenu activeSection={section} onChange={setSection} />
+
+          {/* CONTENT */}
+          <div
+            className="
+              w-full
+
+              flex-1
+              min-w-0
+            "
+          >
+            {/* USUARIOS */}
+            {section === "users" && (
+              <AdminSectionContainer
+                title="Usuarios"
+                description="Administra los usuarios y sus accesos dentro de la plataforma."
+              >
+                <UserAdminTable
+                  userData={model?.users}
+                  isLoading={endpoints?.loadUsers?.loading}
+                  handleUserUpdate={handleUserUpdate}
+                />
+              </AdminSectionContainer>
+            )}
+
+            {/* DOMINIOS */}
+            {section === "domains" && (
+              <AdminSectionContainer
+                title="Dominios"
+                description="Administra los dominios disponibles dentro de la plataforma."
+              >
+                <DomainAdminTable
+                  domainData={model?.domains}
+                  isLoading={endpoints?.loadDomains?.loading}
+                  handleDomainUpdate={handleDomainUpdate}
+                />
+              </AdminSectionContainer>
+            )}
+
+            {/* PERMISOS */}
+            {section === "permissions" && (
+              <AdminSectionContainer
+                title="Permisos"
+                description="Administra los permisos disponibles para los usuarios de la plataforma."
+              >
+                <PermissionAdminTable
+                  permissionData={model?.permissions}
+                  isLoading={endpoints?.loadPermissions?.loading}
+                  handlePermissionUpdate={handlePermissionUpdate}
+                />
+              </AdminSectionContainer>
+            )}
+
+            {/* NOTICIAS */}
+            {section === "banners" && <BannersAdminSection />}
+
+            {/* FAQ */}
+            {section === "faq" && <FaqAdminSection />}
+
+            {/* DICCIONARIO */}
+            {section === "concepts" && <ConceptsAdminSection />}
+          </div>
+        </div>
       </div>
     </main>
-  )
+  );
+};
+
+interface AdminSectionContainerProps {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}
+
+const AdminSectionContainer = ({
+  title,
+  description,
+  children,
+}: AdminSectionContainerProps) => {
+  return (
+    <section
+      className="
+        w-full
+
+        bg-white
+
+        border
+        border-[--color-border]
+
+        rounded-xl
+
+        overflow-hidden
+      "
+    >
+      <div
+        className="
+          p-5
+          md:p-6
+
+          border-b
+          border-[--color-border]
+        "
+      >
+        <h2
+          className="
+            text-xl
+            font-bold
+
+            text-[--color-text-primary]
+          "
+        >
+          {title}
+        </h2>
+
+        <p
+          className="
+            mt-1
+
+            text-sm
+
+            text-[--color-text-secondary]
+          "
+        >
+          {description}
+        </p>
+      </div>
+
+      <div className="p-4 md:p-5">{children}</div>
+    </section>
+  );
 };
 
 export default AdminPlatformScreen;
