@@ -118,7 +118,8 @@ const AdminPlatformScreen = ({
               text-[--color-text-secondary]
             "
             >
-              Aquí puedes agregar, editar y deshabilitar dominios, permisos y usuarios.
+              Aquí puedes agregar, editar y deshabilitar dominios, permisos y
+              usuarios.
             </p>
           </div>
         </section>
@@ -138,7 +139,19 @@ const AdminPlatformScreen = ({
           "
         >
           {/* MENU */}
-          <AdminPlatformMenu activeSection={section} onChange={setSection} />
+          <div
+            className="
+    w-full
+    lg:w-auto
+    lg:flex-shrink-0
+
+    lg:sticky
+    lg:top-6
+    lg:self-start
+  "
+          >
+            <AdminPlatformMenu activeSection={section} onChange={setSection} />
+          </div>
 
           {/* CONTENT */}
           <div
@@ -165,7 +178,11 @@ const AdminPlatformScreen = ({
             {section === "domains" && (
               <DomainAdminSection
                 domainData={model?.domains}
-                isBusy={(endpoints?.createDomain?.loading || endpoints?.updateDomain?.loading) ?? false}
+                isBusy={
+                  (endpoints?.createDomain?.loading ||
+                    endpoints?.updateDomain?.loading) ??
+                  false
+                }
                 isLoading={endpoints?.loadDomains?.loading ?? false}
                 handleDomainCreate={handleDomainCreate}
                 handleDomainUpdate={handleDomainUpdate}
@@ -176,7 +193,11 @@ const AdminPlatformScreen = ({
             {section === "permissions" && (
               <PermissionAdminSection
                 permissionData={model?.permissions}
-                isBusy={(endpoints?.createPermission?.loading || endpoints?.updatePermission?.loading) ?? false}
+                isBusy={
+                  (endpoints?.createPermission?.loading ||
+                    endpoints?.updatePermission?.loading) ??
+                  false
+                }
                 isLoading={endpoints?.loadPermissions?.loading ?? false}
                 handlePermissionCreate={handlePermissionCreate}
                 handlePermissionUpdate={handlePermissionUpdate}
@@ -190,7 +211,11 @@ const AdminPlatformScreen = ({
             {section === "faq" && (
               <FaqAdminSection
                 faqData={model?.faqs}
-                isBusy={(endpoints?.createFaq?.loading || endpoints?.updateFaq?.loading) ?? false}
+                isBusy={
+                  (endpoints?.createFaq?.loading ||
+                    endpoints?.updateFaq?.loading) ??
+                  false
+                }
                 isLoading={endpoints?.loadFaq?.loading ?? false}
                 handleFaqCreate={handleFaqCreate}
                 handleFaqUpdate={handleFaqUpdate}
@@ -202,7 +227,11 @@ const AdminPlatformScreen = ({
             {section === "concepts" && (
               <ConceptsAdminSection
                 dictionaryData={model?.dictionaries}
-                isBusy={(endpoints?.createDictionary?.loading || endpoints?.updateDictionary?.loading) ?? false}
+                isBusy={
+                  (endpoints?.createDictionary?.loading ||
+                    endpoints?.updateDictionary?.loading) ??
+                  false
+                }
                 isLoading={endpoints?.loadDictionary?.loading ?? false}
                 handleDictionaryCreate={handleDictionaryCreate}
                 handleDictionaryUpdate={handleDictionaryUpdate}
