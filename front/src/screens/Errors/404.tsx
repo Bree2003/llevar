@@ -1,29 +1,27 @@
-import { Link } from "react-router-dom";
-import { Container } from "@mui/material";
-import { ReactComponent as DeniedIcon } from "components/Global/Icons/denied-icon.svg"; // Asegúrate que este icono exista
-import { CenteredBox, Title, Message, LinkMessage } from "./styles";
+import { useNavigate } from "react-router-dom";
 
-export const NotFoundScreen = () => {
+import { ReactComponent as DeniedIcon } from "components/Global/Icons/denied-icon.svg";
+import StatusScreen from "components/UI/StatusScreen";
+
+const NotFoundScreen = () => {
+  const navigate = useNavigate();
+
   return (
-    <Container maxWidth="lg">
-      <CenteredBox>
-        <div style={{ transform: "scale(1.2)", marginBottom: "10px" }}>
-          {/* Si no tienes el icono, puedes usar un emoji temporal o un SVG inline */}
-          <DeniedIcon />
-        </div>
-
-        <Title>P&aacute;gina No Encontrada</Title>
-
-        <Message>
-          Lo sentimos, la p&aacute;gina a la que intenta acceder no existe o ha
-          sido movida.
-        </Message>
-
-        <Link to={"/"} style={{ textDecoration: "none" }}>
-          <LinkMessage>Volver al inicio</LinkMessage>
-        </Link>
-      </CenteredBox>
-    </Container>
+    <StatusScreen
+      eyebrow="Error 404"
+      title="Página no encontrada"
+      message={
+        <>
+          La página que intenta visitar no existe, fue movida o la dirección
+          ingresada no es correcta.
+        </>
+      }
+      actionLabel="Volver al inicio"
+      onAction={() => navigate("/")}
+      secondaryActionLabel="Volver atrás"
+      onSecondaryAction={() => navigate(-1)}
+      icon={<DeniedIcon className="w-8 h-8 md:w-10 md:h-10" />}
+    />
   );
 };
 

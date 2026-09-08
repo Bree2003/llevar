@@ -1,32 +1,29 @@
-import { Link } from "react-router-dom";
-import { Container } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+
 import { ReactComponent as DeniedIcon } from "components/Global/Icons/denied-icon.svg";
-import { CenteredBox, Row, Title, Message, LinkMessage } from "./styles";
+import StatusScreen from "components/UI/StatusScreen";
 
-export const NotAuthorizedScreen = () => {
+const NotAuthorizedScreen = () => {
+  const navigate = useNavigate();
+
   return (
-    <Container maxWidth="lg">
-      <CenteredBox>
-        <div style={{ transform: "scale(1.2)", marginBottom: "10px" }}>
-          <DeniedIcon />
-        </div>
-
-        <Title>Acceso Denegado</Title>
-
-        <Row>
-          <Message>
-            Usted no posee los permisos necesarios para ingresar a esta
-            secci&oacute;n.
-            <br />
-            Contacte al administrador si cree que es un error.
-          </Message>
-        </Row>
-
-        <Link to={"/"} style={{ textDecoration: "none" }}>
-          <LinkMessage>Volver al inicio</LinkMessage>
-        </Link>
-      </CenteredBox>
-    </Container>
+    <StatusScreen
+      eyebrow="Acceso restringido"
+      title="No tienes acceso a esta sección"
+      message={
+        <>
+          Tu usuario no posee los permisos necesarios para ingresar a esta
+          sección.
+          <br />
+          Si crees que se trata de un error, contacta al administrador.
+        </>
+      }
+      actionLabel="Volver al inicio"
+      onAction={() => navigate("/")}
+      secondaryActionLabel="Volver atrás"
+      onSecondaryAction={() => navigate(-1)}
+      icon={<DeniedIcon className="w-8 h-8 md:w-10 md:h-10" />}
+    />
   );
 };
 

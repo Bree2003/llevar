@@ -1,31 +1,27 @@
-import { Link } from "react-router-dom";
-import { Container } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+
 import { ReactComponent as DeniedIcon } from "components/Global/Icons/denied-icon.svg";
-import { CenteredBox, Row, Title, Message, LinkMessage } from "./styles";
+import StatusScreen from "components/UI/StatusScreen";
 
-export const ForbiddenScreen = () => {
+const ForbiddenScreen = () => {
+  const navigate = useNavigate();
+
   return (
-    <Container maxWidth="lg">
-      <CenteredBox>
-        <div style={{ transform: "scale(1.2)", marginBottom: "10px" }}>
-          <DeniedIcon />
-        </div>
-
-        <Title>Acceso Denegado</Title>
-
-        <Row>
-          <Message>
-            Su cuenta se encuentra desactivada o no tiene los permisos para acceder a esta aplicaci&oacute;n.
-            <br />
-            Contacte al administrador si cree que es un error.
-          </Message>
-        </Row>
-
-        <Link to={"/logout"} style={{ textDecoration: "none" }}>
-          <LinkMessage>Cerrar Sesi&oacute;n</LinkMessage>
-        </Link>
-      </CenteredBox>
-    </Container>
+    <StatusScreen
+      eyebrow="Cuenta sin acceso"
+      title="Acceso denegado"
+      message={
+        <>
+          Su cuenta se encuentra desactivada o no cuenta con los permisos
+          necesarios para acceder a esta aplicación.
+          <br />
+          Contacte al administrador si cree que se trata de un error.
+        </>
+      }
+      actionLabel="Cerrar sesión"
+      onAction={() => navigate("/logout")}
+      icon={<DeniedIcon className="w-8 h-8 md:w-10 md:h-10" />}
+    />
   );
 };
 
