@@ -1,135 +1,356 @@
 import { ReactComponent as Edit } from "components/Global/Icons/edit.svg";
 import { ReactComponent as Trash } from "components/Global/Icons/trash.svg";
 import { ReactComponent as Kpi } from "components/Global/Icons/kpi.svg";
+
 import { domainUnits } from "data/domain-units";
 
-import { Report } from "./types";
+import { ReportModel } from "models/Global/reportsModel";
 
 interface ReportsTableProps {
-    reports: Report[];
-    onEdit: (report: Report) => void;
-    onDelete: (id: string) => void;
+  reports: ReportModel[];
+
+  onEdit: (report: ReportModel) => void;
+
+  onDelete: (id: string) => void;
 }
 
 const getDomainUnitName = (area: string) => {
-    const domainUnit = domainUnits.find(
-        (unit) => unit.id === area || unit.name === area
-    );
+  const domainUnit = domainUnits.find(
+    (unit) => unit.id === area || unit.name === area,
+  );
 
-    return domainUnit?.name ?? area;
+  return domainUnit?.name ?? area;
 };
 
-const ReportsTable = ({
-    reports,
-    onEdit,
-    onDelete,
-}: ReportsTableProps) => {
-    return (
-        <div className="mt-8 bg-white rounded-[20px] border border-[--color-border] overflow-hidden">
-            <table className="w-full p-5 gap-5">
-                <thead className="bg-[--color-background] text-[--color-text-muted]">
-                    <tr>
-                        <th className="px-6 py-4 text-left">Reporte</th>
-                        <th className="px-6 py-4 text-left">Dataset</th>
-                        <th className="px-6 py-4 text-left">Área</th>
-                        <th className="px-6 py-4 text-left">KPIs</th>
-                        <th className="px-6 py-4 text-left">
-                            Última Modificación
-                        </th>
-                        <th className="px-6 py-4 text-left">Acciones</th>
-                    </tr>
-                </thead>
+const ReportsTable = ({ reports, onEdit, onDelete }: ReportsTableProps) => {
+  return (
+    <div
+      className="
+        w-full
 
-                <tbody>
-                    {reports.length === 0 ? (
-                        <tr>
-                            <td
-                                colSpan={6}
-                                className="py-10 text-center text-[--color-text-secondary]"
-                            >
-                                No existen reportes.
-                            </td>
-                        </tr>
-                    ) : (
-                        reports.map((report) => (
-                            <tr
-                                key={report.id}
-                                className="border-t border-gray-100"
-                            >
-                                <td className="px-6 py-4">
-                                    <div>
-                                        <p className="font-semibold text-[--color-text-primary]">
-                                            {report.nombre}
-                                        </p>
+        bg-white
 
-                                        <p className="text-sm text-[--color-text-muted]">
-                                            {report.descripcion}
-                                        </p>
-                                    </div>
-                                </td>
+        rounded-[20px]
 
-                                <td className="px-6 py-4 text-sm text-[--color-text-muted]">
-                                    {report.dataset}
-                                </td>
+        border
+        border-[--color-border]
 
-                                <td className="px-6 py-4 text-[--color-text-secondary] uppercase">
-                                    <span className="py-[6px] px-[10px] bg-[--color-background] rounded text-xs">
-                                        {getDomainUnitName(report.area)}
-                                    </span>
-                                </td>
+        overflow-hidden
+      "
+    >
+      <table
+        className="
+          w-full
 
-                                <td className="px-6 py-4">
-                                    <div className="flex flex-wrap gap-1">
-                                        {report.kpis.length === 0 ? (
-                                            <span className="text-[--color-text-muted]">
-                                                -
-                                            </span>
-                                        ) : (
-                                            report.kpis.map((kpi, index) => (
-                                                <span
-                                                    key={`${report.id}-${kpi}-${index}`}
-                                                    className="-m-[6px]"
-                                                    title={kpi}
-                                                >
-                                                    <Kpi />
-                                                </span>
-                                            ))
-                                        )}
-                                    </div>
-                                </td>
+          min-w-[900px]
+        "
+      >
+        <thead
+          className="
+            bg-[--color-background]
 
-                                <td className="px-6 py-4 text-[--color-text-secondary]">
-                                    {report.fechaModificacion}
-                                </td>
+            text-[--color-text-muted]
+          "
+        >
+          <tr>
+            <th
+              className="
+                px-6
+                py-4
 
-                                <td className="px-6 py-4">
-                                    <div className="flex gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => onEdit(report)}
-                                            className="text-[--color-text-secondary] py-[6px] px-[10px] flex gap-1 items-center rounded-md bg-[--color-background]"
-                                        >
-                                            <Edit />
-                                            Editar
-                                        </button>
+                text-left
 
-                                        <button
-                                            type="button"
-                                            onClick={() => onDelete(report.id)}
-                                            className="text-white py-[6px] px-[10px] flex gap-1 items-center rounded-md bg-[--color-error]"
-                                        >
-                                            <Trash />
-                                            Eliminar
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))
-                    )}
-                </tbody>
-            </table>
-        </div>
-    );
+                text-xs
+                uppercase
+              "
+            >
+              Reporte
+            </th>
+
+            <th
+              className="
+                px-6
+                py-4
+
+                text-left
+
+                text-xs
+                uppercase
+              "
+            >
+              Área
+            </th>
+
+            <th
+              className="
+                px-6
+                py-4
+
+                text-left
+
+                text-xs
+                uppercase
+              "
+            >
+              KPIs
+            </th>
+
+            <th
+              className="
+                px-6
+                py-4
+
+                text-left
+
+                text-xs
+                uppercase
+              "
+            >
+              Última Modificación
+            </th>
+
+            <th
+              className="
+                px-6
+                py-4
+
+                text-right
+
+                text-xs
+                uppercase
+              "
+            >
+              Acciones
+            </th>
+          </tr>
+        </thead>
+
+        <tbody
+          className="
+            divide-y
+            divide-[--color-border]
+          "
+        >
+          {reports.length === 0 ? (
+            <tr>
+              <td
+                colSpan={5}
+                className="
+                  py-12
+
+                  text-center
+
+                  text-sm
+
+                  text-[--color-text-secondary]
+                "
+              >
+                No existen reportes.
+              </td>
+            </tr>
+          ) : (
+            reports.map((report) => (
+              <tr
+                key={report.id}
+                className="
+                    hover:bg-[--color-background]
+
+                    transition-colors
+                  "
+              >
+                {/* REPORTE */}
+                <td
+                  className="
+                      px-6
+                      py-4
+
+                      max-w-[420px]
+                    "
+                >
+                  <p
+                    className="
+                        font-semibold
+
+                        text-[--color-text-primary]
+                      "
+                  >
+                    {report.nombre}
+                  </p>
+
+                  <p
+                    className="
+                        mt-1
+
+                        text-sm
+
+                        text-[--color-text-muted]
+
+                        leading-relaxed
+                      "
+                  >
+                    {report.descripcion}
+                  </p>
+                </td>
+
+                {/* AREA */}
+                <td className="px-6 py-4">
+                  <span
+                    className="
+                        inline-flex
+
+                        py-[6px]
+                        px-[10px]
+
+                        bg-[--color-background]
+
+                        rounded-md
+
+                        text-xs
+                        font-medium
+
+                        text-[--color-text-secondary]
+                      "
+                  >
+                    {getDomainUnitName(report.area)}
+                  </span>
+                </td>
+
+                {/* KPIS */}
+                <td className="px-6 py-4">
+                  {report.kpis?.length > 0 ? (
+                    <div
+                      className="
+                          flex
+                          flex-wrap
+
+                          items-center
+
+                          gap-1
+                        "
+                    >
+                      {report.kpis.map((kpi, index) => (
+                        <span
+                          key={`${report.id}-${kpi}-${index}`}
+                          title={kpi}
+                          className="
+                                flex
+                                items-center
+                                justify-center
+                              "
+                        >
+                          <Kpi />
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span
+                      className="
+                          text-[--color-text-muted]
+                        "
+                    >
+                      -
+                    </span>
+                  )}
+                </td>
+
+                {/* FECHA */}
+                <td
+                  className="
+                      px-6
+                      py-4
+
+                      whitespace-nowrap
+
+                      text-[--color-text-secondary]
+                    "
+                >
+                  {report.fechaModificacion || "-"}
+                </td>
+
+                {/* ACCIONES */}
+                <td
+                  className="
+                      px-6
+                      py-4
+
+                      text-right
+                    "
+                >
+                  <div
+                    className="
+                        flex
+                        justify-end
+
+                        gap-2
+                      "
+                  >
+                    <button
+                      type="button"
+                      onClick={() => onEdit(report)}
+                      className="
+                          py-[6px]
+                          px-[10px]
+
+                          flex
+                          items-center
+                          gap-1
+
+                          rounded-md
+
+                          bg-[--color-background]
+
+                          text-sm
+                          font-medium
+
+                          text-[--color-text-secondary]
+
+                          hover:bg-[--color-accent-light]
+                          hover:text-[--color-accent]
+
+                          transition-colors
+                        "
+                    >
+                      <Edit />
+                      Editar
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => onDelete(report.id)}
+                      className="
+                          py-[6px]
+                          px-[10px]
+
+                          flex
+                          items-center
+                          gap-1
+
+                          rounded-md
+
+                          bg-[--color-error]
+
+                          text-sm
+                          font-medium
+
+                          text-white
+
+                          hover:opacity-90
+
+                          transition-opacity
+                        "
+                    >
+                      <Trash />
+                      Eliminar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
 };
 
 export default ReportsTable;

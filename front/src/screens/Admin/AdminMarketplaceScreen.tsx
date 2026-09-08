@@ -1,15 +1,33 @@
+import { useEffect, useRef, useState } from "react";
+
+import {
+  Model,
+  EndpointStatus,
+  EndpointName,
+} from "controllers/Admin/AdminMarketplaceController";
+
+import { ReportModel } from "models/Global/reportsModel";
+
 import { ReactComponent as FilterAdd } from "components/Global/Icons/filter-add.svg";
 import { ReactComponent as FilterRemove } from "components/Global/Icons/filter-remove.svg";
 import { ReactComponent as Add } from "components/Global/Icons/add.svg";
-import { useEffect, useRef, useState } from "react";
 
 import { domainUnits } from "data/domain-units";
 
 import ReportDrawer from "../Marketplace/Admin/ReportDrawer";
 import ReportsTable from "../Marketplace/Admin/ReportsTable";
-import { Report } from "../Marketplace/Admin/types";
 
-const STORAGE_KEY = "admin_reports";
+interface AdminMarketplaceScreenProps {
+  model: Partial<Model> | undefined;
+
+  endpoints: Partial<Record<EndpointName, EndpointStatus>> | undefined;
+
+  handleReportCreate: (report: ReportModel) => void;
+
+  handleReportUpdate: (report: ReportModel) => void;
+
+  handleReportDelete: (report: ReportModel) => void;
+}
 
 const getDomainUnitId = (area: string) => {
   const domainUnit = domainUnits.find(
@@ -19,18 +37,21 @@ const getDomainUnitId = (area: string) => {
   return domainUnit?.id ?? area;
 };
 
-const normalizeReports = (reports: Report[]) => {
-  return reports.map((report) => ({
-    ...report,
-    area: getDomainUnitId(report.area),
-  }));
-};
-
-const AdminMarketplaceScreen = () => {
+const AdminMarketplaceScreen = ({
+  model,
+  endpoints,
+  handleReportCreate,
+  handleReportUpdate,
+  handleReportDelete,
+}: AdminMarketplaceScreenProps) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [reports, setReports] = useState<Report[]>([]);
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+
+  const [selectedReport, setSelectedReport] = useState<ReportModel | null>(
+    null,
+  );
+
   const [showFilters, setShowFilters] = useState(false);
+
   const [areaFilter, setAreaFilter] = useState("");
 
   const [sortBy, setSortBy] = useState<
@@ -39,24 +60,25 @@ const AdminMarketplaceScreen = () => {
 
   const filterRef = useRef<HTMLDivElement>(null);
 
-  const handleNewReport = () => {
-    setShowFilters(false);
-    setSelectedReport(null);
-    setIsDrawerOpen(true);
-  };
+  /*
+   * Los reportes ahora vienen desde
+   * AdminMarketplaceController.
+   */
+  const reports = model?.reports ?? [];
 
-  useEffect(() => {
-    const storedReports: Report[] = JSON.parse(
-      sessionStorage.getItem(STORAGE_KEY) || "[]",
-    );
+  const isLoading =
+    endpoints?.loadReports?.loading ?? model?.reports === undefined;
 
-    const normalizedReports = normalizeReports(storedReports);
+  const isBusy =
+    (endpoints?.createReport?.loading ||
+      endpoints?.updateReport?.loading ||
+      endpoints?.deleteReport?.loading) ??
+    false;
 
-    setReports(normalizedReports);
-
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedReports));
-  }, []);
-
+  /*
+   * Cerrar dropdown al hacer click
+   * fuera de los filtros.
+   */
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -74,155 +96,245 @@ const AdminMarketplaceScreen = () => {
     };
   }, []);
 
-  const handleSaveReport = (report: Report) => {
-    const reportToSave = {
+  /* ==========================================
+     NUEVO REPORTE
+  ========================================== */
+
+  const handleNewReport = () => {
+    setShowFilters(false);
+    setSelectedReport(null);
+    setIsDrawerOpen(true);
+  };
+
+  const handleSaveReport = (report: ReportModel) => {
+    const reportToSave: ReportModel = {
       ...report,
       area: getDomainUnitId(report.area),
     };
 
-    const exists = reports.some(
-      (currentReport) => currentReport.id === reportToSave.id,
-    );
+    if (selectedReport) {
+      handleReportUpdate(reportToSave);
+    } else {
+      handleReportCreate(reportToSave);
+    }
 
-    const updatedReports = exists
-      ? reports.map((currentReport) =>
-          currentReport.id === reportToSave.id ? reportToSave : currentReport,
-        )
-      : [...reports, reportToSave];
-
-    setReports(updatedReports);
-
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updatedReports));
+    handleCloseDrawer();
   };
+
+  /* ==========================================
+     ELIMINAR REPORTE
+  ========================================== */
 
   const handleDeleteReport = (id: string) => {
-    const updatedReports = reports.filter((report) => report.id !== id);
+    const reportToDelete = reports.find((report) => report.id === id);
 
-    setReports(updatedReports);
+    if (!reportToDelete) {
+      return;
+    }
 
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updatedReports));
+    handleReportDelete(reportToDelete);
   };
 
-  const handleEditReport = (report: Report) => {
+  /* ==========================================
+     EDITAR REPORTE
+  ========================================== */
+
+  const handleEditReport = (report: ReportModel) => {
     setShowFilters(false);
+
     setSelectedReport(report);
+
     setIsDrawerOpen(true);
   };
 
+  /* ==========================================
+     CERRAR DRAWER
+  ========================================== */
+
   const handleCloseDrawer = () => {
     setSelectedReport(null);
+
     setIsDrawerOpen(false);
   };
 
+  /* ==========================================
+     FILTROS + ORDEN
+  ========================================== */
+
   const filteredReports = [...reports]
-    .filter((report) => (areaFilter ? report.area === areaFilter : true))
+    .filter((report) =>
+      areaFilter ? getDomainUnitId(report.area) === areaFilter : true,
+    )
     .sort((a, b) => {
       switch (sortBy) {
         case "oldest":
-          return a.fechaModificacion.localeCompare(b.fechaModificacion);
+          return (a.fechaModificacion || "").localeCompare(
+            b.fechaModificacion || "",
+          );
 
         case "name-asc":
-          return a.nombre.localeCompare(b.nombre);
+          return (a.nombre || "").localeCompare(b.nombre || "");
 
         case "name-desc":
-          return b.nombre.localeCompare(a.nombre);
+          return (b.nombre || "").localeCompare(a.nombre || "");
 
         case "recent":
         default:
-          return b.fechaModificacion.localeCompare(a.fechaModificacion);
+          return (b.fechaModificacion || "").localeCompare(
+            a.fechaModificacion || "",
+          );
       }
     });
 
   const hasFilters = areaFilter !== "" || sortBy !== "recent";
 
   return (
-    <main className="flex flex-col items-start w-full min-h-full bg-gray-50 text-left py-6 md:py-8">
-      <div className="w-full max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8">
-        {/* Header */}
+    <main
+      className="
+        flex
+        flex-col
+        items-start
+
+        w-full
+        min-h-full
+
+        bg-[--color-background]
+
+        text-left
+
+        py-6
+        md:py-8
+      "
+    >
+      <div
+        className="
+          w-full
+          max-w-[1600px]
+
+          mx-auto
+
+          px-4
+          md:px-6
+          lg:px-8
+        "
+      >
+        {/* ==========================================
+            HEADER
+        ========================================== */}
         <section className="w-full">
           <h1
             className="
-            text-3xl
-            md:text-4xl
-            xl:text-5xl
-            font-bold
-            text-[--color-accent]
-          "
+              text-3xl
+              md:text-4xl
+              xl:text-5xl
+
+              font-bold
+
+              text-[--color-accent]
+            "
           >
             Gestión de Reportes
           </h1>
 
-          {/* Descripción + acciones */}
+          {/* DESCRIPCIÓN + ACCIONES */}
           <div
             className="
-            mt-4
-            md:mt-6
-            flex
-            flex-col
-            lg:flex-row
-            lg:items-end
-            lg:justify-between
-            gap-5
-            lg:gap-8
-          "
+              mt-4
+              md:mt-6
+
+              flex
+              flex-col
+
+              lg:flex-row
+              lg:items-end
+              lg:justify-between
+
+              gap-5
+              lg:gap-8
+            "
           >
             <p
               className="
-              text-base
-              md:text-lg
-              font-medium
-              max-w-4xl
-              text-[--color-text-secondary]
-            "
+                text-base
+                md:text-lg
+
+                font-medium
+
+                max-w-4xl
+
+                text-[--color-text-secondary]
+              "
             >
               Aquí puedes agregar, editar, eliminar y auditar los reportes
               agregados.
             </p>
 
-            {/* Acciones */}
+            {/* ACCIONES */}
             <div
               className="
-              flex
-              flex-col
-              sm:flex-row
-              gap-3
-              w-full
-              lg:w-auto
-              flex-shrink-0
-            "
+                flex
+                flex-col
+
+                sm:flex-row
+
+                gap-3
+
+                w-full
+                lg:w-auto
+
+                flex-shrink-0
+              "
             >
-              {/* Filtros */}
+              {/* FILTROS */}
               <div
                 ref={filterRef}
                 className="
-                relative
-                w-full
-                sm:w-auto
-              "
+                  relative
+
+                  w-full
+                  sm:w-auto
+                "
               >
                 <button
                   type="button"
                   onClick={() => setShowFilters((prev) => !prev)}
                   className={`
-                  w-full
-                  sm:w-auto
-                  flex
-                  items-center
-                  justify-center
-                  py-[10px]
-                  px-4
-                  gap-3
-                  font-medium
-                  border
-                  rounded-[10px]
-                  h-fit
-                  transition-colors
-                  ${
-                    hasFilters
-                      ? "bg-[--color-accent-light] text-[--color-accent] border-[--color-accent]"
-                      : "bg-white text-[--color-text-secondary] border-[--color-border]"
-                  }
-                `}
+                    w-full
+                    sm:w-auto
+
+                    flex
+                    items-center
+                    justify-center
+
+                    py-[10px]
+                    px-4
+
+                    gap-3
+
+                    font-medium
+
+                    border
+
+                    rounded-[10px]
+
+                    h-fit
+
+                    transition-colors
+
+                    ${
+                      hasFilters
+                        ? `
+                            bg-[--color-accent-light]
+                            text-[--color-accent]
+                            border-[--color-accent]
+                          `
+                        : `
+                            bg-white
+                            text-[--color-text-secondary]
+                            border-[--color-border]
+                          `
+                    }
+                  `}
                 >
                   {showFilters ? <FilterRemove /> : <FilterAdd />}
 
@@ -231,48 +343,72 @@ const AdminMarketplaceScreen = () => {
                   </span>
                 </button>
 
-                {/* Dropdown filtros */}
+                {/* DROPDOWN */}
                 {showFilters && (
                   <div
                     className="
-                    absolute
-                    top-[calc(100%+8px)]
-                    left-0
-                    right-0
+                      absolute
 
-                    sm:left-auto
-                    sm:right-0
-                    sm:w-[320px]
+                      top-[calc(100%+8px)]
 
-                    z-40
+                      left-0
+                      right-0
 
-                    bg-white
-                    rounded-xl
-                    border
-                    border-[--color-border]
-                    shadow-xl
-                    p-4
-                  "
+                      sm:left-auto
+                      sm:right-0
+                      sm:w-[320px]
+
+                      z-40
+
+                      bg-white
+
+                      rounded-xl
+
+                      border
+                      border-[--color-border]
+
+                      shadow-xl
+
+                      p-4
+                    "
                   >
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-sm font-semibold text-[--color-text-primary]">
+                    <div
+                      className="
+                        flex
+                        justify-between
+                        items-center
+
+                        mb-4
+                      "
+                    >
+                      <h3
+                        className="
+                          text-sm
+                          font-semibold
+
+                          text-[--color-text-primary]
+                        "
+                      >
                         Filtros
                       </h3>
                     </div>
 
                     <div className="space-y-4">
-                      {/* Área */}
+                      {/* ÁREA */}
                       <div>
                         <label
                           htmlFor="area-filter"
                           className="
-                          block
-                          text-xs
-                          uppercase
-                          font-semibold
-                          text-[--color-text-muted]
-                          mb-2
-                        "
+                            block
+
+                            text-xs
+                            uppercase
+                            font-semibold
+
+                            text-[--color-text-muted]
+
+                            mb-2
+                          "
                         >
                           Área
                         </label>
@@ -285,15 +421,21 @@ const AdminMarketplaceScreen = () => {
                             setAreaFilter(event.target.value)
                           }
                           className="
-                          w-full
-                          border
-                          border-[--color-border]
-                          rounded-lg
-                          p-2.5
-                          bg-white
-                          outline-none
-                          focus:border-[--color-accent]
-                        "
+                            w-full
+
+                            border
+                            border-[--color-border]
+
+                            rounded-lg
+
+                            p-2.5
+
+                            bg-white
+
+                            outline-none
+
+                            focus:border-[--color-accent]
+                          "
                         >
                           <option value="">Todas las áreas</option>
 
@@ -305,18 +447,21 @@ const AdminMarketplaceScreen = () => {
                         </select>
                       </div>
 
-                      {/* Orden */}
+                      {/* ORDEN */}
                       <div>
                         <label
                           htmlFor="sort-by"
                           className="
-                          block
-                          text-xs
-                          uppercase
-                          font-semibold
-                          text-[--color-text-muted]
-                          mb-2
-                        "
+                            block
+
+                            text-xs
+                            uppercase
+                            font-semibold
+
+                            text-[--color-text-muted]
+
+                            mb-2
+                          "
                         >
                           Ordenar por
                         </label>
@@ -328,15 +473,21 @@ const AdminMarketplaceScreen = () => {
                             setSortBy(event.target.value as typeof sortBy)
                           }
                           className="
-                          w-full
-                          border
-                          border-[--color-border]
-                          rounded-lg
-                          p-2.5
-                          bg-white
-                          outline-none
-                          focus:border-[--color-accent]
-                        "
+                            w-full
+
+                            border
+                            border-[--color-border]
+
+                            rounded-lg
+
+                            p-2.5
+
+                            bg-white
+
+                            outline-none
+
+                            focus:border-[--color-accent]
+                          "
                         >
                           <option value="recent">Más recientes</option>
 
@@ -348,26 +499,35 @@ const AdminMarketplaceScreen = () => {
                         </select>
                       </div>
 
-                      {/* Limpiar */}
+                      {/* LIMPIAR */}
                       <button
                         type="button"
                         onClick={() => {
                           setAreaFilter("");
+
                           setSortBy("recent");
+
                           setShowFilters(false);
                         }}
                         className="
-                        w-full
-                        py-2.5
-                        px-4
-                        rounded-lg
-                        bg-[--color-background]
-                        text-[--color-text-secondary]
-                        font-medium
-                        hover:bg-[--color-accent-light]
-                        hover:text-[--color-accent]
-                        transition-colors
-                      "
+                          w-full
+
+                          py-2.5
+                          px-4
+
+                          rounded-lg
+
+                          bg-[--color-background]
+
+                          text-[--color-text-secondary]
+
+                          font-medium
+
+                          hover:bg-[--color-accent-light]
+                          hover:text-[--color-accent]
+
+                          transition-colors
+                        "
                       >
                         Limpiar filtros
                       </button>
@@ -376,45 +536,103 @@ const AdminMarketplaceScreen = () => {
                 )}
               </div>
 
-              {/* Nuevo Reporte */}
+              {/* NUEVO REPORTE */}
               <button
                 type="button"
                 onClick={handleNewReport}
+                disabled={isBusy}
                 className="
-                w-full
-                sm:w-auto
-                flex
-                items-center
-                justify-center
-                py-[10px]
-                px-4
-                gap-3
-                font-medium
-                text-white
-                bg-[--color-accent]
-                h-fit
-                rounded-[10px]
-                hover:opacity-90
-                transition-opacity
-                whitespace-nowrap
-              "
+                  w-full
+                  sm:w-auto
+
+                  flex
+                  items-center
+                  justify-center
+
+                  py-[10px]
+                  px-4
+
+                  gap-3
+
+                  font-medium
+
+                  text-white
+
+                  bg-[--color-accent]
+
+                  h-fit
+
+                  rounded-[10px]
+
+                  hover:opacity-90
+
+                  disabled:opacity-50
+                  disabled:cursor-not-allowed
+
+                  transition-opacity
+
+                  whitespace-nowrap
+                "
               >
                 <Add />
-                Nuevo Reporte
+
+                {endpoints?.createReport?.loading
+                  ? "Guardando..."
+                  : "Nuevo Reporte"}
               </button>
             </div>
           </div>
         </section>
 
-        {/* Tabla */}
-        <section className="w-full mt-6 md:mt-8">
-          <div className="w-full overflow-x-auto">
-            <ReportsTable
-              reports={filteredReports}
-              onEdit={handleEditReport}
-              onDelete={handleDeleteReport}
-            />
-          </div>
+        {/* ==========================================
+            TABLA
+        ========================================== */}
+        <section
+          className="
+            w-full
+
+            mt-6
+            md:mt-8
+          "
+        >
+          {isLoading ? (
+            <div
+              className="
+                w-full
+
+                bg-white
+
+                border
+                border-[--color-border]
+
+                rounded-xl
+
+                py-12
+
+                text-center
+
+                text-sm
+
+                text-[--color-text-secondary]
+              "
+            >
+              Cargando reportes...
+            </div>
+          ) : (
+            <div
+              className="
+                w-full
+
+                overflow-x-auto
+              "
+            >
+              <ReportsTable
+                reports={filteredReports}
+                onEdit={handleEditReport}
+                onDelete={handleDeleteReport}
+              />
+            </div>
+          )}
         </section>
       </div>
 

@@ -3,24 +3,23 @@ import { useEffect, useState } from "react";
 import { ReactComponent as Text } from "components/Global/Icons/text.svg";
 import { ReactComponent as TextAlignLeft } from "components/Global/Icons/textalign-left.svg";
 import { ReactComponent as Chart } from "components/Global/Icons/chart.svg";
-import { ReactComponent as ArrowRight } from "components/Global/Icons/arrow-right.svg";
 import { ReactComponent as Close } from "components/Global/Icons/close.svg";
+
 import { domainUnits } from "data/domain-units";
 
-import { Report } from "./types";
+import { ReportModel } from "models/Global/reportsModel";
 
 interface ReportDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (report: Report) => void;
-  report?: Report | null;
+  onSave: (report: ReportModel) => void;
+  report?: ReportModel | null;
 }
 
 const initialForm = {
   nombre: "",
   descripcion: "",
   area: "",
-  dataset: "",
   iframe: "",
 };
 
@@ -41,7 +40,9 @@ const ReportDrawer = ({
   const NAVBAR_HEIGHT = 76;
 
   const [form, setForm] = useState(initialForm);
+
   const [kpiInput, setKpiInput] = useState("");
+
   const [kpis, setKpis] = useState<string[]>([]);
 
   useEffect(() => {
@@ -50,11 +51,10 @@ const ReportDrawer = ({
         nombre: report.nombre,
         descripcion: report.descripcion,
         area: getDomainUnitId(report.area),
-        dataset: report.dataset,
         iframe: report.iframe,
       });
 
-      setKpis(report.kpis);
+      setKpis(report.kpis || []);
       setKpiInput("");
     } else {
       setForm(initialForm);
@@ -63,7 +63,9 @@ const ReportDrawer = ({
     }
   }, [report, isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   const handleChange = (
     event: React.ChangeEvent<
@@ -81,14 +83,17 @@ const ReportDrawer = ({
   const handleAddKpi = () => {
     const normalizedKpi = kpiInput.trim();
 
-    if (!normalizedKpi) return;
+    if (!normalizedKpi) {
+      return;
+    }
 
     setKpis((prev) => [...prev, normalizedKpi]);
+
     setKpiInput("");
   };
 
   const handleRemoveKpi = (index: number) => {
-    setKpis((prev) => prev.filter((_, i) => i !== index));
+    setKpis((prev) => prev.filter((_, currentIndex) => currentIndex !== index));
   };
 
   const resetForm = () => {
@@ -106,81 +111,179 @@ const ReportDrawer = ({
     return nombre
       .toLowerCase()
       .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "") // elimina tildes
-      .replace(/[^a-z0-9\s-]/g, "") // elimina %, $, &, etc.
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s-]/g, "")
       .trim()
-      .replace(/\s+/g, "-") // espacios → guiones
-      .replace(/-+/g, "-"); // evita guiones duplicados
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-");
   };
 
   const handleSave = () => {
-    const newReport: Report = {
-      id: report?.id ?? generateReportId(form.nombre),
-      nombre: form.nombre,
-      descripcion: form.descripcion,
-      dataset: form.dataset,
+    const nombre = form.nombre.trim();
+    const descripcion = form.descripcion.trim();
+    const iframe = form.iframe.trim();
+
+    if (!nombre || !descripcion || !form.area || !iframe) {
+      return;
+    }
+
+    const newReport: ReportModel = {
+      id: report?.id ?? generateReportId(nombre),
+
+      nombre,
+      descripcion,
       area: form.area,
-      iframe: form.iframe,
+      iframe,
       kpis,
-      fechaModificacion: new Date().toISOString().split("T")[0],
+
+      fechaModificacion: report?.fechaModificacion ?? "",
     };
 
     onSave(newReport);
-    resetForm();
-    onClose();
   };
+
+  const canSave =
+    form.nombre.trim() !== "" &&
+    form.descripcion.trim() !== "" &&
+    form.area !== "" &&
+    form.iframe.trim() !== "";
 
   return (
     <>
+      {/* OVERLAY */}
       <div
         className="
-                    fixed
-                    inset-0
-                    bg-black/10
-                    backdrop-blur-sm
-                    z-40
-                "
+          fixed
+          inset-0
+
+          bg-black/10
+          backdrop-blur-sm
+
+          z-40
+        "
         onClick={handleClose}
       />
 
+      {/* DRAWER */}
       <div
         className="
-                    fixed
-                    right-0
-                    bg-white
-                    z-50
-                    shadow-2xl
-                    flex
-                    flex-col
-                    w-[500px]
-                "
+          fixed
+          right-0
+
+          bg-white
+
+          z-50
+
+          shadow-2xl
+
+          flex
+          flex-col
+
+          w-full
+          sm:w-[500px]
+        "
         style={{
           top: NAVBAR_HEIGHT,
           height: `calc(100vh - ${NAVBAR_HEIGHT}px)`,
         }}
       >
-        <div className="flex justify-between items-center p-6 border-b shrink-0">
+        {/* HEADER */}
+        <div
+          className="
+            flex
+            justify-between
+            items-center
+
+            p-6
+
+            border-b
+            border-[--color-border]
+
+            shrink-0
+          "
+        >
           <div>
-            <h2 className="text-2xl font-bold text-[--color-text-primary]">
+            <h2
+              className="
+                text-2xl
+                font-bold
+
+                text-[--color-text-primary]
+              "
+            >
               {report ? "Editar Reporte" : "Nuevo Reporte"}
             </h2>
 
-            <p className="text-sm text-[--color-text-secondary]">
+            <p
+              className="
+                mt-1
+
+                text-sm
+
+                text-[--color-text-secondary]
+              "
+            >
               {report
                 ? "Actualiza los datos del reporte."
                 : "Completa los campos para actualizar el marketplace."}
             </p>
           </div>
 
-          <button type="button" onClick={handleClose}>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="
+              w-9
+              h-9
+
+              flex
+              items-center
+              justify-center
+
+              rounded-lg
+
+              hover:bg-[--color-background]
+
+              transition-colors
+            "
+          >
             <Close className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto p-6">
-          <div className="space-y-4 text-[--color-text-muted]">
+        {/* CONTENT */}
+        <div
+          className="
+            flex-1
+            min-h-0
+
+            overflow-y-auto
+
+            p-6
+          "
+        >
+          <div
+            className="
+              space-y-4
+
+              text-[--color-text-muted]
+            "
+          >
+            {/* TITULO */}
             <label htmlFor="nombre" className="block">
-              <div className="flex items-center gap-1 uppercase">
+              <div
+                className="
+                  flex
+                  items-center
+                  gap-1
+
+                  mb-1.5
+
+                  text-xs
+                  font-semibold
+                  uppercase
+                "
+              >
                 <Text />
                 Título
               </div>
@@ -191,12 +294,40 @@ const ReportDrawer = ({
                 value={form.nombre}
                 onChange={handleChange}
                 placeholder="Añadir título..."
-                className="w-full border rounded-lg p-3 mb-3"
+                className="
+                  w-full
+
+                  border
+                  border-[--color-border]
+
+                  rounded-lg
+
+                  p-3
+
+                  text-[--color-text-primary]
+
+                  outline-none
+
+                  focus:border-[--color-accent]
+                "
               />
             </label>
 
+            {/* DESCRIPCION */}
             <label htmlFor="descripcion" className="block">
-              <div className="flex items-center gap-1 uppercase">
+              <div
+                className="
+                  flex
+                  items-center
+                  gap-1
+
+                  mb-1.5
+
+                  text-xs
+                  font-semibold
+                  uppercase
+                "
+              >
                 <TextAlignLeft />
                 Descripción
               </div>
@@ -207,13 +338,39 @@ const ReportDrawer = ({
                 value={form.descripcion}
                 onChange={handleChange}
                 placeholder="Añadir descripción..."
-                className="w-full border rounded-lg p-3 mb-3 resize-none overflow-y-auto"
-                rows={2}
+                rows={3}
+                className="
+                  w-full
+
+                  border
+                  border-[--color-border]
+
+                  rounded-lg
+
+                  p-3
+
+                  text-[--color-text-primary]
+
+                  resize-none
+
+                  outline-none
+
+                  focus:border-[--color-accent]
+                "
               />
             </label>
 
+            {/* AREA */}
             <label htmlFor="area" className="block">
-              <div className="flex items-center gap-1 uppercase">
+              <div
+                className="
+                  mb-1.5
+
+                  text-xs
+                  font-semibold
+                  uppercase
+                "
+              >
                 Unidad de Negocio
               </div>
 
@@ -223,14 +380,23 @@ const ReportDrawer = ({
                 value={form.area}
                 onChange={handleChange}
                 className="
-                                    w-full
-                                    border
-                                    border-[--color-border]
-                                    rounded-lg
-                                    p-3
-                                    mb-3
-                                    bg-white
-                                "
+                  w-full
+
+                  border
+                  border-[--color-border]
+
+                  rounded-lg
+
+                  p-3
+
+                  bg-white
+
+                  text-[--color-text-primary]
+
+                  outline-none
+
+                  focus:border-[--color-accent]
+                "
               >
                 <option value="" disabled>
                   Seleccione unidad de negocio
@@ -244,8 +410,21 @@ const ReportDrawer = ({
               </select>
             </label>
 
-            <label htmlFor="kpi" className="block">
-              <div className="flex items-center gap-1 uppercase">
+            {/* KPIS */}
+            <div>
+              <div
+                className="
+                  flex
+                  items-center
+                  gap-1
+
+                  mb-1.5
+
+                  text-xs
+                  font-semibold
+                  uppercase
+                "
+              >
                 <Chart />
                 KPIs
               </div>
@@ -262,72 +441,108 @@ const ReportDrawer = ({
                     }
                   }}
                   placeholder="Añadir KPI..."
-                  className="w-full border rounded-lg p-3"
+                  className="
+                    w-full
+
+                    border
+                    border-[--color-border]
+
+                    rounded-lg
+
+                    p-3
+
+                    text-[--color-text-primary]
+
+                    outline-none
+
+                    focus:border-[--color-accent]
+                  "
                 />
 
                 <button
                   type="button"
                   onClick={handleAddKpi}
                   className="
-                                        px-4
-                                        rounded-lg
-                                        bg-[--color-accent]
-                                        text-white
-                                    "
+                    px-4
+
+                    rounded-lg
+
+                    bg-[--color-accent]
+
+                    text-white
+                    font-semibold
+
+                    hover:opacity-90
+                  "
                 >
                   +
                 </button>
               </div>
 
-              <div className="flex flex-wrap gap-2 mt-2">
-                {kpis.map((kpi, index) => (
-                  <div
-                    key={`${kpi}-${index}`}
-                    className="
-                                            px-3
-                                            py-1
-                                            rounded-full
-                                            bg-orange-100
-                                            text-orange-700
-                                            flex
-                                            items-center
-                                            gap-2
-                                        "
-                  >
-                    {kpi}
+              {kpis.length > 0 && (
+                <div
+                  className="
+                    flex
+                    flex-wrap
 
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveKpi(index)}
+                    gap-2
+
+                    mt-3
+                  "
+                >
+                  {kpis.map((kpi, index) => (
+                    <div
+                      key={`${kpi}-${index}`}
+                      className="
+                          px-3
+                          py-1.5
+
+                          rounded-full
+
+                          bg-[--color-accent-light]
+
+                          text-[--color-accent]
+
+                          flex
+                          items-center
+                          gap-2
+
+                          text-sm
+                          font-medium
+                        "
                     >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </label>
+                      {kpi}
 
-            <label htmlFor="dataset" className="block">
-              <div className="flex items-center gap-1 uppercase">
-                <div className="flex">
-                  <ArrowRight className="text-[--color-accent] rotate-90" />
-                  <ArrowRight className="text-[--color-accent] -rotate-90 -ml-1" />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveKpi(index)}
+                        className="
+                            hover:opacity-70
+                          "
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
                 </div>
-                Dataset
-              </div>
+              )}
+            </div>
 
-              <input
-                id="dataset"
-                name="dataset"
-                value={form.dataset}
-                onChange={handleChange}
-                placeholder="Añadir dataset..."
-                className="w-full border rounded-lg p-3 mb-3"
-              />
-            </label>
-
+            {/* IFRAME */}
             <label htmlFor="iframe" className="block">
-              <div className="flex items-center gap-1 uppercase">
+              <div
+                className="
+                  flex
+                  items-center
+                  gap-1
+
+                  mb-1.5
+
+                  text-xs
+                  font-semibold
+                  uppercase
+                "
+              >
                 <Text />
                 Iframe
               </div>
@@ -338,34 +553,69 @@ const ReportDrawer = ({
                 value={form.iframe}
                 onChange={handleChange}
                 placeholder="<iframe... ></iframe>"
-                className="
-                                    w-full
-                                    border
-                                    border-[--color-border]
-                                    text-[--color-text-muted]
-                                    rounded-lg
-                                    p-3
-                                    font-mono
-                                    bg-[--color-surface-secondary]
-                                    resize-none
-                                    overflow-y-auto
-                                "
                 rows={8}
+                className="
+                  w-full
+
+                  border
+                  border-[--color-border]
+
+                  text-[--color-text-primary]
+
+                  rounded-lg
+
+                  p-3
+
+                  font-mono
+                  text-sm
+
+                  bg-[--color-background]
+
+                  resize-none
+                  overflow-y-auto
+
+                  outline-none
+
+                  focus:border-[--color-accent]
+                "
               />
             </label>
           </div>
         </div>
 
-        <div className="p-6 border-t flex justify-end gap-3 shrink-0">
+        {/* FOOTER */}
+        <div
+          className="
+            p-6
+
+            border-t
+            border-[--color-border]
+
+            flex
+            justify-end
+            gap-3
+
+            shrink-0
+          "
+        >
           <button
             type="button"
             onClick={handleClose}
             className="
-                            px-4
-                            py-2
-                            border
-                            rounded-lg
-                        "
+              px-4
+              py-2.5
+
+              border
+              border-[--color-border]
+
+              rounded-lg
+
+              font-medium
+
+              text-[--color-text-secondary]
+
+              hover:bg-[--color-background]
+            "
           >
             Cancelar
           </button>
@@ -373,15 +623,25 @@ const ReportDrawer = ({
           <button
             type="button"
             onClick={handleSave}
+            disabled={!canSave}
             className="
-                            px-4
-                            py-2
-                            bg-[--color-accent]
-                            text-white
-                            rounded-lg
-                        "
+    px-4
+    py-2.5
+
+    bg-[--color-accent]
+
+    text-white
+    font-medium
+
+    rounded-lg
+
+    hover:opacity-90
+
+    disabled:opacity-50
+    disabled:cursor-not-allowed
+  "
           >
-            Guardar
+            {report ? "Guardar cambios" : "Crear reporte"}
           </button>
         </div>
       </div>
