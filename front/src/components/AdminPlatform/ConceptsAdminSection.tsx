@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
-import ConceptModal, { ActionKind } from "./ConceptModal";
+import { ReactComponent as Danger } from "components/Global/Icons/danger.svg";
+import ConceptModal, { ActionKind, conceptIcons } from "./ConceptModal";
+import ConceptDeleteModal from "./ConceptDeleteModal";
 import { DictionaryModel } from "models/Global/dictionaryModel";
 
 const ConceptsAdminSection = ({
@@ -8,18 +10,18 @@ const ConceptsAdminSection = ({
     isLoading,
     handleDictionaryCreate,
     handleDictionaryUpdate,
+    handleDictionaryDelete,
 }: {
     dictionaryData: DictionaryModel[] | undefined;
     isBusy: boolean;
     isLoading: boolean;
-    handleDictionaryCreate: (faq: DictionaryModel) => void;
-    handleDictionaryUpdate: (faq: DictionaryModel) => void;
+    handleDictionaryCreate: (dictionary: DictionaryModel) => void;
+    handleDictionaryUpdate: (dictionary: DictionaryModel) => void;
+    handleDictionaryDelete: (dictionary: DictionaryModel) => void;
 }) => {
   const [search, setSearch] = useState("");
-
-  const [editingConcept, setEditingConcept] = useState<DictionaryModel | null>(
-    null,
-  );
+  const [editingConcept, setEditingConcept] = useState<DictionaryModel | null>(null);
+  const [deleteModal, setDeleteModal] = useState<DictionaryModel | null>(null);
 
   const filteredConcepts = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -49,6 +51,12 @@ const ConceptsAdminSection = ({
     }
 
     setEditingConcept(null);
+    return;
+  };
+
+  const handleOnDictionaryDelete = (dictionary: DictionaryModel) => {
+    handleDictionaryDelete(dictionary);
+    setDeleteModal(null);
     return;
   };
 
@@ -235,11 +243,18 @@ const ConceptsAdminSection = ({
             >
               <tr>
                 <th className="px-6 py-3 text-left text-xs uppercase">
+                  Icono
+                </th>
+                <th className="px-6 py-3 text-left text-xs uppercase">
                   Concepto
                 </th>
 
                 <th className="px-6 py-3 text-left text-xs uppercase">
                   Definición
+                </th>
+
+                <th className="px-6 py-3 text-left text-xs uppercase">
+                  Descripción
                 </th>
 
                 <th className="px-6 py-3 text-right text-xs uppercase">
@@ -273,7 +288,53 @@ const ConceptsAdminSection = ({
                         text-[--color-text-primary]
                       "
                   >
+                    {/* ICONO */}
+                      <div
+                        className="
+                            w-11
+                            h-11
+
+                            md:w-12
+                            md:h-12
+
+                            rounded-full
+
+                            bg-[--color-accent-light]
+
+                            text-[--color-accent]
+
+                            flex
+                            items-center
+                            justify-center
+
+                            flex-shrink-0
+                          "
+                      >
+                        {conceptIcons.find((x) => x.name === concept.icon)?.element ?? <Danger className="w-5 h-5 md:w-6 md:h-6" />}
+                      </div>
+                  </td>
+                  <td
+                    className="
+                        px-6
+                        py-4
+
+                        font-semibold
+
+                        text-[--color-text-primary]
+                      "
+                  >
                     {concept.name}
+                  </td>
+
+                  <td
+                    className="
+                        px-6
+                        py-4
+
+                        text-[--color-text-secondary]
+                      "
+                  >
+                    {concept.summary}
                   </td>
 
                   <td
@@ -316,7 +377,7 @@ const ConceptsAdminSection = ({
 
                       <button
                         type="button"
-                        onClick={() => {}}
+                        onClick={() => setDeleteModal(concept)}
                         className="
                             px-3
                             py-2
@@ -362,6 +423,14 @@ const ConceptsAdminSection = ({
           concept={editingConcept}
           onClose={() => setEditingConcept(null)}
           onSave={handleOnDictionaryChange}
+        />
+      )}
+
+      {deleteModal && (
+        <ConceptDeleteModal
+          dictionary={deleteModal}
+          onClose={() => setDeleteModal(null)}
+          onDelete={handleOnDictionaryDelete}
         />
       )}
     </>

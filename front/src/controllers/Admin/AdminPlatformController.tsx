@@ -38,8 +38,8 @@ import updateDomainData from "services/Admin/update-domains-data";
 import updateFaqData from "services/Admin/update-faqs-data";
 import updateDictionaryData from "services/Admin/update-dictionaries-data";
 import updatePermissionData from "services/Admin/update-permissions-data";
-//import deleteFaqData from "services/Admin/delete-faqs-data";
-//import deleteDictionariesData from "services/Admin/delete-dictionaries-data";
+import deleteFaqData from "services/Admin/delete-faqs-data";
+import deleteDictionariesData from "services/Admin/delete-dictionaries-data";
 import AdminPlatformScreen from "screens/Admin/AdminPlatformScreen";
 
 
@@ -48,7 +48,23 @@ export interface EndpointStatus {
   error?: boolean;
 };
 
-export type EndpointName = "loadUsers" | "updateUser" | "loadDomains" | "updateDomain" | "loadPermissions" | "updatePermission" | "createDomain" | "createPermission" | "loadFaq" | "createFaq" | "updateFaq" | "loadDictionary" | "createDictionary" | "updateDictionary";
+export type EndpointName = 
+  "loadUsers" |
+  "updateUser" |
+  "loadDomains" |
+  "updateDomain" |
+  "loadPermissions" |
+  "updatePermission" |
+  "createDomain" |
+  "createPermission" |
+  "loadFaq" |
+  "createFaq" |
+  "updateFaq" |
+  "loadDictionary" |
+  "createDictionary" |
+  "updateDictionary" |
+  "deleteFaq" |
+  "deleteDictionary";
 
 export interface Model {
   users: UserModel[] | undefined;
@@ -345,6 +361,40 @@ const AdminPlatformController = () => {
     }
   };
 
+  const deleteFaq = async (faq: FaqModel) => {
+    const statusEndpoint = buildStatusEndpoint("deleteFaq");
+    try {
+      statusEndpoint.loading();
+      const response = await deleteFaqData(faq);
+      if (response) {
+        const newFaqs = model?.faqs?.filter((f) => f.id !== faq.id);
+        updateModel({ faqs: newFaqs });
+      }
+    } catch (e) {
+      console.error("Error al eliminar faq:", e);
+      statusEndpoint.error();
+    } finally {
+      statusEndpoint.done();
+    }
+  };
+
+  const deleteDictionary = async (dictionary: DictionaryModel) => {
+    const statusEndpoint = buildStatusEndpoint("deleteDictionary");
+    try {
+      statusEndpoint.loading();
+      const response = await deleteDictionariesData(dictionary);
+      if (response) {
+        const newDictionaries = model?.dictionaries?.filter((p) => p.id !== dictionary.id);
+        updateModel({ dictionaries: newDictionaries });
+      }
+    } catch (e) {
+      console.error("Error al eliminar diccionario:", e);
+      statusEndpoint.error();
+    } finally {
+      statusEndpoint.done();
+    }
+  };
+
   return (
     <AdminPlatformScreen
       model={model}
@@ -358,6 +408,8 @@ const AdminPlatformController = () => {
       handlePermissionUpdate={updatePermission}
       handleFaqUpdate={updateFaq}
       handleDictionaryUpdate={updateDictionary}
+      handleFaqDelete={deleteFaq}
+      handleDictionaryDelete={deleteDictionary}
     />
   );
 };

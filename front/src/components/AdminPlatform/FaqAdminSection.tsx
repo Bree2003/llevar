@@ -1,22 +1,26 @@
 import { useMemo, useState } from "react";
 import FaqModal, { ActionKind } from "./FaqModal";
+import FaqDeleteModal from "./FaqDeleteModal";
 import { FaqModel } from "models/Global/faqModel";
 
 const FaqAdminSection = ({
-    faqData,
-    isBusy,
-    isLoading,
-    handleFaqCreate,
-    handleFaqUpdate,
+  faqData,
+  isBusy,
+  isLoading,
+  handleFaqCreate,
+  handleFaqUpdate,
+  handleFaqDelete,
 }: {
-    faqData: FaqModel[] | undefined;
-    isBusy: boolean;
-    isLoading: boolean;
-    handleFaqCreate: (faq: FaqModel) => void;
-    handleFaqUpdate: (faq: FaqModel) => void;
+  faqData: FaqModel[] | undefined;
+  isBusy: boolean;
+  isLoading: boolean;
+  handleFaqCreate: (faq: FaqModel) => void;
+  handleFaqUpdate: (faq: FaqModel) => void;
+  handleFaqDelete: (faq: FaqModel) => void;
 }) => {
   const [search, setSearch] = useState("");
   const [editingFaq, setEditingFaq] = useState<FaqModel | null>(null);
+  const [deleteModal, setDeleteModal] = useState<FaqModel | null>(null);
 
   const filteredFaqs = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -37,15 +41,21 @@ const FaqAdminSection = ({
   }, [faqData, search]);
 
   const handleOnFaqChange = (faq: FaqModel, kind: ActionKind) => {
-    if(kind === "Create"){
+    if (kind === "Create") {
       handleFaqCreate(faq);
     }
 
-    if(kind === "Update"){
+    if (kind === "Update") {
       handleFaqUpdate(faq);
     }
 
     setEditingFaq(null);
+    return;
+  };
+
+  const handleOnFaqDelete = (faq: FaqModel) => {
+    handleFaqDelete(faq);
+    setDeleteModal(null);
     return;
   };
 
@@ -296,7 +306,7 @@ const FaqAdminSection = ({
 
                   <button
                     type="button"
-                    onClick={() =>{}}
+                    onClick={() => setDeleteModal(faq)}
                     className="
                       px-3
                       py-2
@@ -339,6 +349,14 @@ const FaqAdminSection = ({
           faq={editingFaq}
           onClose={() => setEditingFaq(null)}
           onSave={handleOnFaqChange}
+        />
+      )}
+
+      {deleteModal && (
+        <FaqDeleteModal
+          faq={deleteModal}
+          onClose={() => setDeleteModal(null)}
+          onDelete={handleOnFaqDelete}
         />
       )}
     </>

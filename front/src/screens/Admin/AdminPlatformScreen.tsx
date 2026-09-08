@@ -35,6 +35,8 @@ interface AdminPlatformScreenProps {
   handlePermissionUpdate: (permission: PermissionModel) => void;
   handleFaqUpdate: (faq: FaqModel) => void;
   handleDictionaryUpdate: (dictionary: DictionaryModel) => void;
+  handleFaqDelete: (faq: FaqModel) => void;
+  handleDictionaryDelete: (dictionary: DictionaryModel) => void;
 }
 
 const AdminPlatformScreen = ({
@@ -48,7 +50,9 @@ const AdminPlatformScreen = ({
   handleDomainUpdate,
   handlePermissionUpdate,
   handleFaqUpdate,
-  handleDictionaryUpdate
+  handleDictionaryUpdate,
+  handleFaqDelete,
+  handleDictionaryDelete,
 }: AdminPlatformScreenProps) => {
   const [section, setSection] = useState<AdminPlatformSection>("users");
 
@@ -190,6 +194,7 @@ const AdminPlatformScreen = ({
                 isLoading={endpoints?.loadFaq?.loading ?? false}
                 handleFaqCreate={handleFaqCreate}
                 handleFaqUpdate={handleFaqUpdate}
+                handleFaqDelete={handleFaqDelete}
               />
             )}
 
@@ -201,6 +206,7 @@ const AdminPlatformScreen = ({
                 isLoading={endpoints?.loadDictionary?.loading ?? false}
                 handleDictionaryCreate={handleDictionaryCreate}
                 handleDictionaryUpdate={handleDictionaryUpdate}
+                handleDictionaryDelete={handleDictionaryDelete}
               />
             )}
           </div>

@@ -1,18 +1,54 @@
-import { useState } from "react";
+import { useState, ChangeEvent } from "react";
+import { ReactComponent as Box } from "components/Global/Icons/box.svg";
+import { ReactComponent as Chart } from "components/Global/Icons/chart.svg";
+import { ReactComponent as Data } from "components/Global/Icons/data.svg";
+import { ReactComponent as Danger } from "components/Global/Icons/danger.svg";
 import { DictionaryModel } from "models/Global/dictionaryModel";
 
-export type ActionKind = "Create" | "Update";
+export type ActionKind = "Create" | "Update" | "Delete";
 
 interface Props {
   concept: DictionaryModel;
   onClose: () => void;
   onSave: (concept: DictionaryModel, kind: ActionKind) => void;
-}
+};
+
+export const conceptCategories = [
+  "Datos y modelos",
+  "Indicadores",
+  "Procesos",
+  "Negocio",
+  "Reportes",
+];
+
+export const conceptIcons = [
+  { "name": "chart", "element": <Chart className="w-5 h-5 md:w-6 md:h-6" /> },
+  { "name": "box", "element": <Box className="w-5 h-5 md:w-6 md:h-6" /> },
+  { "name": "data", "element": <Data className="w-5 h-5 md:w-6 md:h-6" /> },
+];
 
 const ConceptModal = ({ concept, onClose, onSave }: Props) => {
   const [form, setForm] = useState<DictionaryModel>(concept);
+  const isValid = form.name.trim() !== "" && form.icon.trim() !== "" && form.summary.trim() !== "" && form.description.trim() !== "";
 
-  const isValid = form.name.trim() !== "" && form.description.trim() !== "";
+  const toggleCategory = (category: string) => {
+    setForm((prev) => {
+      const current = prev.categories ?? [];
+      return {
+        ...prev,
+        categories: current.includes(category)
+          ? current.filter((c) => c !== category)
+          : [...current, category],
+      };
+    });
+  };
+
+  const handleIconChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    setForm({
+      ...form,
+      icon: e.target.value,
+    });
+  };
 
   return (
     <div
@@ -139,15 +175,15 @@ const ConceptModal = ({ concept, onClose, onSave }: Props) => {
 
           <Field label="Definición">
             <textarea
-              value={form.description}
+              value={form.summary}
               onChange={(event) =>
                 setForm({
                   ...form,
-                  description: event.target.value,
+                  summary: event.target.value,
                 })
               }
               placeholder="Escribe la definición..."
-              rows={6}
+              rows={2}
               className={`
                 ${inputStyle}
 
@@ -155,6 +191,92 @@ const ConceptModal = ({ concept, onClose, onSave }: Props) => {
               `}
             />
           </Field>
+
+          <Field label="Descripción">
+            <textarea
+              value={form.description}
+              onChange={(event) =>
+                setForm({
+                  ...form,
+                  description: event.target.value,
+                })
+              }
+              placeholder="Escribe la descripción..."
+              rows={3}
+              className={`
+                ${inputStyle}
+
+                resize-none
+              `}
+            />
+          </Field>
+
+          <Field label="Categorías">
+            <div className="flex flex-wrap gap-3">
+              {(conceptCategories ?? []).map((category) => (
+                <label key={category} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={(form.categories ?? []).includes(category)}
+                    onChange={() => toggleCategory(category)}
+                  />
+                  <span>{category}</span>
+                </label>
+              ))}
+            </div>
+          </Field>
+
+          <div
+            className="
+              flex-1
+              min-h-0
+
+              overflow-y-auto
+
+              p-5
+
+              space-y-5
+            "
+          >
+            {/* LISTA DE ICONOS */}
+            <Field label="Icono">
+              <div className="flex gap-8">
+                <div
+                  className="
+                    w-11
+                    h-11
+
+                    md:w-12
+                    md:h-12
+
+                    rounded-full
+
+                    bg-[--color-accent-light]
+
+                    text-[--color-accent]
+
+                    flex
+                    items-center
+                    justify-center
+
+                    flex-shrink-0
+                  "
+                >
+                  {conceptIcons.find((x) => x.name === form.icon)?.element ?? <Danger className="w-5 h-5 md:w-6 md:h-6" />}
+                </div>
+                <select
+                  id="icon-select"
+                  value={form.icon}
+                  onChange={handleIconChange}
+                  className={inputStyle}
+                >
+                  {conceptIcons.map((x) => (
+                    <option value={x.name}>{x.name}</option>
+                  ))}
+                </select>
+              </div>
+            </Field>
+          </div>
         </div>
 
         {/* FOOTER */}

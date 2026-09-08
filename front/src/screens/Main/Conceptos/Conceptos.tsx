@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 
 import Agent from "../../../components/Agent/Agent";
-
-import { ReactComponent as Data } from "components/Global/Icons/data.svg";
+import { conceptIcons, conceptCategories } from "components/AdminPlatform/ConceptModal";
 import { ReactComponent as ArrowUp } from "components/Global/Icons/arrow-up.svg";
+import { ReactComponent as Danger } from "components/Global/Icons/danger.svg";
 
 import { DictionaryModel } from "models/Global/dictionaryModel";
 
@@ -11,40 +11,49 @@ interface ConceptosScreenProps {
   dictionaryData: DictionaryModel[] | undefined;
   isLoading: boolean;
   hasError?: boolean;
-}
+};
 
 const ConceptosScreen = ({
   dictionaryData,
   isLoading,
   hasError = false,
 }: ConceptosScreenProps) => {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState<string>("");
+  const [activeCategory, setActiveCategory] = useState<string>("Todos");
+  const [openConcept, setOpenConcept] = useState<DictionaryModel["id"] | null>(null);
 
-  const [openConcept, setOpenConcept] = useState<DictionaryModel["id"] | null>(
-    null,
-  );
+  const conceptCats = ["Todos", ...conceptCategories];
+
+  const categories = conceptCats.map((label) => ({
+    label,
+    count:
+      label === "Todos"
+        ? dictionaryData?.length
+        : dictionaryData?.filter((concept) =>
+          concept.categories.includes(label),
+        ).length,
+  }));
+
 
   const filteredConcepts = useMemo(() => {
     if (!dictionaryData) {
       return [];
     }
 
-    const normalizedSearch = search.toLowerCase().trim();
-
-    if (!normalizedSearch) {
-      return dictionaryData;
-    }
-
     return dictionaryData.filter((concept) => {
+      const normalizedSearch = search.toLowerCase().trim();
+
       const name = concept.name?.toLowerCase() || "";
       const description = concept.description?.toLowerCase() || "";
+      const matchesCategory = activeCategory === "Todos" || concept.categories.includes(activeCategory);
+
 
       return (
         name.includes(normalizedSearch) ||
         description.includes(normalizedSearch)
-      );
+      ) && matchesCategory;
     });
-  }, [dictionaryData, search]);
+  }, [dictionaryData, search, activeCategory]);
 
   const handleToggleConcept = (id: DictionaryModel["id"]) => {
     setOpenConcept((current) => (current === id ? null : id));
@@ -259,40 +268,60 @@ const ConceptosScreen = ({
           </div>
         </section>
 
-        {/* CONTADOR */}
+        {/* Categorías */}
         {!isLoading && !hasError && (
           <section className="w-full mb-8 md:mb-10">
             <div
               className="
-                flex
-                items-center
-                gap-2
-              "
+              flex
+              gap-2
+              md:gap-3
+              overflow-x-auto
+              pb-2
+              md:pb-0
+            "
             >
-              <span
-                className="
-                  flex-shrink-0
+              {categories.map((category) => {
+                const isActive = activeCategory === category.label;
 
-                  px-4
-                  md:px-5
-
-                  py-2
-
-                  rounded-full
-
-                  border
-                  border-[--color-accent]
-
-                  bg-[--color-accent]
-
-                  text-xs
-                  md:text-sm
-
-                  text-white
-                "
-              >
-                Todos ({filteredConcepts.length})
-              </span>
+                return (
+                  <button
+                    key={category.label}
+                    type="button"
+                    onClick={() => {
+                      setActiveCategory(category.label);
+                      setOpenConcept(null);
+                    }}
+                    className={`
+                    flex-shrink-0
+                    px-4
+                    md:px-5
+                    py-2
+                    rounded-full
+                    border
+                    text-xs
+                    md:text-sm
+                    transition-all
+                    ${isActive
+                        ? `
+                          bg-[--color-accent]
+                          border-[--color-accent]
+                          text-white
+                        `
+                        : `
+                          bg-white
+                          border-[--color-border]
+                          text-[--color-text-secondary]
+                          hover:border-[--color-accent]
+                          hover:text-[--color-accent]
+                        `
+                      }
+                  `}
+                  >
+                    {category.label} ({category.count})
+                  </button>
+                );
+              })}
             </div>
           </section>
         )}
@@ -416,7 +445,7 @@ const ConceptosScreen = ({
             >
               {filteredConcepts.map((concept, index) => {
                 const isOpen = openConcept === concept.id;
-
+                const icon = conceptIcons.find((x) => x.name === concept.icon);
                 const description = concept.description || "";
 
                 return (
@@ -425,11 +454,10 @@ const ConceptosScreen = ({
                     className={`
                         w-full
 
-                        ${
-                          index !== filteredConcepts.length - 1
-                            ? "border-b border-[--color-border]"
-                            : ""
-                        }
+                        ${index !== filteredConcepts.length - 1
+                        ? "border-b border-[--color-border]"
+                        : ""
+                      }
                       `}
                   >
                     <button
@@ -455,11 +483,10 @@ const ConceptosScreen = ({
 
                           transition-colors
 
-                          ${
-                            isOpen
-                              ? "bg-[--color-accent-light]"
-                              : "bg-white hover:bg-[--color-background]"
-                          }
+                          ${isOpen
+                          ? "bg-[--color-accent-light]"
+                          : "bg-white hover:bg-[--color-background]"
+                        }
                         `}
                     >
                       {/* ICONO */}
@@ -484,15 +511,11 @@ const ConceptosScreen = ({
                             flex-shrink-0
                           "
                       >
-                        <Data
-                          className="
-                              w-5
-                              h-5
-
-                              md:w-6
-                              md:h-6
-                            "
-                        />
+                        {icon !== undefined ? (
+                          icon.element
+                        ) : (
+                          <Danger className="w-5 h-5 md:w-6 md:h-6" />
+                        )}
                       </div>
 
                       {/* INFORMACIÓN */}
@@ -518,6 +541,16 @@ const ConceptosScreen = ({
                         >
                           {concept.name}
                         </h2>
+                        <p
+                          className="
+                                text-xs
+                                md:text-sm
+                                text-[--color-text-secondary]
+                                leading-relaxed
+                              "
+                        >
+                          <b>Definici&oacute;n:</b> {concept.summary}
+                        </p>
 
                         {/* RESUMEN */}
                         {!isOpen && (
@@ -531,7 +564,7 @@ const ConceptosScreen = ({
                                 leading-relaxed
                               "
                           >
-                            {getSummary(description)}
+                            <b>Descripci&oacute;n:</b> {getSummary(description)}
                           </p>
                         )}
 
@@ -544,11 +577,10 @@ const ConceptosScreen = ({
                               duration-300
                               ease-in-out
 
-                              ${
-                                isOpen
-                                  ? "grid-rows-[1fr] opacity-100"
-                                  : "grid-rows-[0fr] opacity-0"
-                              }
+                              ${isOpen
+                              ? "grid-rows-[1fr] opacity-100"
+                              : "grid-rows-[0fr] opacity-0"
+                            }
                             `}
                         >
                           <div className="overflow-hidden">
@@ -589,11 +621,10 @@ const ConceptosScreen = ({
                             transition-all
                             duration-300
 
-                            ${
-                              isOpen
-                                ? "rotate-0 text-[--color-accent]"
-                                : "rotate-180 text-[--color-text-secondary]"
-                            }
+                            ${isOpen
+                            ? "rotate-0 text-[--color-accent]"
+                            : "rotate-180 text-[--color-text-secondary]"
+                          }
                           `}
                       />
                     </button>
