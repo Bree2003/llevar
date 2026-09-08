@@ -11,6 +11,7 @@ from app.routes.permissions_routes import permissions_bp
 from app.routes.domains_routes import domains_bp
 from app.routes.banner_routes import banner_bp
 from app.routes.dictionary_routes import dictionary_bp
+from app.routes.reports_routes import reports_bp
 from app.routes.faq_routes import faq_bp
 from app.utils.exceptions import InvalidUsage
 
@@ -39,7 +40,7 @@ def create_app():
     app.register_blueprint(domains_bp, url_prefix="/api/domains")
     app.register_blueprint(dictionary_bp, url_prefix="/api/dictionary")
     app.register_blueprint(faq_bp, url_prefix="/api/faq")
-    app.register_blueprint(faq_bp, url_prefix="/api/reports")
+    app.register_blueprint(reports_bp, url_prefix="/api/reports")
 
     # Registramos una ruta base para Health Check
     @app.route("/health", methods=["GET"])
