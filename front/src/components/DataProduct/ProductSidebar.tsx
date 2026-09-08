@@ -1,9 +1,6 @@
 import { MouseEventHandler } from "react";
 
 import Skeleton from "react-loading-skeleton";
-import "react-loading-skeleton/dist/skeleton.css";
-
-import { useParams } from "react-router-dom";
 
 interface Table {
   id: string;
@@ -11,6 +8,7 @@ interface Table {
 }
 
 interface ProductSidebarProps {
+  envId?: string;
   productName?: string;
   tables: Table[];
   loading?: boolean;
@@ -19,19 +17,15 @@ interface ProductSidebarProps {
 }
 
 export default function ProductSidebar({
+  envId,
   productName,
   tables,
   loading,
   onSelectTable,
   onBack,
 }: ProductSidebarProps) {
-  const { envId } = useParams<{
-    envId: string;
-  }>();
-
   const getSapModuleLabel = (bucketName: string): string => {
     const parts = bucketName.split("-");
-
     const code = parts[3];
 
     if (code && code.length <= 3) {
@@ -72,167 +66,225 @@ export default function ProductSidebar({
   return (
     <aside
       className="
-    w-full
+        w-full
+        lg:w-[270px]
+        xl:w-[290px]
 
-    lg:w-[270px]
-    xl:w-[290px]
+        lg:flex-shrink-0
 
-    lg:flex-shrink-0
+        bg-white
 
-    bg-white
+        border-b
+        lg:border-b-0
+        lg:border-r
+        border-[--color-border]
 
-    border-b
-    lg:border-r
-    border-[--color-border]
+        text-left
 
-    text-left
+        self-stretch
 
-    self-stretch
+        lg:h-full
 
-    lg:min-h-[calc(100dvh-85.33px)]
-  "
+        overflow-hidden
+      "
     >
       <div
         className="
           w-full
+          h-full
+
+          flex
+          flex-col
 
           p-4
           md:p-5
           lg:p-6
+
+          overflow-hidden
         "
       >
         {loading ? (
           <>
-            <Skeleton height={25} width="75%" />
+            {/* TÍTULO SKELETON */}
+            <div className="flex-shrink-0">
+              <Skeleton height={25} width="75%" />
 
-            <div
-              className="
-                border-t
-                border-[--color-border]
-
-                my-5
-              "
-            />
-
-            <Skeleton count={4} height={34} />
-          </>
-        ) : (
-          <>
-            {/* TÍTULO */}
-            <h2
-              className="
-                text-lg
-                md:text-xl
-
-                font-bold
-
-                text-[--color-accent]
-
-                break-words
-              "
-            >
-              {displayName}
-            </h2>
-
-            <div
-              className="
-                border-t
-                border-[--color-border]
-
-                my-5
-              "
-            />
-
-            {/* TABLAS */}
-            <p
-              className="
-                text-xs
-                font-bold
-
-                uppercase
-                tracking-wide
-
-                text-[--color-text-muted]
-              "
-            >
-              Tablas disponibles
-            </p>
-
-            {tables.length > 0 ? (
               <div
                 className="
-                  mt-3
+                  border-t
+                  border-[--color-border]
 
-                  flex
-                  lg:flex-col
-
-                  gap-2
-
-                  overflow-x-auto
-                  lg:overflow-visible
-
-                  pb-2
-                  lg:pb-0
+                  my-5
                 "
-              >
-                {tables.map((table) => (
-                  <button
-                    key={table.id}
-                    type="button"
-                    onClick={() => onSelectTable(table.id)}
-                    className="
-                        flex-shrink-0
+              />
+            </div>
 
-                        lg:w-full
-
-                        px-3
-                        py-2.5
-
-                        rounded-lg
-
-                        text-sm
-                        font-medium
-                        text-left
-
-                        text-[--color-text-secondary]
-
-                        bg-[--color-background]
-                        lg:bg-transparent
-
-                        hover:bg-[--color-accent-light]
-                        hover:text-[--color-accent]
-
-                        transition-colors
-
-                        whitespace-nowrap
-                        lg:whitespace-normal
-                      "
-                  >
-                    {table.label}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <p
-                className="
-                  mt-3
-
-                  text-sm
-
-                  text-[--color-text-secondary]
-                "
-              >
-                No hay tablas en este producto.
-              </p>
-            )}
-
-            {/* VOLVER */}
+            {/* TABLAS SKELETON */}
             <div
               className="
+                flex-1
+                min-h-0
+
+                overflow-y-auto
+
+                [&::-webkit-scrollbar]:hidden
+              "
+              style={{
+                scrollbarWidth: "none",
+                msOverflowStyle: "none",
+              }}
+            >
+              <Skeleton count={8} height={34} />
+            </div>
+
+            {/* VOLVER SKELETON */}
+            <div
+              className="
+                flex-shrink-0
+
                 border-t
                 border-[--color-border]
 
                 mt-5
+                pt-5
+              "
+            >
+              <Skeleton height={24} width="65%" />
+            </div>
+          </>
+        ) : (
+          <>
+            {/* =========================================
+                CABECERA FIJA
+            ========================================== */}
+            <div className="flex-shrink-0">
+              <h2
+                className="
+                  text-lg
+                  md:text-xl
+
+                  font-bold
+
+                  text-[--color-accent]
+
+                  break-words
+                "
+              >
+                {displayName}
+              </h2>
+
+              <div
+                className="
+                  border-t
+                  border-[--color-border]
+
+                  my-5
+                "
+              />
+
+              <p
+                className="
+                  text-xs
+                  font-bold
+                  uppercase
+
+                  tracking-wide
+
+                  text-[--color-text-muted]
+                "
+              >
+                Tablas disponibles
+              </p>
+            </div>
+
+            {/* =========================================
+                ZONA SCROLLEABLE
+            ========================================== */}
+            <div
+              className="
+                flex-1
+                min-h-0
+
+                mt-3
+
+                overflow-y-auto
+                overflow-x-hidden
+
+                pr-1
+
+                [&::-webkit-scrollbar]:hidden
+              "
+              style={{
+                scrollbarWidth: "none",
+                msOverflowStyle: "none",
+              }}
+            >
+              {tables.length > 0 ? (
+                <div
+                  className="
+                    flex
+                    flex-col
+
+                    gap-2
+                  "
+                >
+                  {tables.map((table) => (
+                    <button
+                      key={table.id}
+                      type="button"
+                      onClick={() => onSelectTable(table.id)}
+                      className="
+                          w-full
+
+                          flex-shrink-0
+
+                          px-3
+                          py-2.5
+
+                          rounded-lg
+
+                          text-sm
+                          font-medium
+                          text-left
+
+                          text-[--color-text-secondary]
+
+                          hover:bg-[--color-accent-light]
+                          hover:text-[--color-accent]
+
+                          transition-colors
+
+                          break-words
+                        "
+                    >
+                      {table.label}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p
+                  className="
+                    text-sm
+
+                    text-[--color-text-secondary]
+                  "
+                >
+                  No hay tablas en este producto.
+                </p>
+              )}
+            </div>
+
+            {/* =========================================
+                BOTÓN INFERIOR FIJO
+            ========================================== */}
+            <div
+              className="
+                flex-shrink-0
+
+                border-t
+                border-[--color-border]
+
+                mt-4
                 pt-5
               "
             >
@@ -242,6 +294,7 @@ export default function ProductSidebar({
                 className="
                   flex
                   items-center
+
                   gap-2
 
                   text-sm

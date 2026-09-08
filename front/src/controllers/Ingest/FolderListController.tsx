@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 
 import FolderAdapter, { FolderModel } from "models/Ingest/folder-model";
@@ -9,10 +9,10 @@ import {
   uploadSmallFileService,
   analyzeFileService,
   runProductPipelineService,
-  uploadLargeFileAndCreateCuadraturaTable, 
+  uploadLargeFileAndCreateCuadraturaTable,
 } from "services/Ingest/folder-service";
 import FolderListScreen from "screens/Ingest/FolderListScreen";
-
+import { useProductSidebar } from "components/Layout/LateralMenu/ProductSidebarContext";
 
 export interface EndpointStatus {
   loading?: boolean;
@@ -28,12 +28,10 @@ export interface FolderStateModel {
   productName: string;
 }
 
-
 export interface UploadSuccessMessage {
   c_storage?: string;
   b_query?: string;
 }
-
 
 export interface UploadState {
   selectedTable: string;
@@ -51,8 +49,8 @@ export interface UploadState {
   isUploading: boolean;
   uploadProgress: number;
   uploadSuccess: boolean;
-  
-  uploadError: string | null; 
+
+  uploadError: string | null;
   uploadMessage: UploadSuccessMessage | null;
 }
 
@@ -75,14 +73,15 @@ const initialUploadState: UploadState = {
   uploadProgress: 0,
   uploadSuccess: false,
   uploadError: null,
-  uploadMessage: null
+  uploadMessage: null,
 };
 
 const FolderListController = () => {
   const { envId, bucketName, productName } = useParams();
   const navigate = useNavigate();
-  const location = useLocation(); 
-  const isCuadraturaPath = location.pathname.includes('/cuadraturas/');
+  const location = useLocation();
+  const { setSidebar, clearSidebar } = useProductSidebar();
+  const isCuadraturaPath = location.pathname.includes("/cuadraturas/");
   const [showCuadraturaModal, setShowCuadraturaModal] = useState(false);
 
   // --- ESTADOS ---
@@ -128,7 +127,7 @@ const FolderListController = () => {
 
   const setEndpointStatus = (
     name: EndpointName,
-    status: Partial<EndpointStatus>
+    status: Partial<EndpointStatus>,
   ) => {
     setEndpoints((prev) => ({
       ...prev,
@@ -183,12 +182,14 @@ const FolderListController = () => {
       } else {
         setPipelineFeedback({
           type: "error",
-          message: "El servidor respondió, pero hubo un problema iniciando el pipeline.",
+          message:
+            "El servidor respondió, pero hubo un problema iniciando el pipeline.",
         });
       }
     } catch (e: any) {
       console.error("Pipeline Error:", e);
-      const errorMsg = e.response?.data?.error || "Error de conexión con el servidor.";
+      const errorMsg =
+        e.response?.data?.error || "Error de conexión con el servidor.";
       setPipelineFeedback({
         type: "error",
         message: errorMsg,
@@ -200,13 +201,48 @@ const FolderListController = () => {
 
   // --- LÓGICA DE NEGOCIO: UPLOAD & WIZARD ---
 
-  const handleSelectTableForPreview = (tableName: string) => {
-    navigate(
-      `/dashboard/${envId}/${bucketName}/${productName}/${tableName}/table`
-    );
-  };
+  const handleSelectTableForPreview = useCallback(
+    (tableName: string) => {
+      navigate(
+        `/dashboard/${envId}/${bucketName}/${productName}/${tableName}/table`,
+      );
+    },
+    [navigate, envId, bucketName, productName],
+  );
 
-  const handleBack = () => navigate(-1);
+  const handleBack = useCallback(() => {
+    navigate(-1);
+  }, [navigate]);
+
+  // --- SIDEBAR CONTEXTUAL ---
+
+  useEffect(() => {
+    const sidebarTitle = envId === "sap" ? bucketName : productName;
+
+    setSidebar({
+      envId,
+      productName: sidebarTitle,
+      tables: model?.tables || [],
+      loading: endpoints?.GetFolders?.loading ?? false,
+      onSelectTable: handleSelectTableForPreview,
+      onBack: handleBack,
+    });
+  }, [
+    envId,
+    bucketName,
+    productName,
+    model?.tables,
+    endpoints?.GetFolders?.loading,
+    handleSelectTableForPreview,
+    handleBack,
+    setSidebar,
+  ]);
+
+  useEffect(() => {
+    return () => {
+      clearSidebar();
+    };
+  }, [clearSidebar]);
 
   const handleFileChange = (file: File | null) =>
     setUploadState((p) => ({ ...p, file }));
@@ -218,7 +254,7 @@ const FolderListController = () => {
     setUploadState((p) => ({ ...p, isNewTable: isNew }));
   };
 
-   const handleInitiateUpload = () => {
+  const handleInitiateUpload = () => {
     // Primero, una validación para asegurar que tenemos todo lo necesario.
     if (!uploadState.file || !uploadState.selectedTable) {
       alert("Por favor, selecciona un archivo y una tabla de destino.");
@@ -227,10 +263,11 @@ const FolderListController = () => {
 
     if (isCuadraturaPath) {
       // Si es la ruta de cuadratura, nos saltamos el wizard.
-      console.log("[Upload Flow] Ruta 'cuadratura' detectada. Subiendo archivo directamente...");
+      console.log(
+        "[Upload Flow] Ruta 'cuadratura' detectada. Subiendo archivo directamente...",
+      );
       setShowCuadraturaModal(true);
       handleFinalUpload();
-
     } else {
       // Si es cualquier otra ruta, iniciamos el wizard como siempre.
       console.log("[Upload Flow] Ruta estándar. Iniciando el wizard...");
@@ -288,7 +325,7 @@ const FolderListController = () => {
         isNewTable,
         (pct) => {
           setUploadState((p) => ({ ...p, analysisProgress: pct }));
-        }
+        },
       );
 
       if (response.status === 200) {
@@ -336,10 +373,17 @@ const FolderListController = () => {
   const handleFinalUpload = async (metadataFromWizard?: any) => {
     const { file, selectedTable, isNewTable, schemaData } = uploadState;
 
-    if (!file || !selectedTable || !envId || !bucketName || !productName) return;
+    if (!file || !selectedTable || !envId || !bucketName || !productName)
+      return;
 
     // Reseteamos estados
-    setUploadState((p) => ({ ...p, isUploading: true, uploadProgress: 0, uploadError: null, uploadMessage: null }));
+    setUploadState((p) => ({
+      ...p,
+      isUploading: true,
+      uploadProgress: 0,
+      uploadError: null,
+      uploadMessage: null,
+    }));
 
     const SIZE_LIMIT = 300 * 1024 * 1024; // 300MB
     const destinationPath = `${productName}/${selectedTable}`;
@@ -357,74 +401,70 @@ const FolderListController = () => {
           file,
           (pct) => setUploadState((p) => ({ ...p, uploadProgress: pct })),
           isNewTable ? metadataFromWizard : undefined,
-          isNewTable ? schemaData : undefined
+          isNewTable ? schemaData : undefined,
         );
 
         if (response && response.status === 200) {
           const successMsg = response.data;
           setUploadState((p) => ({
-              ...p,
-              isUploading: false,
-              uploadSuccess: true,
-              uploadError: null,
-              uploadMessage: successMsg,
-            }));
+            ...p,
+            isUploading: false,
+            uploadSuccess: true,
+            uploadError: null,
+            uploadMessage: successMsg,
+          }));
         } else {
-            throw new Error("El servidor no confirmó la subida.");
+          throw new Error("El servidor no confirmó la subida.");
         }
-
       } else {
         // 2. Subida GCS Directa (se usará SIEMPRE para 'cuadratura' o para archivos grandes)
-      try {
-      const result = await uploadLargeFileAndCreateCuadraturaTable(
-        envId,
-        bucketName,
-        destinationPath,
-        file,
-        (pct) =>
-          setUploadState((p) => ({ ...p, uploadProgress: pct }))
-      );
+        try {
+          const result = await uploadLargeFileAndCreateCuadraturaTable(
+            envId,
+            bucketName,
+            destinationPath,
+            file,
+            (pct) => setUploadState((p) => ({ ...p, uploadProgress: pct })),
+          );
 
-      setUploadState((p) => ({
-        ...p,
-        isUploading: false,
-        uploadSuccess: true,
-        uploadError: null,
-        uploadMessage: {
-          c_storage: "Archivo subido correctamente a Cloud Storage",
-          b_query: result.bq_table
+          setUploadState((p) => ({
+            ...p,
+            isUploading: false,
+            uploadSuccess: true,
+            uploadError: null,
+            uploadMessage: {
+              c_storage: "Archivo subido correctamente a Cloud Storage",
+              b_query: result.bq_table,
+            },
+          }));
+
+          setShowCuadraturaModal(true);
+        } catch (e: any) {
+          setUploadState((p) => ({
+            ...p,
+            isUploading: false,
+            uploadSuccess: false,
+            uploadError:
+              e?.message || "Error en subida o procesamiento de cuadratura",
+            uploadMessage: null,
+          }));
         }
-      }));
-
-      setShowCuadraturaModal(true);
-
-    } catch (e: any) {
-      setUploadState((p) => ({
-        ...p,
-        isUploading: false,
-        uploadSuccess: false,
-        uploadError: e?.message || "Error en subida o procesamiento de cuadratura",
-        uploadMessage: null
-      }));
-    }
-
       }
-
     } catch (e: any) {
       console.error("Error crítico en upload:", e);
-      
+
       let errorMsg = "Ocurrió un error inesperado al subir el archivo.";
-      
+
       if (e.response && e.response.data) {
-          if (e.response.data.error) {
-              errorMsg = e.response.data.error;
-          } 
-          // Fallback por si acaso
-          else if (e.response.data.message) {
-              errorMsg = e.response.data.message;
-          }
+        if (e.response.data.error) {
+          errorMsg = e.response.data.error;
+        }
+        // Fallback por si acaso
+        else if (e.response.data.message) {
+          errorMsg = e.response.data.message;
+        }
       } else if (e.message) {
-          errorMsg = e.message;
+        errorMsg = e.message;
       }
 
       // Seteamos el estado de error
@@ -433,7 +473,7 @@ const FolderListController = () => {
         isUploading: false,
         uploadSuccess: false,
         uploadError: errorMsg,
-        uploadMessage: null
+        uploadMessage: null,
       }));
     }
   };
@@ -441,10 +481,7 @@ const FolderListController = () => {
   return (
     <FolderListScreen
       model={model}
-      endpoints={endpoints}
       uploadState={uploadState}
-      onSelectTable={handleSelectTableForPreview}
-      onBack={handleBack}
       onFileChange={handleFileChange}
       onTableChange={handleTableChange}
       setIsNewTable={handleSetIsNewTable}
@@ -458,7 +495,6 @@ const FolderListController = () => {
       pipelineFeedback={pipelineFeedback}
       showCuadraturaModal={showCuadraturaModal}
       setShowCuadraturaModal={setShowCuadraturaModal}
-
     />
   );
 };

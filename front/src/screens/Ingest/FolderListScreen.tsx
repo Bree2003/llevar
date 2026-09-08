@@ -1,15 +1,12 @@
 import { useParams } from "react-router-dom";
 
 import {
-  EndpointName,
-  EndpointStatus,
   FolderStateModel,
   UploadState,
   PipelineFeedback,
 } from "controllers/Ingest/FolderListController";
 
 import ResumenProducto from "components/ResumenProducto/ResumenProducto";
-import ProductSidebar from "components/DataProduct/ProductSidebar";
 import FileUploadSection from "components/DataProduct/FileUploadSection";
 import WizardModal from "components/Ingest/Wizard/WizardModal";
 import PipelineButton from "components/DataProduct/PipelineButton";
@@ -89,13 +86,7 @@ const FeedbackToast = ({ feedback }: { feedback: PipelineFeedback }) => {
 interface Props {
   model: Partial<FolderStateModel>;
 
-  endpoints: Partial<Record<EndpointName, EndpointStatus>> | undefined;
-
   uploadState: UploadState;
-
-  onSelectTable: (tableName: string) => void;
-
-  onBack: () => void;
 
   onFileChange: (file: File | null) => void;
 
@@ -126,10 +117,7 @@ interface Props {
 
 const FolderListScreen = ({
   model,
-  endpoints,
   uploadState,
-  onSelectTable,
-  onBack,
   onFileChange,
   onTableChange,
   onStartWizard,
@@ -144,8 +132,6 @@ const FolderListScreen = ({
   showCuadraturaModal,
   setShowCuadraturaModal,
 }: Props) => {
-  const isLoadingFolders = endpoints?.GetFolders?.loading;
-
   const { envId } = useParams<{
     envId: string;
   }>();
@@ -165,28 +151,16 @@ const FolderListScreen = ({
   return (
     <div
       className="
-        flex
-        items-start
-
         w-full
         min-h-full
 
         bg-[--color-background]
       "
     >
-      {/* SIDEBAR DE PRODUCTO / TABLAS */}
-      <ProductSidebar
-        productName={pageTitle}
-        tables={model?.tables || []}
-        loading={isLoadingFolders}
-        onSelectTable={onSelectTable}
-        onBack={onBack}
-      />
-
       {/* CONTENIDO PRINCIPAL */}
       <main
         className="
-          flex-1
+          w-full
           min-w-0
 
           relative
