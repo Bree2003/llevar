@@ -129,6 +129,7 @@ const PermissionModal = ({ permission, onClose, onSave }: Props) => {
                   id: event.target.value,
                 })
               }
+              disabled={permission.id ? true : false}
               placeholder="Ej: file-upload"
               className={inputStyle}
             />

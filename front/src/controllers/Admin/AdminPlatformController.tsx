@@ -8,20 +8,38 @@ import {
   DomainModel,
   DomainDataToModel,
   DomainsDataToModel,
-} from "models/Admin/domainsModel";
+} from "models/Global/domainsModel";
 import {
   PermissionModel,
   PermissionDataToModel,
   PermissionsDataToModel,
 } from "models/Admin/permissionsModel";
+import {
+  FaqModel,
+  FaqDataToModel,
+  FaqsDataToModel,
+} from "models/Global/faqModel";
+import {
+  DictionaryModel,
+  DictionaryDataToModel,
+  DictionariesDataToModel
+} from "models/Global/dictionaryModel";
 import loadUsersData from "services/Admin/get-users-data";
 import loadDomainsData from "services/Admin/get-domains-data";
+import loadFaqData from "services/Global/get-faq-data";
+import loadDictionaryData from "services/Global/get-dictionary-data";
 import loadPermissionsData from "services/Admin/get-permissions-data";
 import createDomainData from "services/Admin/create-domains-data";
 import createPermissionData from "services/Admin/create-permissions-data";
+import createFaqData from "services/Admin/create-faqs-data";
+import createDictionaryData from "services/Admin/create-dictionaries-data";
 import updateUserData from "services/Admin/update-users-data";
 import updateDomainData from "services/Admin/update-domains-data";
+import updateFaqData from "services/Admin/update-faqs-data";
+import updateDictionaryData from "services/Admin/update-dictionaries-data";
 import updatePermissionData from "services/Admin/update-permissions-data";
+//import deleteFaqData from "services/Admin/delete-faqs-data";
+//import deleteDictionariesData from "services/Admin/delete-dictionaries-data";
 import AdminPlatformScreen from "screens/Admin/AdminPlatformScreen";
 
 
@@ -30,12 +48,14 @@ export interface EndpointStatus {
   error?: boolean;
 };
 
-export type EndpointName = "loadUsers" | "updateUser" | "loadDomains" | "updateDomain" | "loadPermissions" | "updatePermission" | "createDomain" | "createPermission";
+export type EndpointName = "loadUsers" | "updateUser" | "loadDomains" | "updateDomain" | "loadPermissions" | "updatePermission" | "createDomain" | "createPermission" | "loadFaq" | "createFaq" | "updateFaq" | "loadDictionary" | "createDictionary" | "updateDictionary";
 
 export interface Model {
   users: UserModel[] | undefined;
   domains: DomainModel[] | undefined;
   permissions: PermissionModel[] | undefined;
+  faqs: FaqModel[] | undefined;
+  dictionaries: DictionaryModel[] | undefined;
   lastUpdate: Date | undefined;
 };
 
@@ -47,6 +67,8 @@ const AdminPlatformController = () => {
     loadUsers();
     loadDomains();
     loadPermissions();
+    loadFaqs();
+    loadDictionaries();
   }, []);
 
   const updateModel = (
@@ -129,6 +151,38 @@ const AdminPlatformController = () => {
     }
   };
 
+  const loadFaqs = async () => {
+    const statusEndpoint = buildStatusEndpoint("loadFaq");
+    try {
+      statusEndpoint.loading();
+      const response = await loadFaqData();
+      const faqs = FaqsDataToModel(response);
+      updateModel({ faqs });
+    } catch (e) {
+      console.error("Error al cargar faqs:", e);
+      statusEndpoint.error();
+      updateModel({ faqs: [] });
+    } finally {
+      statusEndpoint.done();
+    }
+  };
+
+  const loadDictionaries = async () => {
+    const statusEndpoint = buildStatusEndpoint("loadDictionary");
+    try {
+      statusEndpoint.loading();
+      const response = await loadDictionaryData();
+      const dictionaries = DictionariesDataToModel(response);
+      updateModel({ dictionaries });
+    } catch (e) {
+      console.error("Error al cargar diccionarios:", e);
+      statusEndpoint.error();
+      updateModel({ dictionaries: [] });
+    } finally {
+      statusEndpoint.done();
+    }
+  };
+
   const updateUser = async (user: UserModel) => {
     const statusEndpoint = buildStatusEndpoint("updateUser");
     try {
@@ -183,6 +237,42 @@ const AdminPlatformController = () => {
     }
   };
 
+  const createFaq = async (faq: FaqModel) => {
+    const statusEndpoint = buildStatusEndpoint("createFaq");
+    try {
+      statusEndpoint.loading();
+      const response = await createFaqData(faq);
+      const newFaq = FaqDataToModel(response);
+      if (newFaq) {
+        const newFaqs = [...(model?.faqs || []), newFaq];
+        updateModel({ faqs: newFaqs });
+      }
+    } catch (e) {
+      console.error("Error al crear faq:", e);
+      statusEndpoint.error();
+    } finally {
+      statusEndpoint.done();
+    }
+  };
+
+  const createDictionary = async (dictionary: DictionaryModel) => {
+    const statusEndpoint = buildStatusEndpoint("createDictionary");
+    try {
+      statusEndpoint.loading();
+      const response = await createDictionaryData(dictionary);
+      const newDictionary = DictionaryDataToModel(response);
+      if (newDictionary) {
+        const newDictionaries = [...(model?.dictionaries || []), newDictionary];
+        updateModel({ dictionaries: newDictionaries });
+      }
+    } catch (e) {
+      console.error("Error al crear diccionario:", e);
+      statusEndpoint.error();
+    } finally {
+      statusEndpoint.done();
+    }
+  };
+
   const updateDomain = async (domain: DomainModel) => {
     const statusEndpoint = buildStatusEndpoint("updateDomain");
     try {
@@ -219,15 +309,55 @@ const AdminPlatformController = () => {
     }
   };
 
+  const updateFaq = async (faq: FaqModel) => {
+    const statusEndpoint = buildStatusEndpoint("updateFaq");
+    try {
+      statusEndpoint.loading();
+      const response = await updateFaqData(faq);
+      const updatedFaq = FaqDataToModel(response);
+      if (updatedFaq) {
+        const newFaqs = model?.faqs?.map((p) => (p.id === updatedFaq.id ? updatedFaq : p));
+        updateModel({ faqs: newFaqs });
+      }
+    } catch (e) {
+      console.error("Error al actualizar faq:", e);
+      statusEndpoint.error();
+    } finally {
+      statusEndpoint.done();
+    }
+  };
+
+  const updateDictionary = async (dictionary: DictionaryModel) => {
+    const statusEndpoint = buildStatusEndpoint("updateDictionary");
+    try {
+      statusEndpoint.loading();
+      const response = await updateDictionaryData(dictionary);
+      const updatedDictionary = DictionaryDataToModel(response);
+      if (updatedDictionary) {
+        const newDictionaries = model?.dictionaries?.map((p) => (p.id === updatedDictionary.id ? updatedDictionary : p));
+        updateModel({ dictionaries: newDictionaries });
+      }
+    } catch (e) {
+      console.error("Error al actualizar diccionario:", e);
+      statusEndpoint.error();
+    } finally {
+      statusEndpoint.done();
+    }
+  };
+
   return (
     <AdminPlatformScreen
       model={model}
       endpoints={endpoints}
       handleDomainCreate={createDomain}
       handlePermissionCreate={createPermission}
+      handleFaqCreate={createFaq}
+      handleDictionaryCreate={createDictionary}
       handleUserUpdate={updateUser}
       handleDomainUpdate={updateDomain}
       handlePermissionUpdate={updatePermission}
+      handleFaqUpdate={updateFaq}
+      handleDictionaryUpdate={updateDictionary}
     />
   );
 };

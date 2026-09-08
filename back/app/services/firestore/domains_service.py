@@ -31,13 +31,6 @@ def _collection():
     return _client().collection(COLLECTION)
 
 
-def _slugify(value: str) -> str:
-    s = unicodedata.normalize("NFD", (value or "").strip().lower())
-    s = "".join(c for c in s if unicodedata.category(c) != "Mn")
-    s = re.sub(r"[^a-z0-9._-]+", "_", s)
-    return s.strip("_")
-
-
 def _normalize_id(value: str) -> str:
     domain_id = (value or "").strip().lower()
     if (
@@ -108,9 +101,6 @@ def create_domain(payload: dict[str, Any]) -> dict[str, Any]:
 def update_domain(domain_id: str, payload: dict[str, Any]) -> dict[str, Any]:
     target_id = _normalize_id(domain_id)
 
-    if "id" in payload and _normalize_id(str(payload["id"])) != target_id:
-        raise ValueError("The 'id' field cannot be modified")
-
     changes = _clean(payload)
     if "name" in changes and not changes["name"]:
         raise ValueError("The 'name' field cannot be empty")
@@ -124,33 +114,6 @@ def update_domain(domain_id: str, payload: dict[str, Any]) -> dict[str, Any]:
     except NotFound:
         raise NotFound(f"domain '{target_id}' does not exist")
 
-    return get_domain(target_id)
-
-
-def set_domain_active(domain_id: str, active: bool) -> dict[str, Any]:
-    return update_domain(domain_id, {"active": active})
-
-
-def rename_domain(old_id: str, new_id: str) -> dict[str, Any]:
-    source_id = _normalize_id(old_id)
-    target_id = _normalize_id(new_id)
-    if source_id == target_id:
-        raise ValueError("The new identifier must be different from the current one")
-
-    old_ref = _collection().document(source_id)
-    snap = old_ref.get()
-    if not snap.exists:
-        raise NotFound(f"domain '{source_id}' does not exist")
-
-    doc = snap.to_dict() or {}
-    doc["updatedAt"] = firestore.SERVER_TIMESTAMP
-
-    try:
-        _collection().document(target_id).create(doc)
-    except AlreadyExists:
-        raise ValueError(f"domain '{target_id}' already exists")
-
-    old_ref.delete()
     return get_domain(target_id)
 
 

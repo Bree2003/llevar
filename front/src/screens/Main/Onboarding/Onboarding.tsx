@@ -399,15 +399,18 @@ const OnboardingScreen = () => {
 
             <p className="text-sm md:text-base text-[--color-text-secondary] mb-2">
               Nuestro equipo está disponible para ayudarte a resolver dudas y
-              aprovechar al máximo la Plataforma Inteligente de Datos
+              aprovechar al máximo la Plataforma Inteligente de Datos. Si tienes alguna inquietud
+              o duda sobre el funcionamiento de la plataforma puedes gestionar tu solicitud en {" "}
+              <span><a
+                href="https://portalti.cyt.conchaytoro.cl/asmscustomer"
+                className="text-sm md:text-base text-[--color-info] font-semibold hover:underline"
+                target="_blank"
+              >
+                Aranda
+              </a></span>
             </p>
 
-            <a
-              href="mailto:pedir-correo-soporte@conchaytoro.cl"
-              className="text-sm md:text-base text-[--color-info] font-semibold hover:underline"
-            >
-              placeholder@conchaytoro.cl
-            </a>
+
           </div>
         </section>
       </div>

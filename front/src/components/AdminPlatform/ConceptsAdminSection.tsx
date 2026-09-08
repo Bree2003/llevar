@@ -1,64 +1,55 @@
 import { useMemo, useState } from "react";
-import ConceptModal, { ConceptItem } from "./ConceptModal";
+import ConceptModal, { ActionKind } from "./ConceptModal";
+import { DictionaryModel } from "models/Global/dictionaryModel";
 
-const INITIAL_CONCEPTS: ConceptItem[] = [
-  {
-    id: "1",
-    term: "Producto de datos",
-    definition:
-      "Conjunto de datos preparado y administrado para responder a una necesidad de negocio.",
-  },
-  {
-    id: "2",
-    term: "Dominio",
-    definition:
-      "Área utilizada para organizar productos, accesos y responsabilidades.",
-  },
-];
-
-const ConceptsAdminSection = () => {
-  const [concepts, setConcepts] = useState<ConceptItem[]>(INITIAL_CONCEPTS);
-
+const ConceptsAdminSection = ({
+    dictionaryData,
+    isBusy,
+    isLoading,
+    handleDictionaryCreate,
+    handleDictionaryUpdate,
+}: {
+    dictionaryData: DictionaryModel[] | undefined;
+    isBusy: boolean;
+    isLoading: boolean;
+    handleDictionaryCreate: (faq: DictionaryModel) => void;
+    handleDictionaryUpdate: (faq: DictionaryModel) => void;
+}) => {
   const [search, setSearch] = useState("");
 
-  const [editingConcept, setEditingConcept] = useState<ConceptItem | null>(
+  const [editingConcept, setEditingConcept] = useState<DictionaryModel | null>(
     null,
   );
 
   const filteredConcepts = useMemo(() => {
     const query = search.trim().toLowerCase();
-
-    if (!query) {
-      return concepts;
+  
+    if (!dictionaryData) {
+      return [];
     }
 
-    return concepts.filter(
-      (concept) =>
-        concept.term.toLowerCase().includes(query) ||
-        concept.definition.toLowerCase().includes(query),
+    if (!query) {
+      return dictionaryData;
+    }
+
+    return dictionaryData.filter(
+      (dictionary) =>
+        dictionary.name.toLowerCase().includes(query) ||
+        dictionary.description.toLowerCase().includes(query),
     );
-  }, [concepts, search]);
+  }, [dictionaryData, search]);
 
-  const handleSave = (savedConcept: ConceptItem) => {
-    setConcepts((previous) => {
-      const exists = previous.some((concept) => concept.id === savedConcept.id);
+  const handleOnDictionaryChange = (dictionary: DictionaryModel, kind: ActionKind) => {
+    if(kind === "Create"){
+      handleDictionaryCreate(dictionary);
+    }
 
-      if (!exists) {
-        return [
-          ...previous,
-          {
-            ...savedConcept,
-            id: Date.now().toString(),
-          },
-        ];
-      }
-
-      return previous.map((concept) =>
-        concept.id === savedConcept.id ? savedConcept : concept,
-      );
-    });
+    if(kind === "Update"){
+      handleDictionaryUpdate(dictionary);
+    }
 
     setEditingConcept(null);
+    return;
   };
 
   return (
@@ -124,8 +115,10 @@ const ConceptsAdminSection = () => {
             onClick={() =>
               setEditingConcept({
                 id: "",
-                term: "",
-                definition: "",
+                name: "",
+                description: "",
+                createdAt: "",
+                updatedAt: "",
               })
             }
             className="
@@ -277,7 +270,7 @@ const ConceptsAdminSection = () => {
                         text-[--color-text-primary]
                       "
                   >
-                    {concept.term}
+                    {concept.name}
                   </td>
 
                   <td
@@ -288,7 +281,7 @@ const ConceptsAdminSection = () => {
                         text-[--color-text-secondary]
                       "
                   >
-                    {concept.definition}
+                    {concept.description}
                   </td>
 
                   <td className="px-6 py-4">
@@ -320,11 +313,7 @@ const ConceptsAdminSection = () => {
 
                       <button
                         type="button"
-                        onClick={() =>
-                          setConcepts((previous) =>
-                            previous.filter((item) => item.id !== concept.id),
-                          )
-                        }
+                        onClick={() => {}}
                         className="
                             px-3
                             py-2
@@ -369,7 +358,7 @@ const ConceptsAdminSection = () => {
         <ConceptModal
           concept={editingConcept}
           onClose={() => setEditingConcept(null)}
-          onSave={handleSave}
+          onSave={handleOnDictionaryChange}
         />
       )}
     </>

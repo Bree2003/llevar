@@ -1,60 +1,53 @@
 import { useMemo, useState } from "react";
-import FaqModal, { FaqItem } from "./FaqModal";
+import FaqModal, { ActionKind } from "./FaqModal";
+import { FaqModel } from "models/Global/faqModel";
 
-const INITIAL_FAQS: FaqItem[] = [
-  {
-    id: "1",
-    question: "¿Cómo puedo solicitar acceso a un producto de datos?",
-    answer:
-      "Los accesos dependen de los permisos asignados al usuario y al dominio correspondiente.",
-  },
-  {
-    id: "2",
-    question: "¿Dónde puedo revisar los productos disponibles?",
-    answer:
-      "Puedes revisar los productos publicados desde la sección Marketplace.",
-  },
-];
-
-const FaqAdminSection = () => {
-  const [faqs, setFaqs] = useState<FaqItem[]>(INITIAL_FAQS);
-
+const FaqAdminSection = ({
+    faqData,
+    isBusy,
+    isLoading,
+    handleFaqCreate,
+    handleFaqUpdate,
+}: {
+    faqData: FaqModel[] | undefined;
+    isBusy: boolean;
+    isLoading: boolean;
+    handleFaqCreate: (faq: FaqModel) => void;
+    handleFaqUpdate: (faq: FaqModel) => void;
+}) => {
   const [search, setSearch] = useState("");
 
-  const [editingFaq, setEditingFaq] = useState<FaqItem | null>(null);
+  const [editingFaq, setEditingFaq] = useState<FaqModel | null>(null);
 
   const filteredFaqs = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    if (!query) {
-      return faqs;
+    if (!faqData) {
+      return [];
     }
 
-    return faqs.filter(
+    if (!query) {
+      return faqData;
+    }
+
+    return faqData.filter(
       (faq) =>
         faq.question.toLowerCase().includes(query) ||
         faq.answer.toLowerCase().includes(query),
     );
-  }, [faqs, search]);
+  }, [faqData, search]);
 
-  const handleSave = (savedFaq: FaqItem) => {
-    setFaqs((previous) => {
-      const exists = previous.some((faq) => faq.id === savedFaq.id);
+  const handleOnFaqChange = (faq: FaqModel, kind: ActionKind) => {
+    if(kind === "Create"){
+      handleFaqCreate(faq);
+    }
 
-      if (!exists) {
-        return [
-          ...previous,
-          {
-            ...savedFaq,
-            id: Date.now().toString(),
-          },
-        ];
-      }
-
-      return previous.map((faq) => (faq.id === savedFaq.id ? savedFaq : faq));
-    });
+    if(kind === "Update"){
+      handleFaqUpdate(faq);
+    }
 
     setEditingFaq(null);
+    return;
   };
 
   return (
@@ -122,6 +115,8 @@ const FaqAdminSection = () => {
                 id: "",
                 question: "",
                 answer: "",
+                createdAt: "",
+                updatedAt: "",
               })
             }
             className="
@@ -301,11 +296,7 @@ const FaqAdminSection = () => {
 
                   <button
                     type="button"
-                    onClick={() =>
-                      setFaqs((previous) =>
-                        previous.filter((item) => item.id !== faq.id),
-                      )
-                    }
+                    onClick={() =>{}}
                     className="
                       px-3
                       py-2
@@ -347,7 +338,7 @@ const FaqAdminSection = () => {
         <FaqModal
           faq={editingFaq}
           onClose={() => setEditingFaq(null)}
-          onSave={handleSave}
+          onSave={handleOnFaqChange}
         />
       )}
     </>

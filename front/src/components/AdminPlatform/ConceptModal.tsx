@@ -1,21 +1,18 @@
 import { useState } from "react";
+import { DictionaryModel } from "models/Global/dictionaryModel";
 
-export interface ConceptItem {
-  id: string;
-  term: string;
-  definition: string;
-}
+export type ActionKind = "Create" | "Update";
 
 interface Props {
-  concept: ConceptItem;
+  concept: DictionaryModel;
   onClose: () => void;
-  onSave: (concept: ConceptItem) => void;
+  onSave: (concept: DictionaryModel, kind: ActionKind) => void;
 }
 
 const ConceptModal = ({ concept, onClose, onSave }: Props) => {
-  const [form, setForm] = useState<ConceptItem>(concept);
+  const [form, setForm] = useState<DictionaryModel>(concept);
 
-  const isValid = form.term.trim() !== "" && form.definition.trim() !== "";
+  const isValid = form.name.trim() !== "" && form.description.trim() !== "";
 
   return (
     <div
@@ -128,11 +125,11 @@ const ConceptModal = ({ concept, onClose, onSave }: Props) => {
         >
           <Field label="Concepto">
             <input
-              value={form.term}
+              value={form.name}
               onChange={(event) =>
                 setForm({
                   ...form,
-                  term: event.target.value,
+                  name: event.target.value,
                 })
               }
               placeholder="Ej: Producto de datos"
@@ -142,11 +139,11 @@ const ConceptModal = ({ concept, onClose, onSave }: Props) => {
 
           <Field label="Definición">
             <textarea
-              value={form.definition}
+              value={form.description}
               onChange={(event) =>
                 setForm({
                   ...form,
-                  definition: event.target.value,
+                  description: event.target.value,
                 })
               }
               placeholder="Escribe la definición..."
@@ -200,7 +197,7 @@ const ConceptModal = ({ concept, onClose, onSave }: Props) => {
           <button
             type="button"
             disabled={!isValid}
-            onClick={() => onSave(form)}
+            onClick={() => onSave(form, concept.id ? "Update" : "Create")}
             className="
               px-4
               py-2.5

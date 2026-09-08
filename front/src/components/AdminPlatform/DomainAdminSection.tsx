@@ -1,16 +1,18 @@
 import { useMemo, useState } from "react";
 import DomainModal from "./DomainModal";
 import DomainAdminTable from "components/Tables/DomainAdminTable";
-import { DomainModel } from 'models/Admin/domainsModel';
+import { DomainModel } from 'models/Global/domainsModel';
 
 const DomainAdminSection = ({
     domainData,
+    isBusy,
     isLoading,
     handleDomainCreate,
     handleDomainUpdate,
 }: {
     domainData: DomainModel[] | undefined;
-    isLoading: boolean | undefined;
+    isBusy: boolean;
+    isLoading: boolean;
     handleDomainCreate: (domain: DomainModel) => void;
     handleDomainUpdate: (domain: DomainModel) => void;
 }) => {
@@ -214,6 +216,7 @@ const DomainAdminSection = ({
         >
           <DomainAdminTable
             domainData={filteredDomains}
+            isBusy={isBusy}
             isLoading={isLoading}
             handleDomainUpdate={handleDomainUpdate}
           />

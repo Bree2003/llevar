@@ -5,17 +5,16 @@ from google.cloud import firestore
 from google.api_core.exceptions import NotFound, AlreadyExists
 from app.config import Config
 
-COLLECTION = "permissions"
+COLLECTION = "dictionary"
 
 DEFAULTS: dict[str, Any] = {
     "name": "",
     "description": "",
-    "active": True,
 }
 
 TEXT_FIELDS = ("name", "description")
 
-_ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
+_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 
 _db: firestore.Client | None = None
 
@@ -32,18 +31,15 @@ def _collection():
 
 
 def _normalize_id(value: str) -> str:
-    permission_id = (value or "").strip().lower()
+    dictionary_id = (value or "").strip()
     if (
-        not _ID_RE.match(permission_id)
-        or len(permission_id) > 1500
-        or permission_id in (".", "..")
-        or permission_id.startswith("__")
+        not _ID_RE.match(dictionary_id)
+        or len(dictionary_id.encode("utf-8")) > 1500
+        or dictionary_id in (".", "..")
+        or dictionary_id.startswith("__")
     ):
-        raise ValueError(
-            f"The identifier '{value}' is not valid: use lowercase letters, "
-            "digits, '.', '_' or '-', starting with a letter or digit"
-        )
-    return permission_id
+        raise ValueError(f"The identifier '{value}' is not valid")
+    return dictionary_id
 
 
 def _serialize(snap) -> dict[str, Any]:
@@ -56,32 +52,23 @@ def _clean(payload: dict[str, Any]) -> dict[str, Any]:
     for field in TEXT_FIELDS:
         if field in changes:
             changes[field] = (changes[field] or "").strip()
-    if "active" in changes:
-        changes["active"] = bool(changes["active"])
     return changes
 
 
-def list_permissions(only_active: bool = False) -> list[dict[str, Any]]:
+def list_dictionaries() -> list[dict[str, Any]]:
     ref = _collection()
-    if only_active:
-        ref = ref.where(filter=firestore.FieldFilter("active", "==", True))
     return sorted(
         (_serialize(d) for d in ref.stream()),
-        key=lambda p: (p["name"] or p["id"]).lower(),
+        key=lambda p: (p["name"] or p["id"]),
     )
 
 
-def get_permission(permission_id: str) -> dict[str, Any] | None:
-    snap = _collection().document(_normalize_id(permission_id)).get()
+def get_dictionary(dictionary_id: str) -> dict[str, Any] | None:
+    snap = _collection().document(_normalize_id(dictionary_id)).get()
     return _serialize(snap) if snap.exists else None
 
 
-def create_permission(payload: dict[str, Any]) -> dict[str, Any]:
-    raw_id = (payload.get("id") or "").strip()
-    if not raw_id:
-        raise ValueError("The 'id' field is required")
-    permission_id = _normalize_id(raw_id)
-
+def create_dictionary(payload: dict[str, Any]) -> dict[str, Any]:
     changes = _clean(payload)
     if not changes.get("name"):
         raise ValueError("The 'name' field is required")
@@ -90,16 +77,18 @@ def create_permission(payload: dict[str, Any]) -> dict[str, Any]:
     doc["createdAt"] = firestore.SERVER_TIMESTAMP
     doc["updatedAt"] = firestore.SERVER_TIMESTAMP
 
+    ref = _collection().document()
+
     try:
-        _collection().document(permission_id).create(doc)
+        ref.create(doc)
     except AlreadyExists:
-        raise ValueError(f"permission '{permission_id}' already exists")
+        raise ValueError(f"dictionary '{ref.id}' already exists")
 
-    return {"id": permission_id, **{k: doc[k] for k in DEFAULTS}}
+    return {"id": ref.id, **{k: doc[k] for k in DEFAULTS}}
 
 
-def update_permission(permission_id: str, payload: dict[str, Any]) -> dict[str, Any]:
-    target_id = _normalize_id(permission_id)
+def update_dictionary(dictionary_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    target_id = _normalize_id(dictionary_id)
 
     changes = _clean(payload)
     if "name" in changes and not changes["name"]:
@@ -112,14 +101,14 @@ def update_permission(permission_id: str, payload: dict[str, Any]) -> dict[str, 
     try:
         _collection().document(target_id).update(changes)
     except NotFound:
-        raise NotFound(f"permission '{target_id}' does not exist")
+        raise NotFound(f"dictionary '{target_id}' does not exist")
 
-    return get_permission(target_id)
+    return get_dictionary(target_id)
 
 
-def delete_permission(permission_id: str) -> None:
-    target_id = _normalize_id(permission_id)
+def delete_dictionary(dictionary_id: str) -> None:
+    target_id = _normalize_id(dictionary_id)
     ref = _collection().document(target_id)
     if not ref.get().exists:
-        raise NotFound(f"permission '{target_id}' does not exist")
+        raise NotFound(f"dictionary '{target_id}' does not exist")
     ref.delete()

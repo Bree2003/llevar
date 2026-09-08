@@ -1,14 +1,22 @@
 import { useMemo, useState } from "react";
 import UserAdminTable from "components/Tables/UserAdminTable";
 import { UserModel } from 'models/Admin/usersModel';
+import { DomainModel } from 'models/Global/domainsModel';
+import { PermissionModel } from 'models/Admin/permissionsModel';
 
 const UsersAdminSection = ({
     userData,
+    domains,
+    permissions,
+    isBusy,
     isLoading,
     handleUserUpdate,
 }: {
     userData: UserModel[] | undefined;
-    isLoading: boolean | undefined;
+    domains: DomainModel[] | undefined;
+    permissions: PermissionModel[] | undefined;
+    isBusy: boolean;
+    isLoading: boolean;
     handleUserUpdate: (user: UserModel) => void;
 }) => {
   const [search, setSearch] = useState("");
@@ -167,6 +175,9 @@ const UsersAdminSection = ({
         >
           <UserAdminTable
             userData={filteredUsers}
+            domains={domains}
+            permissions={permissions}
+            isBusy={isBusy}
             isLoading={isLoading}
             handleUserUpdate={handleUserUpdate}
           />

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DomainModel } from 'models/Admin/domainsModel';
+import { DomainModel } from 'models/Global/domainsModel';
 
 interface Props {
   domain: DomainModel;
@@ -129,6 +129,7 @@ const DomainModal = ({ domain, onClose, onSave }: Props) => {
                   id: event.target.value,
                 })
               }
+              disabled={domain.id ? true : false}
               placeholder="Ej: osc"
               className={inputStyle}
             />

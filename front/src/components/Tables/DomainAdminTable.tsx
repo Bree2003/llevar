@@ -13,16 +13,18 @@ import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
 import SettingsIcon from '@mui/icons-material/Settings';
 import DomainModal from "components/AdminPlatform/DomainModal";
-import { DomainModel } from 'models/Admin/domainsModel';
+import { DomainModel } from 'models/Global/domainsModel';
 
 
 export default function DomainAdminTable({
     domainData,
+    isBusy,
     isLoading,
     handleDomainUpdate,
 }: {
     domainData: DomainModel[] | undefined;
-    isLoading: boolean | undefined;
+    isBusy: boolean;
+    isLoading: boolean;
     handleDomainUpdate: (domain: DomainModel) => void;
 }) {
     const [page, setPage] = useState<number>(0);
@@ -73,7 +75,7 @@ export default function DomainAdminTable({
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {isLoading !== false ? (
+                            {isLoading ? (
                                 <TableRow>
                                     <TableCell colSpan={5} align="center">
                                         Cargando los datos...
@@ -96,7 +98,10 @@ export default function DomainAdminTable({
                                         <TableCell align="left">{d.description}</TableCell>
                                         <TableCell align="center">
                                             <Tooltip title="Modificar dominio">
-                                                <IconButton onClick={() => setEditingDomain(d)}>
+                                                <IconButton
+                                                    onClick={() => setEditingDomain(d)}
+                                                    disabled={isBusy}
+                                                >
                                                     <SettingsIcon />
                                                 </IconButton>
                                             </Tooltip>
@@ -105,6 +110,7 @@ export default function DomainAdminTable({
                                             <Tooltip title="Activar/Desactivar dominio">
                                                 <Switch
                                                     checked={d.active}
+                                                    disabled={isBusy}
                                                     onChange={(event) => handleSwitchChange(event, d)}
                                                     slotProps={{ input: { 'aria-label': 'controlled' } }}
                                                 />

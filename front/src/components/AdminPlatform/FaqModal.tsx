@@ -1,19 +1,16 @@
 import { useState } from "react";
+import { FaqModel } from "models/Global/faqModel";
 
-export interface FaqItem {
-  id: string;
-  question: string;
-  answer: string;
-}
+export type ActionKind = "Create" | "Update";
 
 interface Props {
-  faq: FaqItem;
+  faq: FaqModel;
   onClose: () => void;
-  onSave: (faq: FaqItem) => void;
+  onSave: (faq: FaqModel, kind: ActionKind) => void;
 }
 
 const FaqModal = ({ faq, onClose, onSave }: Props) => {
-  const [form, setForm] = useState<FaqItem>(faq);
+  const [form, setForm] = useState<FaqModel>(faq);
 
   const isValid = form.question.trim() !== "" && form.answer.trim() !== "";
 
@@ -199,7 +196,7 @@ const FaqModal = ({ faq, onClose, onSave }: Props) => {
           <button
             type="button"
             disabled={!isValid}
-            onClick={() => onSave(form)}
+            onClick={() => onSave(form, faq.id ? "Update" : "Create")}
             className="
               px-4
               py-2.5

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-type ModuleIconName = "platform" | "marketplace" | "ingesta";
+type ModuleIconName = "platform" | "marketplace";
 
 const modules: {
   id: ModuleIconName;
@@ -20,12 +20,6 @@ const modules: {
     description:
       "Agrega, edita, elimina y audita los reportes del marketplace.",
     to: "/admin/marketplace",
-  },
-  {
-    id: "ingesta",
-    title: "Ingesta",
-    description: "Accede a la administración de la ingesta de datos.",
-    to: "/admin/ingesta",
   },
 ];
 
@@ -58,11 +52,6 @@ function ModuleIcon({ name }: { name: ModuleIconName }) {
           <rect x="14" y="14" width="7" height="7" rx="1.5" />
         </>
       )}
-      {name === "ingesta" && (
-        <>
-          <path d="M12 3v11m-4-4 4 4 4-4M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" />
-        </>
-      )}
     </svg>
   );
 }
@@ -75,13 +64,13 @@ const AdminScreen = () => (
           Administración
         </h1>
         <p className="mt-4 max-w-4xl text-base font-medium text-[--color-text-secondary] md:mt-6 md:text-lg">
-          Gestiona la plataforma, el marketplace y la ingesta de datos desde un
+          Gestiona la plataforma y el marketplace desde un
           solo lugar.
         </p>
       </header>
 
       <nav aria-label="Módulos de administración" className="mt-8 md:mt-10">
-        <ul className="m-0 grid list-none grid-cols-1 gap-5 p-0 lg:grid-cols-3 lg:gap-6">
+        <ul className="m-0 grid list-none grid-cols-1 gap-5 p-0 lg:grid-cols-2 lg:gap-6">
           {modules.map((module) => (
             <li key={module.id} className="flex min-w-0">
               <Link

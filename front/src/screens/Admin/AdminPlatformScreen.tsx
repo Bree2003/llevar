@@ -7,8 +7,10 @@ import {
 } from "controllers/Admin/AdminPlatformController";
 
 import { UserModel } from "models/Admin/usersModel";
-import { DomainModel } from "models/Admin/domainsModel";
+import { DomainModel } from "models/Global/domainsModel";
 import { PermissionModel } from "models/Admin/permissionsModel";
+import { FaqModel } from "models/Global/faqModel";
+import { DictionaryModel } from "models/Global/dictionaryModel";
 
 import AdminPlatformMenu, {
   AdminPlatformSection,
@@ -26,9 +28,13 @@ interface AdminPlatformScreenProps {
   endpoints: Partial<Record<EndpointName, EndpointStatus>> | undefined;
   handleDomainCreate: (domain: DomainModel) => void;
   handlePermissionCreate: (permission: PermissionModel) => void;
+  handleFaqCreate: (faq: FaqModel) => void;
+  handleDictionaryCreate: (dictionary: DictionaryModel) => void;
   handleUserUpdate: (user: UserModel) => void;
   handleDomainUpdate: (domain: DomainModel) => void;
   handlePermissionUpdate: (permission: PermissionModel) => void;
+  handleFaqUpdate: (faq: FaqModel) => void;
+  handleDictionaryUpdate: (dictionary: DictionaryModel) => void;
 }
 
 const AdminPlatformScreen = ({
@@ -36,9 +42,13 @@ const AdminPlatformScreen = ({
   endpoints,
   handleDomainCreate,
   handlePermissionCreate,
+  handleFaqCreate,
+  handleDictionaryCreate,
   handleUserUpdate,
   handleDomainUpdate,
   handlePermissionUpdate,
+  handleFaqUpdate,
+  handleDictionaryUpdate
 }: AdminPlatformScreenProps) => {
   const [section, setSection] = useState<AdminPlatformSection>("users");
 
@@ -139,7 +149,10 @@ const AdminPlatformScreen = ({
             {section === "users" && (
               <UsersAdminSection
                 userData={model?.users}
-                isLoading={endpoints?.loadUsers?.loading}
+                domains={model?.domains}
+                permissions={model?.permissions}
+                isBusy={endpoints?.updateUser?.loading ?? false}
+                isLoading={endpoints?.loadUsers?.loading ?? false}
                 handleUserUpdate={handleUserUpdate}
               />
             )}
@@ -148,7 +161,8 @@ const AdminPlatformScreen = ({
             {section === "domains" && (
               <DomainAdminSection
                 domainData={model?.domains}
-                isLoading={endpoints?.loadDomains?.loading}
+                isBusy={(endpoints?.createDomain?.loading || endpoints?.updateDomain?.loading) ?? false}
+                isLoading={endpoints?.loadDomains?.loading ?? false}
                 handleDomainCreate={handleDomainCreate}
                 handleDomainUpdate={handleDomainUpdate}
               />
@@ -158,7 +172,8 @@ const AdminPlatformScreen = ({
             {section === "permissions" && (
               <PermissionAdminSection
                 permissionData={model?.permissions}
-                isLoading={endpoints?.loadPermissions?.loading}
+                isBusy={(endpoints?.createPermission?.loading || endpoints?.updatePermission?.loading) ?? false}
+                isLoading={endpoints?.loadPermissions?.loading ?? false}
                 handlePermissionCreate={handlePermissionCreate}
                 handlePermissionUpdate={handlePermissionUpdate}
               />
@@ -168,10 +183,26 @@ const AdminPlatformScreen = ({
             {section === "banners" && <BannersAdminSection />}
 
             {/* FAQ */}
-            {section === "faq" && <FaqAdminSection />}
+            {section === "faq" && (
+              <FaqAdminSection
+                faqData={model?.faqs}
+                isBusy={(endpoints?.createFaq?.loading || endpoints?.updateFaq?.loading) ?? false}
+                isLoading={endpoints?.loadFaq?.loading ?? false}
+                handleFaqCreate={handleFaqCreate}
+                handleFaqUpdate={handleFaqUpdate}
+              />
+            )}
 
             {/* DICCIONARIO */}
-            {section === "concepts" && <ConceptsAdminSection />}
+            {section === "concepts" && (
+              <ConceptsAdminSection
+                dictionaryData={model?.dictionaries}
+                isBusy={(endpoints?.createDictionary?.loading || endpoints?.updateDictionary?.loading) ?? false}
+                isLoading={endpoints?.loadDictionary?.loading ?? false}
+                handleDictionaryCreate={handleDictionaryCreate}
+                handleDictionaryUpdate={handleDictionaryUpdate}
+              />
+            )}
           </div>
         </div>
       </div>

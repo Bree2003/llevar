@@ -5,12 +5,14 @@ import { PermissionModel } from 'models/Admin/permissionsModel';
 
 const PermissionAdminSection = ({
     permissionData,
+    isBusy,
     isLoading,
     handlePermissionCreate,
     handlePermissionUpdate,
 }: {
     permissionData: PermissionModel[] | undefined;
-    isLoading: boolean | undefined;
+    isBusy: boolean;
+    isLoading: boolean;
     handlePermissionCreate: (permission: PermissionModel) => void;
     handlePermissionUpdate: (permission: PermissionModel) => void;
 }) => {
@@ -214,12 +216,12 @@ const PermissionAdminSection = ({
         >
           <PermissionAdminTable
             permissionData={filteredPermissions}
+            isBusy={isBusy}
             isLoading={isLoading}
             handlePermissionUpdate={handlePermissionUpdate}
           />
         </div>
       </section>
-
       {editingPermission && (
         <PermissionModal
           permission={editingPermission}

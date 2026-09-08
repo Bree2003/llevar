@@ -18,11 +18,13 @@ import { PermissionModel } from 'models/Admin/permissionsModel';
 
 export default function PermissionAdminTable({
     permissionData,
+    isBusy,
     isLoading,
     handlePermissionUpdate,
 }: {
     permissionData: PermissionModel[] | undefined;
-    isLoading: boolean | undefined;
+    isBusy: boolean;
+    isLoading: boolean;
     handlePermissionUpdate: (permission: PermissionModel) => void;
 }) {
     const [page, setPage] = useState<number>(0);
@@ -73,7 +75,7 @@ export default function PermissionAdminTable({
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {isLoading !== false ? (
+                            {isLoading ? (
                                 <TableRow>
                                     <TableCell colSpan={5} align="center">
                                         Cargando los datos...
@@ -96,7 +98,10 @@ export default function PermissionAdminTable({
                                         <TableCell align="left">{p.description}</TableCell>
                                         <TableCell align="center">
                                             <Tooltip title="Modificar dominio">
-                                                <IconButton onClick={() => setEditingPermission(p)}>
+                                                <IconButton
+                                                    onClick={() => setEditingPermission(p)}
+                                                    disabled={isBusy}
+                                                >
                                                     <SettingsIcon />
                                                 </IconButton>
                                             </Tooltip>
@@ -105,6 +110,7 @@ export default function PermissionAdminTable({
                                             <Tooltip title="Activar/Desactivar usuario">
                                                 <Switch
                                                     checked={p.active}
+                                                    disabled={isBusy}
                                                     onChange={(event) => handleSwitchChange(event, p)}
                                                     slotProps={{ input: { 'aria-label': 'controlled' } }}
                                                 />

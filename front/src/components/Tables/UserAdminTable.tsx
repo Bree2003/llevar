@@ -12,21 +12,33 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
 import SettingsIcon from '@mui/icons-material/Settings';
+import DomainConfigModal from 'components/AdminPlatform/DomainConfigModal';
+import PermissionConfigModal from 'components/AdminPlatform/PermissionConfigModal';
 import { UserModel } from 'models/Admin/usersModel';
+import { DomainModel } from 'models/Global/domainsModel';
+import { PermissionModel } from 'models/Admin/permissionsModel';
 import { useAppSelector } from "store/hooks/redux-hooks";
 
 
 export default function UserAdminTable({
     userData,
+    domains,
+    permissions,
+    isBusy,
     isLoading,
     handleUserUpdate,
 }: {
     userData: UserModel[] | undefined;
-    isLoading: boolean | undefined;
+    domains: DomainModel[] | undefined;
+    permissions: PermissionModel[] | undefined;
+    isBusy: boolean;
+    isLoading: boolean;
     handleUserUpdate: (user: UserModel) => void;
 }) {
     const [page, setPage] = useState<number>(0);
     const [rowsPerPage, setRowsPerPage] = useState<number>(5);
+    const [editingUserDomain, setEditingUserDomain] = useState<UserModel | null>(null);
+    const [editingUserPermission, setEditingUserPermission] = useState<UserModel | null>(null);
 
     const { user } = useAppSelector((state) => state.UserPermissions);
     const userEmail = user?.email || '';
@@ -47,6 +59,18 @@ export default function UserAdminTable({
 
         const updatedUser = { ...u, active: u.active ? false : true };
         handleUserUpdate(updatedUser);
+        return;
+    };
+
+    const handleUserDomainChange = (user: UserModel) => {
+        handleUserUpdate(user);
+        setEditingUserDomain(null);
+        return;
+    };
+
+    const handleUserPermissionChange = (user: UserModel) => {
+        handleUserUpdate(user);
+        setEditingUserPermission(null);
         return;
     };
 
@@ -74,7 +98,7 @@ export default function UserAdminTable({
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {isLoading !== false ? (
+                            {isLoading ? (
                                 <TableRow>
                                     <TableCell colSpan={6} align="center">
                                         Cargando los datos...
@@ -97,14 +121,20 @@ export default function UserAdminTable({
                                         <TableCell align="left">{u.surname}</TableCell>
                                         <TableCell align="center">
                                             <Tooltip title="Editar dominios">
-                                                <IconButton>
+                                                <IconButton
+                                                    disabled={isBusy}
+                                                    onClick={() => setEditingUserDomain(u)}
+                                                >
                                                     <SettingsIcon />
                                                 </IconButton>
                                             </Tooltip>
                                         </TableCell>
                                         <TableCell align="center">
                                             <Tooltip title="Editar permisos">
-                                                <IconButton>
+                                                <IconButton
+                                                    disabled={isBusy}
+                                                    onClick={() => setEditingUserPermission(u)}
+                                                >
                                                     <SettingsIcon />
                                                 </IconButton>
                                             </Tooltip>
@@ -113,7 +143,7 @@ export default function UserAdminTable({
                                             <Tooltip title="Activar/Desactivar usuario">
                                                 <Switch
                                                     checked={u.active}
-                                                    disabled={u.email === userEmail}
+                                                    disabled={u.email === userEmail || isBusy}
                                                     onChange={(event) => handleSwitchChange(event, u)}
                                                     slotProps={{ input: { 'aria-label': 'controlled' } }}
                                                 />
@@ -136,6 +166,22 @@ export default function UserAdminTable({
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
             </Paper>
+            {editingUserDomain && (
+                <DomainConfigModal
+                    user={editingUserDomain}
+                    domains={domains}
+                    onClose={() => setEditingUserDomain(null)}
+                    onSave={handleUserDomainChange}
+                />
+            )}
+            {editingUserPermission && (
+                <PermissionConfigModal
+                    user={editingUserPermission}
+                    permissions={permissions}
+                    onClose={() => setEditingUserPermission(null)}
+                    onSave={handleUserPermissionChange}
+                />
+            )}
         </Box>
     );
 }

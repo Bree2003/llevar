@@ -1,5 +1,5 @@
 import { AxiosPost } from "services/utils";
-import { DomainModel } from "models/Admin/domainsModel";
+import { DomainModel } from "models/Global/domainsModel";
 
 export interface DomainDataResponse {
     id: string;

@@ -4,6 +4,7 @@ import {
   Route,
   Routes,
   Outlet,
+  Navigate,
   useNavigate,
 } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
@@ -12,10 +13,10 @@ import commonTheme from "themes/common-theme";
 import { Provider } from "react-redux";
 import store from "../store/store";
 import UserTokenPermission from "modules/tokenPermission/components/userTokenPermission";
-
-import MainController from "controllers/Main/controller";
+import { useAppSelector } from "store/hooks/redux-hooks";
 
 import NotAuthorizedScreen from "screens/Errors/401";
+import ForbiddenScreen from "screens/Errors/403";
 import NotFoundScreen from "screens/Errors/404";
 
 import AcquireToken from "../modules/authentication/components/acquireToken";
@@ -30,6 +31,7 @@ import {
   UnauthenticatedTemplate,
 } from "@azure/msal-react";
 import AppLayout from "AppLayout";
+import MainController from "controllers/Main/controller";
 import IngestController from "controllers/Ingest/controller";
 import BucketListController from "controllers/Ingest/BucketListController";
 import ProductListController from "controllers/Ingest/ProductListController";
@@ -58,6 +60,13 @@ const NotFoundRedirectRoute = () => {
 };
 
 const ProtectedRoute = () => {
+  const { user } = useAppSelector((state) => state.UserPermissions);
+  const isUserActive = user.active;
+
+  // if(!isUserActive){
+  //   return <Navigate to="/403" />;
+  // }
+
   return <Outlet />;
 };
 
@@ -78,6 +87,7 @@ const Router = () => {
                     <div className="App App-background">
                       <Routes>
                         <Route path="401" element={<NotAuthorizedScreen />} />
+                        <Route path="403" element={<ForbiddenScreen />} />
                         <Route path="404" element={<NotFoundScreen />} />
                         <Route path="/" element={<ProtectedRoute />}>
                           <Route element={<AppLayout />}>
