@@ -37,7 +37,7 @@ const ReportDrawer = ({
   onSave,
   report,
 }: ReportDrawerProps) => {
-  const NAVBAR_HEIGHT = 76;
+  const NAVBAR_HEIGHT = 85.33;
 
   const [form, setForm] = useState(initialForm);
 

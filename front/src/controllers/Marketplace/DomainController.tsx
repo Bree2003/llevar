@@ -1,48 +1,43 @@
-import { useSnackbar } from "notistack";
+import { useEffect, useState } from "react";
+
+import { ReportModel, ReportsDataToModel } from "models/Global/reportsModel";
+
+import loadReportsData from "services/Global/get-reports-data";
 
 import DomainScreen from "screens/Marketplace/DomainScreen";
 
-import { downloadMarketplaceProductExcelService } from "services/Ingest/dataset-service";
-
 const DomainController = () => {
-    const { enqueueSnackbar } = useSnackbar();
+  const [reports, setReports] = useState<ReportModel[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
 
-    const handleDownloadExcel = async (
-        productName: string
-    ) => {
-        console.log("CLICK DOWNLOAD");
-        console.log(productName);
+  useEffect(() => {
+    loadReports();
+  }, []);
 
-        try {
-            await downloadMarketplaceProductExcelService(
-                "pd",
-                "raw-dev-osc-cdp-bucket",
-                productName
-            );
+  const loadReports = async () => {
+    try {
+      setIsLoading(true);
+      setHasError(false);
 
-            enqueueSnackbar(
-                "Excel descargado correctamente.",
-                {
-                    variant: "success",
-                }
-            );
-        } catch (error) {
-            console.error(error);
+      const response = await loadReportsData();
 
-            enqueueSnackbar(
-                "Error descargando Excel.",
-                {
-                    variant: "error",
-                }
-            );
-        }
-    };
+      const reportsData = ReportsDataToModel(response);
 
-    return (
-        <DomainScreen
-            onDownloadExcel={handleDownloadExcel}
-        />
-    );
+      setReports(reportsData);
+    } catch (error) {
+      console.error("Error al cargar reportes de la unidad de negocio:", error);
+
+      setReports([]);
+      setHasError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <DomainScreen reports={reports} isLoading={isLoading} hasError={hasError} />
+  );
 };
 
 export default DomainController;
