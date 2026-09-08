@@ -39,6 +39,7 @@ def create_app():
     app.register_blueprint(domains_bp, url_prefix="/api/domains")
     app.register_blueprint(dictionary_bp, url_prefix="/api/dictionary")
     app.register_blueprint(faq_bp, url_prefix="/api/faq")
+    app.register_blueprint(faq_bp, url_prefix="/api/reports")
 
     # Registramos una ruta base para Health Check
     @app.route("/health", methods=["GET"])
