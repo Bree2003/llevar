@@ -5,6 +5,7 @@ import Agent from "../../../components/Agent/Agent";
 import { ReactComponent as ArrowUp } from "components/Global/Icons/arrow-up.svg";
 
 import { FaqModel } from "models/Global/faqModel";
+import { faqCategories } from "components/AdminPlatform/FaqModal";
 
 interface FaqScreenProps {
   faqData: FaqModel[] | undefined;
@@ -17,9 +18,19 @@ const FaqScreen = ({
   isLoading,
   hasError = false,
 }: FaqScreenProps) => {
-  const [search, setSearch] = useState("");
-
+  const [search, setSearch] = useState<string>("");
   const [openFaq, setOpenFaq] = useState<FaqModel["id"] | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string>("Todas");
+
+  const faqCat = ["Todas", ...faqCategories];
+  const categories = faqCat.map((label) => ({
+    label,
+    count:
+      label === "Todas"
+        ? faqData?.length
+        : faqData?.filter((faq) => faq.categories.includes(label)).length,
+  }));
+
 
   /*
    * Las preguntas ahora vienen directamente
@@ -30,22 +41,19 @@ const FaqScreen = ({
       return [];
     }
 
-    const normalizedSearch = search.toLowerCase().trim();
-
-    if (!normalizedSearch) {
-      return faqData;
-    }
-
     return faqData.filter((faq) => {
-      const question = faq.question?.toLowerCase() || "";
+      const normalizedSearch = search.toLowerCase().trim();
 
-      const answer = faq.answer?.toLowerCase() || "";
+      const matchesCategory = activeCategory === "Todas" || faq.categories.includes(activeCategory);
+      const matchesSearch =
+        normalizedSearch === "" ||
+        faq.question.toLowerCase().includes(normalizedSearch) ||
+        faq.answer.toLowerCase().includes(normalizedSearch);
 
-      return (
-        question.includes(normalizedSearch) || answer.includes(normalizedSearch)
-      );
+      return matchesCategory && matchesSearch;
     });
-  }, [faqData, search]);
+
+  }, [faqData, activeCategory, search]);
 
   const handleToggleFaq = (id: FaqModel["id"]) => {
     setOpenFaq((current) => (current === id ? null : id));
@@ -255,49 +263,61 @@ const FaqScreen = ({
           </div>
         </section>
 
-        {/* CONTADOR */}
-        {!isLoading && !hasError && (
-          <section
+        {/* Categorías */}
+        <section className="w-full mb-8 md:mb-10">
+          <div
             className="
-              w-full
-
-              mb-8
-              md:mb-10
+              flex
+              gap-2
+              md:gap-3
+              overflow-x-auto
+              pb-2
+              md:pb-0
             "
           >
-            <div
-              className="
-                flex
-                gap-2
-              "
-            >
-              <span
-                className="
-                  flex-shrink-0
+            {categories.map((category) => {
+              const isActive = activeCategory === category.label;
 
-                  px-4
-                  md:px-5
-
-                  py-2
-
-                  rounded-full
-
-                  border
-                  border-[--color-accent]
-
-                  bg-[--color-accent]
-
-                  text-xs
-                  md:text-sm
-
-                  text-white
-                "
-              >
-                Todas ({filteredFaqs.length})
-              </span>
-            </div>
-          </section>
-        )}
+              return (
+                <button
+                  key={category.label}
+                  type="button"
+                  onClick={() => {
+                    setActiveCategory(category.label);
+                    setOpenFaq(null);
+                  }}
+                  className={`
+                    flex-shrink-0
+                    px-4
+                    md:px-5
+                    py-2
+                    rounded-full
+                    border
+                    text-xs
+                    md:text-sm
+                    transition-all
+                    ${isActive
+                      ? `
+                          bg-[--color-accent]
+                          border-[--color-accent]
+                          text-white
+                        `
+                      : `
+                          bg-white
+                          border-[--color-border]
+                          text-[--color-text-secondary]
+                          hover:border-[--color-accent]
+                          hover:text-[--color-accent]
+                        `
+                    }
+                  `}
+                >
+                  {category.label} ({category.count})
+                </button>
+              );
+            })}
+          </div>
+        </section>
 
         {/* FAQ */}
         <section
@@ -433,11 +453,10 @@ const FaqScreen = ({
                     className={`
                           w-full
 
-                          ${
-                            index !== filteredFaqs.length - 1
-                              ? "border-b border-[--color-border]"
-                              : ""
-                          }
+                          ${index !== filteredFaqs.length - 1
+                        ? "border-b border-[--color-border]"
+                        : ""
+                      }
                         `}
                   >
                     {/* QUESTION */}
@@ -464,11 +483,10 @@ const FaqScreen = ({
 
                             transition-colors
 
-                            ${
-                              isOpen
-                                ? "bg-[--color-accent-light]"
-                                : "bg-white hover:bg-[--color-background]"
-                            }
+                            ${isOpen
+                          ? "bg-[--color-accent-light]"
+                          : "bg-white hover:bg-[--color-background]"
+                        }
                           `}
                     >
                       <h2
@@ -498,11 +516,10 @@ const FaqScreen = ({
                               transition-transform
                               duration-300
 
-                              ${
-                                isOpen
-                                  ? "rotate-0 text-[--color-accent]"
-                                  : "rotate-180 text-[--color-text-secondary]"
-                              }
+                              ${isOpen
+                            ? "rotate-0 text-[--color-accent]"
+                            : "rotate-180 text-[--color-text-secondary]"
+                          }
                             `}
                       />
                     </button>

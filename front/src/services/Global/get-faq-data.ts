@@ -4,6 +4,7 @@ export interface FaqDataResponse {
     id: string;
     question: string;
     answer: string;
+    categories: string[];
     created_at: string;
     updated_at: string;
 };

@@ -5,6 +5,7 @@ export interface FaqDataResponse {
     id: string;
     question: string;
     answer: string;
+    categories: string[];
     created_at: string;
     updated_at: string;
 };
@@ -14,6 +15,7 @@ const FaqModelToData = (faqData: FaqModel): FaqDataResponse => {
         id: faqData.id,
         question: faqData.question,
         answer: faqData.answer,
+        categories: faqData.categories,
         created_at: faqData.createdAt,
         updated_at: faqData.updatedAt,
     }

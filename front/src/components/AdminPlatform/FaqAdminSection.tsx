@@ -16,7 +16,6 @@ const FaqAdminSection = ({
     handleFaqUpdate: (faq: FaqModel) => void;
 }) => {
   const [search, setSearch] = useState("");
-
   const [editingFaq, setEditingFaq] = useState<FaqModel | null>(null);
 
   const filteredFaqs = useMemo(() => {
@@ -115,6 +114,7 @@ const FaqAdminSection = ({
                 id: "",
                 question: "",
                 answer: "",
+                categories: [],
                 createdAt: "",
                 updatedAt: "",
               })

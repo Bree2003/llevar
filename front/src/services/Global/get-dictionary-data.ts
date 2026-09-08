@@ -3,7 +3,10 @@ import { AxiosGet } from "services/utils";
 export interface DictionaryDataResponse {
     id: string;
     name: string;
+    summary: string;
     description: string;
+    icon: string;
+    categories: string[];
     created_at: string;
     updated_at: string;
 };

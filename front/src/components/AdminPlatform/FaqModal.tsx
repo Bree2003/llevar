@@ -9,10 +9,29 @@ interface Props {
   onSave: (faq: FaqModel, kind: ActionKind) => void;
 }
 
+export const faqCategories = [
+  "Accesos y permisos",
+  "Data Marketplace",
+  "Ingestas de datos",
+  "Plataforma",
+];
+
 const FaqModal = ({ faq, onClose, onSave }: Props) => {
   const [form, setForm] = useState<FaqModel>(faq);
 
   const isValid = form.question.trim() !== "" && form.answer.trim() !== "";
+
+  const toggleCategory = (category: string) => {
+    setForm((prev) => {
+      const current = prev.categories ?? [];
+      return {
+        ...prev,
+        categories: current.includes(category)
+          ? current.filter((c) => c !== category)
+          : [...current, category],
+      };
+    });
+  };
 
   return (
     <div
@@ -134,6 +153,21 @@ const FaqModal = ({ faq, onClose, onSave }: Props) => {
               placeholder="Ej: ¿Cómo puedo solicitar acceso?"
               className={inputStyle}
             />
+          </Field>
+
+          <Field label="Categorías">
+            <div className="flex flex-wrap gap-3">
+              {(faqCategories ?? []).map((category) => (
+                <label key={category} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={(form.categories ?? []).includes(category)}
+                    onChange={() => toggleCategory(category)}
+                  />
+                  <span>{category}</span>
+                </label>
+              ))}
+            </div>
           </Field>
 
           <Field label="Respuesta">

@@ -5,6 +5,7 @@ export interface FaqDataResponse {
     id: string;
     question: string;
     answer: string;
+    categories: string[];
     created_at: string;
     updated_at: string;
 };
@@ -13,6 +14,7 @@ export interface FaqDataCreation {
     id: string;
     question: string;
     answer: string;
+    categories: string[];
 };
 
 const FaqModelToData = (faqData: FaqModel): FaqDataCreation => {
@@ -20,6 +22,7 @@ const FaqModelToData = (faqData: FaqModel): FaqDataCreation => {
         id: faqData.id,
         question: faqData.question,
         answer: faqData.answer,
+        categories: faqData.categories,
     }
 };
 

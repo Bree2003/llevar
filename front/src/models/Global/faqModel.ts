@@ -4,6 +4,7 @@ export interface FaqModel {
     id: string;
     question: string;
     answer: string;
+    categories: string[];
     createdAt: string;
     updatedAt: string;
 };
@@ -13,6 +14,7 @@ export const FaqDataToModel = (faq: FaqDataResponse | undefined): FaqModel | nul
         id: faq.id,
         question: faq.question,
         answer: faq.answer,
+        categories: faq.categories,
         createdAt: faq.created_at,
         updatedAt: faq.updated_at
     } : null;
@@ -23,6 +25,7 @@ export const FaqsDataToModel = (faqs: FaqDataResponse[] | undefined): FaqModel[]
         id: faq.id,
         question: faq.question,
         answer: faq.answer,
+        categories: faq.categories,
         createdAt: faq.created_at,
         updatedAt: faq.updated_at
     })) : [];

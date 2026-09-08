@@ -116,7 +116,10 @@ const ConceptsAdminSection = ({
               setEditingConcept({
                 id: "",
                 name: "",
+                summary: "",
                 description: "",
+                icon: "",
+                categories: [],
                 createdAt: "",
                 updatedAt: "",
               })
