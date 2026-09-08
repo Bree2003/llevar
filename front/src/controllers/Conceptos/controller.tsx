@@ -1,9 +1,12 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import MainScreen from "screens/Main/Main";
+import { useEffect, useState } from "react";
 
-import * as storageService from "services/Main/storage";
-import * as storageModel from "models/Main/storageModel";
+import {
+  DictionaryModel,
+  DictionariesDataToModel,
+} from "models/Global/dictionaryModel";
+
+import loadDictionaryData from "services/Global/get-dictionary-data";
+
 import ConceptosScreen from "screens/Main/Conceptos/Conceptos";
 
 export interface EndpointStatus {
@@ -11,40 +14,39 @@ export interface EndpointStatus {
   error?: boolean;
 }
 
-export type EndpointName = "LoadEnvironments";
+export type EndpointName = "loadDictionary";
 
 export interface Model {
-  environments: storageModel.EnvironmentModel[];
+  dictionaries: DictionaryModel[] | undefined;
+
   lastUpdate: Date | undefined;
 }
 
 const ConceptosController = () => {
-  const navigate = useNavigate();
+  const [model, setModel] = useState<Partial<Model>>({
+    dictionaries: undefined,
+  });
 
-  // --- NOTA: Esta lógica ahora no se usa en la vista, pero se mantiene aquí ---
-  // --- por si se necesita para otros componentes en el futuro. ---
-  const [model, setModel] = useState<Partial<Model>>({ environments: [] });
   const [endpoints, setEndpoints] =
     useState<Partial<Record<EndpointName, EndpointStatus>>>();
 
   useEffect(() => {
-    refreshAllData();
+    loadDictionaries();
   }, []);
-
-  const refreshAllData = async () => {
-    loadEnvironmentsModel();
-  };
 
   const updateModel = (
     partialModel:
       | Partial<Model>
       | ((model: Partial<Model> | undefined) => Partial<Model>),
   ) => {
-    setModel((prev) => {
+    setModel((previous) => {
       const newModel =
-        typeof partialModel === "function" ? partialModel(prev) : partialModel;
+        typeof partialModel === "function"
+          ? partialModel(previous)
+          : partialModel;
+
       return {
-        ...prev,
+        ...previous,
         lastUpdate: new Date(),
         ...newModel,
       };
@@ -55,46 +57,71 @@ const ConceptosController = () => {
     endpoint: EndpointName,
     status: Partial<EndpointStatus>,
   ) => {
-    setEndpoints((prev) => ({
-      ...prev,
-      [endpoint]: { ...prev?.[endpoint], ...status },
+    setEndpoints((previous) => ({
+      ...previous,
+
+      [endpoint]: {
+        ...previous?.[endpoint],
+        ...status,
+      },
     }));
   };
 
   const buildStatusEndpoint = (name: EndpointName) => ({
     loading() {
-      setEndpointStatus(name, { loading: true, error: false });
+      setEndpointStatus(name, {
+        loading: true,
+        error: false,
+      });
     },
+
     error() {
-      setEndpointStatus(name, { loading: false, error: true });
+      setEndpointStatus(name, {
+        loading: false,
+        error: true,
+      });
     },
+
     done() {
-      setEndpointStatus(name, { loading: false });
+      setEndpointStatus(name, {
+        loading: false,
+      });
     },
   });
 
-  const handleViewChange = (data: any, tab: number, url: string) => {
-    navigate(`/${url}`, { state: { data: data, tab: tab } });
-  };
+  const loadDictionaries = async () => {
+    const statusEndpoint = buildStatusEndpoint("loadDictionary");
 
-  const loadEnvironmentsModel = async () => {
-    const statusEndpoint = buildStatusEndpoint("LoadEnvironments");
     try {
       statusEndpoint.loading();
-      const response = await storageService.loadEnvironments();
-      const environments = storageModel.EnvironmentsToModel(response);
-      updateModel({ environments });
-    } catch (e) {
-      console.error("Error al cargar entornos:", e);
+
+      const response = await loadDictionaryData();
+
+      const dictionaries = DictionariesDataToModel(response);
+
+      updateModel({
+        dictionaries,
+      });
+    } catch (error) {
+      console.error("Error al cargar diccionario:", error);
+
       statusEndpoint.error();
-      updateModel({ environments: [] });
+
+      updateModel({
+        dictionaries: [],
+      });
     } finally {
       statusEndpoint.done();
     }
   };
 
-  // --- CAMBIO CLAVE: Llamamos a MainScreen sin pasarle ninguna prop ---
-  return <ConceptosScreen />;
+  return (
+    <ConceptosScreen
+      dictionaryData={model?.dictionaries}
+      isLoading={endpoints?.loadDictionary?.loading ?? true}
+      hasError={endpoints?.loadDictionary?.error ?? false}
+    />
+  );
 };
 
 export default ConceptosController;
