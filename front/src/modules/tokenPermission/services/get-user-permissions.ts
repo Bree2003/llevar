@@ -1,10 +1,10 @@
 import { AxiosGet } from "services/utils";
 
 export interface arrayResponse {
+    id: string;
     name: string;
+    description: string;
     active: boolean;
-    created_at: string;
-    updated_at: string;
 }
 
 export interface UserPermissionResponse {

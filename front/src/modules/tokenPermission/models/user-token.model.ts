@@ -1,4 +1,4 @@
-import { jwtDecode, JwtPayload } from "jwt-decode";
+import { JwtPayload } from "jwt-decode";
 import { UserPermissionResponse } from "../services/get-user-permissions";
 
 export interface MSTokenModel extends JwtPayload {
@@ -10,7 +10,9 @@ export interface MSTokenModel extends JwtPayload {
 };
 
 export interface ArrayModel {
+  id: string;
   name: string;
+  description: string;
   active: boolean;
 }
 
@@ -25,24 +27,26 @@ export interface UserTokenModel {
 }
 
 export const UserTokenToModel = async (
-  userToken: any,
   userPermissions: UserPermissionResponse
 ): Promise<UserTokenModel> => {
-  const decodedToken: MSTokenModel = jwtDecode(userToken);
   const output: UserTokenModel = {
-    username: decodedToken.name ? decodedToken.name : "N/A",
-    name: decodedToken.given_name ? decodedToken.given_name : "N/A",
-    surname: decodedToken.family_name ? decodedToken.family_name : "N/A",
-    email: decodedToken.upn ? decodedToken.upn : (decodedToken.unique_name ? decodedToken.unique_name : "N/A"),
-    domains: userPermissions.domains.map((domain) => ({
+    username: userPermissions.name ?? "N/A",
+    name: userPermissions.name ?? "N/A",
+    surname: userPermissions.surname ?? "N/A",
+    email: userPermissions.email ?? "N/A",
+    domains: userPermissions.domains ? userPermissions.domains.map((domain) => ({
+      id: domain.id,
       name: domain.name,
+      description: domain.description,
       active: domain.active,
-    })),
-    permissions: userPermissions.permissions.map((permission) => ({
+    })) : [],
+    permissions: userPermissions.permissions ? userPermissions.permissions.map((permission) => ({
+      id: permission.id,
       name: permission.name,
+      description: permission.description,
       active: permission.active,
-    })),
-    active: userPermissions.active,
+    })) : [],
+    active: userPermissions.active ?? false,
   };
   return output;
 };

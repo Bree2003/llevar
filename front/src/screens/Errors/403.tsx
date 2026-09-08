@@ -15,7 +15,7 @@ export const ForbiddenScreen = () => {
 
         <Row>
           <Message>
-            Su cuenta se encuentra desactivada.
+            Su cuenta se encuentra desactivada o no tiene los permisos para acceder a esta aplicaci&oacute;n.
             <br />
             Contacte al administrador si cree que es un error.
           </Message>

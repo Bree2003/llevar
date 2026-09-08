@@ -12,6 +12,8 @@ import { ReactComponent as BarChart } from "components/Global/Icons/bar-chart.sv
 
 import { useLocation, useNavigate } from "react-router";
 import { useMemo, useState } from "react";
+import { useAppSelector } from "store/hooks/redux-hooks";
+import { checkPermission, PermissionList } from "modules/tokenPermission/utils/user-token.util";
 
 import { Report } from "screens/Marketplace/Admin/types";
 import { domainUnits } from "data/domain-units";
@@ -19,6 +21,14 @@ import { domainUnits } from "data/domain-units";
 interface LateralMenuProps {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+interface MenuItemProps {
+  label: string;
+  icon: any;
+  path: string;
+  permission: PermissionList;
+  onClick: () => void;
 }
 
 const HELP_ITEMS = [
@@ -39,6 +49,9 @@ const HELP_ITEMS = [
 const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const { user } = useAppSelector((state) => state.UserPermissions);
+  const userPermissions = user.permissions;
 
   const STORAGE_KEY = "admin_reports";
 
@@ -88,29 +101,33 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
       .filter(Boolean);
   }, [reports]);
 
-  const menuItems = [
+  const menuItems: MenuItemProps[] = [
     {
       label: "Inicio",
       icon: House,
       path: "/",
+      permission: "reader",
       onClick: () => navigate("/"),
     },
     {
       label: "Ingestas",
       icon: Database,
       path: "/dashboard",
+      permission: "ingestion-reader",
       onClick: () => navigate("/dashboard"),
     },
     {
       label: "Marketplace",
       icon: Category,
       path: "/marketplace",
+      permission: "marketplace-reader",
       onClick: () => navigate("/marketplace"),
     },
     {
       label: "Administración",
       icon: Setting,
       path: "/admin",
+      permission: "admin",
       onClick: () => navigate("/admin"),
     },
   ];
@@ -163,8 +180,12 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
     >
       <nav className="p-3">
         <div className="flex flex-col">
-          {menuItems.map(({ label, icon: Icon, onClick, path }) => {
+          {menuItems.map(({ label, icon: Icon, onClick, permission, path }) => {
             const isActive = location.pathname === path;
+
+            if (permission && !checkPermission(userPermissions, permission)) {
+              return null;
+            }
 
             return (
               <button
@@ -182,17 +203,15 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
 
                     transition-colors
 
-                    ${
-                      isOpen
-                        ? "justify-start gap-3 px-1.5"
-                        : "justify-center px-1.5"
-                    }
+                    ${isOpen
+                    ? "justify-start gap-3 px-1.5"
+                    : "justify-center px-1.5"
+                  }
 
-                    ${
-                      isActive
-                        ? "bg-[--color-accent] text-white"
-                        : "hover:bg-[--color-accent-light] hover:text-[--color-accent]"
-                    }
+                    ${isActive
+                    ? "bg-[--color-accent] text-white"
+                    : "hover:bg-[--color-accent-light] hover:text-[--color-accent]"
+                  }
                   `}
               >
                 <Icon className="w-6 h-6 flex-shrink-0" />
@@ -205,11 +224,11 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
               </button>
             );
           })}
-
-          <button
-            type="button"
-            onClick={handleGcpConsoleClick}
-            className={`
+          {checkPermission(userPermissions, "gcp-access") ? (
+            <button
+              type="button"
+              onClick={handleGcpConsoleClick}
+              className={`
               w-full
               h-10
 
@@ -225,17 +244,18 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
 
               ${isOpen ? "justify-start gap-3 px-1.5" : "justify-center px-1.5"}
             `}
-          >
-            <Cloud className="w-6 h-6 flex-shrink-0" />
+            >
+              <Cloud className="w-6 h-6 flex-shrink-0" />
 
-            {isOpen && (
-              <>
-                <span className="text-sm whitespace-nowrap">Consola GCP</span>
+              {isOpen && (
+                <>
+                  <span className="text-sm whitespace-nowrap">Consola GCP</span>
 
-                <Export className="w-5 h-5 flex-shrink-0" />
-              </>
-            )}
-          </button>
+                  <Export className="w-5 h-5 flex-shrink-0" />
+                </>
+              )}
+            </button>
+          ) : null}
         </div>
       </nav>
 
@@ -263,10 +283,9 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
 
                 transition-colors
 
-                ${
-                  isHelpActive
-                    ? "text-[--color-accent]"
-                    : "text-[--color-text-secondary]"
+                ${isHelpActive
+                  ? "text-[--color-accent]"
+                  : "text-[--color-text-secondary]"
                 }
               `}
             >
@@ -346,10 +365,9 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
                 duration-300
                 ease-in-out
 
-                ${
-                  isHelpExpanded
-                    ? "grid-rows-[1fr] opacity-100"
-                    : "grid-rows-[0fr] opacity-0"
+                ${isHelpExpanded
+                  ? "grid-rows-[1fr] opacity-100"
+                  : "grid-rows-[0fr] opacity-0"
                 }
               `}
             >
@@ -390,11 +408,10 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
 
                             transition-colors
 
-                            ${
-                              isActive
-                                ? "bg-[--color-accent-light] text-[--color-accent] font-semibold"
-                                : "text-[--color-text-secondary] hover:bg-[--color-background] hover:text-[--color-accent]"
-                            }
+                            ${isActive
+                            ? "bg-[--color-accent-light] text-[--color-accent] font-semibold"
+                            : "text-[--color-text-secondary] hover:bg-[--color-background] hover:text-[--color-accent]"
+                          }
                           `}
                       >
                         {/* Indicador hijo */}
@@ -407,11 +424,10 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
 
                               flex-shrink-0
 
-                              ${
-                                isActive
-                                  ? "bg-[--color-accent]"
-                                  : "bg-[--color-text-muted]"
-                              }
+                              ${isActive
+                              ? "bg-[--color-accent]"
+                              : "bg-[--color-text-muted]"
+                            }
                             `}
                         />
 
@@ -449,10 +465,9 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
 
               transition-colors
 
-              ${
-                isHelpActive
-                  ? "bg-[--color-accent-light] text-[--color-accent]"
-                  : "hover:bg-[--color-accent-light] hover:text-[--color-accent]"
+              ${isHelpActive
+                ? "bg-[--color-accent-light] text-[--color-accent]"
+                : "hover:bg-[--color-accent-light] hover:text-[--color-accent]"
               }
             `}
           >
@@ -521,11 +536,10 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
 
                           transition-colors
 
-                          ${
-                            isDomainActive
-                              ? "bg-[--color-accent-light] text-[--color-accent]"
-                              : "hover:bg-[--color-background]"
-                          }
+                          ${isDomainActive
+                          ? "bg-[--color-accent-light] text-[--color-accent]"
+                          : "hover:bg-[--color-background]"
+                        }
                         `}
                     >
                       <button
@@ -604,11 +618,10 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
                           duration-300
                           ease-in-out
 
-                          ${
-                            isExpanded
-                              ? "grid-rows-[1fr] opacity-100"
-                              : "grid-rows-[0fr] opacity-0"
-                          }
+                          ${isExpanded
+                          ? "grid-rows-[1fr] opacity-100"
+                          : "grid-rows-[0fr] opacity-0"
+                        }
                         `}
                     >
                       <div className="overflow-hidden">
@@ -652,11 +665,10 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
 
                                       transition-colors
 
-                                      ${
-                                        isReportActive
-                                          ? "bg-[--color-accent-light] text-[--color-accent]"
-                                          : "hover:bg-[--color-background]"
-                                      }
+                                      ${isReportActive
+                                    ? "bg-[--color-accent-light] text-[--color-accent]"
+                                    : "hover:bg-[--color-background]"
+                                  }
                                     `}
                               >
                                 <BarChart className="w-4 h-4 flex-shrink-0" />

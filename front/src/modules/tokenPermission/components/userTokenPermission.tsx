@@ -1,7 +1,6 @@
 import { ReactElement, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { Dispatch } from "redux";
-import { getOnSessionStorage } from "services/utils";
 import {
   UserTokenModel,
   UserTokenToModel,
@@ -33,12 +32,8 @@ export const UserTokenPermission = ({ children }: { children: ReactElement }) =>
   const getUserPermissions = async () => {
     await setUserTokenLoading();
     try {
-      const token = await getOnSessionStorage('accessToken');
       const userPermissions = await loadUserPermissions();
-      const userTokenPermission: UserTokenModel = await UserTokenToModel(
-        token,
-        userPermissions
-      );
+      const userTokenPermission: UserTokenModel = await UserTokenToModel(userPermissions);
       await saveUserToken(userTokenPermission);
     } catch (e) {
       await saveUserToken(undefined);

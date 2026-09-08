@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "store/hooks/redux-hooks";
+import { checkPermission } from "modules/tokenPermission/utils/user-token.util";
 import Agent from "../../components/Agent/Agent";
 import { ReactComponent as Download } from "components/Global/Icons/download.svg";
 import { ReactComponent as ArrowUp } from "components/Global/Icons/arrow-up.svg";
@@ -8,6 +9,7 @@ import ManualUsuario from "assets/docs/Manual-Plataforma-Inteligente-de-Datos.pd
 
 const MainScreen = () => {
   const { user } = useAppSelector((state) => state.UserPermissions);
+  const userPermissions = user.permissions;
   const navigate = useNavigate();
 
   const handleGcpConsoleClick = () => {
@@ -256,6 +258,7 @@ const MainScreen = () => {
 
                       <button
                         type="button"
+                        disabled={!checkPermission(userPermissions, "ingestion-reader")}
                         onClick={() => navigate("/dashboard")}
                         className="flex gap-4 bg-[--color-accent] rounded-[10px] px-5 py-[10px] items-center justify-center w-full"
                       >
@@ -308,6 +311,7 @@ const MainScreen = () => {
 
                       <button
                         type="button"
+                        disabled={!checkPermission(userPermissions, "gcp-access")}
                         onClick={handleGcpConsoleClick}
                         className="flex gap-4 bg-[--color-accent] rounded-[10px] px-5 py-[10px] items-center justify-center w-full"
                       >
@@ -379,6 +383,7 @@ const MainScreen = () => {
 
                     <button
                       type="button"
+                      disabled={!checkPermission(userPermissions, "marketplace-reader")}
                       onClick={() => navigate("/marketplace")}
                       className="flex gap-4 bg-[--color-accent] rounded-[10px] px-5 py-[10px] items-center justify-center w-full"
                     >

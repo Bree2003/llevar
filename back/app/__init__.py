@@ -9,6 +9,7 @@ from app.routes.me_routes import me_bp
 from app.routes.user_routes import user_bp
 from app.routes.permissions_routes import permissions_bp
 from app.routes.domains_routes import domains_bp
+from app.routes.banner_routes import banner_bp
 from app.routes.dictionary_routes import dictionary_bp
 from app.routes.faq_routes import faq_bp
 from app.utils.exceptions import InvalidUsage
@@ -34,6 +35,7 @@ def create_app():
     app.register_blueprint(me_bp, url_prefix="/api/me")
     app.register_blueprint(user_bp, url_prefix="/api/users")
     app.register_blueprint(permissions_bp, url_prefix="/api/permissions")
+    app.register_blueprint(banner_bp, url_prefix="/api/banners")
     app.register_blueprint(domains_bp, url_prefix="/api/domains")
     app.register_blueprint(dictionary_bp, url_prefix="/api/dictionary")
     app.register_blueprint(faq_bp, url_prefix="/api/faq")

@@ -1,5 +1,7 @@
 export interface UserTokenDataModel {
+  id: string;
   name: string;
+  description: string;
   active: boolean;
 }
 

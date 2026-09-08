@@ -7,10 +7,13 @@ from dotenv import load_dotenv
 import pandas as pd
 import io
 import os
+import mimetypes
 import polars as pl
 import re
 import gcsfs
+from uuid import uuid4
 from google.cloud import storage
+from fastapi import UploadFile
 import tempfile
 
 # ruta base del proyecto
@@ -556,6 +559,52 @@ def save_full_dataset(project_id, bucket_name, product_path, rows, filename=None
         os.remove(temp_parquet_path)
 
     return destination_blob_name
+
+def upload_blob(project_id: str,
+                bucket_name:str ,
+                file_path: str,
+                file: UploadFile) -> str | None:
+    """
+    Recibe un archivo y lo sube a GCS.
+    No realiza cambios de formatos.
+    """
+    
+    tz = ZoneInfo("America/Santiago")
+    today = datetime.now(tz)
+
+    year = today.strftime("%Y")
+    month = today.strftime("%m")
+    day = today.strftime("%d")
+
+    try:
+        #Mejora el nombre del archivo.
+        original_name = file.filename or ""
+        ext = os.path.splitext(original_name)[1].lower() or mimetypes.guess_extension(file.content_type or "") or ""
+        safe_name = f"{uuid4().hex}{ext}"
+
+        destination_blob_name = (
+            f"{file_path}/year={year}/month={month}/day={day}/{safe_name}"
+        )
+
+        content_type = (
+            file.content_type
+            or mimetypes.guess_type(safe_name)[0]
+            or "application/octet-stream"
+        )
+
+        storage_client = get_storage_client(project_id)
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(destination_blob_name)
+
+        file.file.seek(0)
+        blob.cache_control = "public, max-age=31536000, immutable"
+
+        blob.upload_from_file(file.file, content_type=content_type)
+
+        return f"https://storage.googleapis.com/{bucket_name}/{destination_blob_name}"
+
+    except Exception as e:
+        raise Exception(f"Error subiendo archivo a GCP: {e}")
 
 def dataframe_to_excel_tempfile(df, filename: str):
     """

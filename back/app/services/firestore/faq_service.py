@@ -10,6 +10,7 @@ COLLECTION = "faq"
 DEFAULTS: dict[str, Any] = {
     "question": "",
     "answer": "",
+    "categories": [],
 }
 
 TEXT_FIELDS = ("question", "answer")

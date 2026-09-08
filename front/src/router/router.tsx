@@ -13,6 +13,7 @@ import commonTheme from "themes/common-theme";
 import { Provider } from "react-redux";
 import store from "../store/store";
 import UserTokenPermission from "modules/tokenPermission/components/userTokenPermission";
+import { checkPermission, PermissionList } from "modules/tokenPermission/utils/user-token.util";
 import { useAppSelector } from "store/hooks/redux-hooks";
 
 import NotAuthorizedScreen from "screens/Errors/401";
@@ -46,7 +47,6 @@ import OnboardingController from "controllers/Onboarding/controller";
 import FaqController from "controllers/Faq/controller";
 import ConceptosController from "controllers/Conceptos/controller";
 import AdminMarketplaceController from "controllers/Admin/AdminMarketplaceController";
-import AdminIngestController from "controllers/Admin/AdminIngestController";
 import AdminPlatformController from "controllers/Admin/AdminPlatformController";
 
 const msalInstance = new PublicClientApplication(msalConfig as Configuration);
@@ -59,12 +59,25 @@ const NotFoundRedirectRoute = () => {
   return <></>;
 };
 
-const ProtectedRoute = () => {
+const ProtectedRoute = ({
+  permission
+}: {
+  permission?: PermissionList;
+}) => {
   const { user } = useAppSelector((state) => state.UserPermissions);
+  const permissions = user.permissions;
   const isUserActive = user.active;
 
-  // if(!isUserActive){
+  // if (!isUserActive) {
   //   return <Navigate to="/403" />;
+  // }
+
+  // if (!checkPermission(permissions, "reader")) {
+  //   return <Navigate to="/403" />;
+  // }
+
+  // if (permission && !checkPermission(permissions, permission)) {
+  //   return <Navigate to="/401" />;
   // }
 
   return <Outlet />;
@@ -89,7 +102,7 @@ const Router = () => {
                         <Route path="401" element={<NotAuthorizedScreen />} />
                         <Route path="403" element={<ForbiddenScreen />} />
                         <Route path="404" element={<NotFoundScreen />} />
-                        <Route path="/" element={<ProtectedRoute />}>
+                        <Route element={<ProtectedRoute />}>
                           <Route element={<AppLayout />}>
                             <Route path="/" element={<MainController />} />
                             <Route
@@ -101,54 +114,60 @@ const Router = () => {
                               path="/conceptos"
                               element={<ConceptosController />}
                             />
-                            <Route
-                              path="/marketplace"
-                              element={<MarketplaceController />}
-                            />
-                            <Route
-                              path="/admin"
-                              element={<AdminController />}
-                            />
-                            <Route
-                              path="/admin/marketplace"
-                              element={<AdminMarketplaceController />}
-                            />
-                            <Route
-                              path="/admin/ingesta"
-                              element={<AdminIngestController />}
-                            />
-                            <Route
-                              path="/admin/platform"
-                              element={<AdminPlatformController />}
-                            />
-                            <Route
-                              path="/marketplace/:domainId"
-                              element={<DomainController />}
-                            />
-                            <Route
-                              path="/marketplace/:domainId/:reportId"
-                              element={<ReportController />}
-                            />
-                            <Route
-                              path="/dashboard"
-                              element={<IngestController />}
-                            />
-                            <Route
-                              path="/dashboard/:envId"
-                              element={<BucketListController />}
-                            />
-                            <Route
-                              path="/dashboard/:envId/:bucketName/products"
-                              element={<ProductListController />}
-                            />
-                            <Route
-                              path="/dashboard/:envId/:bucketName/:productName/folders"
-                              element={<FolderListController />}
-                            />
-                            <Route
-                              path="/dashboard/:envId/:bucketName/:productName/:tableName/table"
-                              element={<PreviewController />}
-                            />
+                            <Route element={<ProtectedRoute permission="marketplace-reader" />}>
+                              <Route
+                                path="/marketplace"
+                                element={<MarketplaceController />}
+                              />
+                              <Route
+                                path="/marketplace/:domainId"
+                                element={<DomainController />}
+                              />
+                              <Route
+                                path="/marketplace/:domainId/:reportId"
+                                element={<ReportController />}
+                              />
+                            </Route>
+                            <Route element={<ProtectedRoute permission="admin" />}>
+                              <Route
+                                path="/admin"
+                                element={<AdminController />}
+                              />
+                            </Route>
+                            <Route element={<ProtectedRoute permission="marketplace-admin" />}>
+                              <Route
+                                path="/admin/marketplace"
+                                element={<AdminMarketplaceController />}
+                              />
+                            </Route>
+                            <Route element={<ProtectedRoute permission="platform-admin" />}>
+                              <Route
+                                path="/admin/platform"
+                                element={<AdminPlatformController />}
+                              />
+                            </Route>
+                            <Route element={<ProtectedRoute permission="ingestion-reader" />}>
+                              <Route
+                                path="/dashboard"
+                                element={<IngestController />}
+                              />
+                              <Route
+                                path="/dashboard/:envId"
+                                element={<BucketListController />}
+                              />
+                              <Route
+                                path="/dashboard/:envId/:bucketName/products"
+                                element={<ProductListController />}
+                              />
+                              <Route
+                                path="/dashboard/:envId/:bucketName/:productName/folders"
+                                element={<FolderListController />}
+                              />
+                              <Route
+                                path="/dashboard/:envId/:bucketName/:productName/:tableName/table"
+                                element={<PreviewController />}
+                              />
+                            </Route>
                           </Route>
                         </Route>
                         <Route path="/logout" element={<Logout />} />
