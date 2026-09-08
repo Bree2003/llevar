@@ -68,17 +68,17 @@ const ProtectedRoute = ({
   const permissions = user.permissions;
   const isUserActive = user.active;
 
-  // if (!isUserActive) {
-  //   return <Navigate to="/403" />;
-  // }
+  if (!isUserActive) {
+    return <Navigate to="/403" />;
+  }
 
-  // if (!checkPermission(permissions, "reader")) {
-  //   return <Navigate to="/403" />;
-  // }
+  if (!checkPermission(permissions, "reader")) {
+    return <Navigate to="/403" />;
+  }
 
-  // if (permission && !checkPermission(permissions, permission)) {
-  //   return <Navigate to="/401" />;
-  // }
+  if (permission && !checkPermission(permissions, permission)) {
+    return <Navigate to="/401" />;
+  }
 
   return <Outlet />;
 };
