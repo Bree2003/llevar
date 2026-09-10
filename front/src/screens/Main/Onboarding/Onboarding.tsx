@@ -3,10 +3,16 @@ import Agent from "components/Agent/Agent";
 import { ReactComponent as Download } from "components/Global/Icons/download.svg";
 import { ReactComponent as ArrowUp } from "components/Global/Icons/arrow-up.svg";
 import ManualUsuario from "assets/docs/Manual-Plataforma-Inteligente-de-Datos.pdf";
+import { LinksModel } from "models/Global/linksModel";
 
-const OnboardingScreen = () => {
+interface OnboardingScreenProps {
+  links: LinksModel | undefined;
+}
+
+const OnboardingScreen = ({ links }: OnboardingScreenProps) => {
   const navigate = useNavigate();
 
+  const supportUrl = links?.enlaceSoporte?.trim();
   const PLACEHOLDER_IMAGE = "/images/video-introductorio.png";
 
   const handleDownloadManual = () => {
@@ -177,7 +183,11 @@ const OnboardingScreen = () => {
         "
               >
                 Ver video introductorio
-                <img src="/images/play-circle.png" alt="play-circle" className="w-5 h-5" />
+                <img
+                  src="/images/play-circle.png"
+                  alt="play-circle"
+                  className="w-5 h-5"
+                />
               </button>
             </div>
           </div>
@@ -202,20 +212,22 @@ const OnboardingScreen = () => {
             gap-4
             py-5
 
-            ${index !== learning_items.length - 1
-                      ? "border-b border-[--color-border]"
-                      : ""
-                    }
+            ${
+              index !== learning_items.length - 1
+                ? "border-b border-[--color-border]"
+                : ""
+            }
 
             md:px-6
 
             xl:py-0
             xl:border-b-0
 
-            ${index !== learning_items.length - 1
-                      ? "xl:border-r xl:border-[--color-border]"
-                      : ""
-                    }
+            ${
+              index !== learning_items.length - 1
+                ? "xl:border-r xl:border-[--color-border]"
+                : ""
+            }
 
             ${index === 0 ? "md:pl-0 xl:pl-0" : ""}
 
@@ -327,9 +339,10 @@ const OnboardingScreen = () => {
                   gap-4
                   md:gap-5
                   w-full
-                  ${index !== next_steps.length - 1
-                    ? "xl:border-r xl:border-[--color-border] xl:pr-8"
-                    : ""
+                  ${
+                    index !== next_steps.length - 1
+                      ? "xl:border-r xl:border-[--color-border] xl:pr-8"
+                      : ""
                   }
                 `}
               >
@@ -399,16 +412,25 @@ const OnboardingScreen = () => {
 
             <p className="text-sm md:text-base text-[--color-text-secondary] mb-2">
               Nuestro equipo está disponible para ayudarte a resolver dudas y
-              aprovechar al máximo la Plataforma Inteligente de Datos. Si tienes alguna inquietud
-              o duda sobre el funcionamiento de la plataforma puedes gestionar tu solicitud en {" "}
-              <span><a
-                href="https://portalti.cyt.conchaytoro.cl/asmscustomer"
-                rel="noreferrer"
-                className="text-sm md:text-base text-[--color-info] font-semibold hover:underline"
-                target="_blank"
-              >
-                Aranda
-              </a></span>
+              aprovechar al máximo la Plataforma Inteligente de Datos. Si tienes
+              alguna inquietud o duda sobre el funcionamiento de la plataforma
+              puedes gestionar tu solicitud en{" "}
+              <span>
+                {supportUrl ? (
+                  <a
+                    href={supportUrl}
+                    rel="noreferrer"
+                    className="text-sm md:text-base text-[--color-info] font-semibold hover:underline"
+                    target="_blank"
+                  >
+                    Aranda
+                  </a>
+                ) : (
+                  <span className="text-sm md:text-base font-semibold text-[--color-text-muted]">
+                    Aranda
+                  </span>
+                )}
+              </span>
             </p>
           </div>
         </section>

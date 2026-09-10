@@ -7,14 +7,21 @@ import { ReactComponent as Eye } from "components/Global/Icons/eye.svg";
 import { domainUnits } from "data/domain-units";
 import { ReportModel } from "models/Global/reportsModel";
 import Agent from "components/Agent/Agent";
+import { LinksModel } from "models/Global/linksModel";
 
 interface ReportScreenProps {
   reports: ReportModel[];
+  links: LinksModel | undefined;
   isLoading: boolean;
   hasError: boolean;
 }
 
-const ReportScreen = ({ reports, isLoading, hasError }: ReportScreenProps) => {
+const ReportScreen = ({
+  reports,
+  links,
+  isLoading,
+  hasError,
+}: ReportScreenProps) => {
   const navigate = useNavigate();
 
   const { domainId, reportId } = useParams<{
@@ -61,6 +68,7 @@ const ReportScreen = ({ reports, isLoading, hasError }: ReportScreenProps) => {
   }
 
   const iframeSrc = report.iframe?.match(/src=["']([^"']+)["']/i)?.[1];
+  const requestAccessUrl = links?.enlaceAccesoReporte?.trim();
 
   return (
     <main className="w-full min-h-full bg-[--color-background] text-left py-6 md:py-8">
@@ -132,28 +140,53 @@ const ReportScreen = ({ reports, isLoading, hasError }: ReportScreenProps) => {
 
             <button
               type="button"
+              onClick={() => {
+                if (requestAccessUrl) {
+                  window.open(
+                    requestAccessUrl,
+                    "_blank",
+                    "noopener,noreferrer",
+                  );
+                }
+              }}
+              disabled={!requestAccessUrl}
               className="
-                w-full
-                sm:w-auto
-                flex
-                items-center
-                justify-center
-                gap-3
-                px-5
-                py-2.5
-                rounded-[10px]
-                border
-                border-[--color-border]
-                bg-white
-                text-[--color-text-secondary]
-                font-semibold
-                text-sm
-                md:text-base
-                hover:bg-[--color-accent-light]
-                hover:text-[--color-accent]
-                transition-colors
-                whitespace-nowrap
-              "
+    w-full
+    sm:w-auto
+
+    flex
+    items-center
+    justify-center
+
+    gap-3
+
+    px-5
+    py-2.5
+
+    rounded-[10px]
+
+    border
+    border-[--color-border]
+
+    bg-white
+
+    text-[--color-text-secondary]
+
+    font-semibold
+
+    text-sm
+    md:text-base
+
+    hover:bg-[--color-accent-light]
+    hover:text-[--color-accent]
+
+    transition-colors
+
+    whitespace-nowrap
+
+    disabled:opacity-50
+    disabled:cursor-not-allowed
+  "
             >
               <Eye className="w-5 h-5 flex-shrink-0" />
               Solicitar acceso

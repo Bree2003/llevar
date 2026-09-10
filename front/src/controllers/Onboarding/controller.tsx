@@ -1,9 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import MainScreen from "screens/Main/Main";
 
 import * as storageService from "services/Main/storage";
 import * as storageModel from "models/Main/storageModel";
+
+import { LinksModel, LinksDataToModel } from "models/Global/linksModel";
+
+import loadLinksData from "services/Global/get-links-data";
+
 import OnboardingScreen from "screens/Main/Onboarding/Onboarding";
 
 export interface EndpointStatus {
@@ -11,19 +15,22 @@ export interface EndpointStatus {
   error?: boolean;
 }
 
-export type EndpointName = "LoadEnvironments";
+export type EndpointName = "LoadEnvironments" | "LoadLinks";
 
 export interface Model {
   environments: storageModel.EnvironmentModel[];
+  links: LinksModel | undefined;
   lastUpdate: Date | undefined;
 }
 
 const OnboardingController = () => {
   const navigate = useNavigate();
 
-  // --- NOTA: Esta lógica ahora no se usa en la vista, pero se mantiene aquí ---
-  // --- por si se necesita para otros componentes en el futuro. ---
-  const [model, setModel] = useState<Partial<Model>>({ environments: [] });
+  const [model, setModel] = useState<Partial<Model>>({
+    environments: [],
+    links: undefined,
+  });
+
   const [endpoints, setEndpoints] =
     useState<Partial<Record<EndpointName, EndpointStatus>>>();
 
@@ -33,6 +40,7 @@ const OnboardingController = () => {
 
   const refreshAllData = async () => {
     loadEnvironmentsModel();
+    loadLinksModel();
   };
 
   const updateModel = (
@@ -43,6 +51,7 @@ const OnboardingController = () => {
     setModel((prev) => {
       const newModel =
         typeof partialModel === "function" ? partialModel(prev) : partialModel;
+
       return {
         ...prev,
         lastUpdate: new Date(),
@@ -57,43 +66,97 @@ const OnboardingController = () => {
   ) => {
     setEndpoints((prev) => ({
       ...prev,
-      [endpoint]: { ...prev?.[endpoint], ...status },
+      [endpoint]: {
+        ...prev?.[endpoint],
+        ...status,
+      },
     }));
   };
 
   const buildStatusEndpoint = (name: EndpointName) => ({
     loading() {
-      setEndpointStatus(name, { loading: true, error: false });
+      setEndpointStatus(name, {
+        loading: true,
+        error: false,
+      });
     },
+
     error() {
-      setEndpointStatus(name, { loading: false, error: true });
+      setEndpointStatus(name, {
+        loading: false,
+        error: true,
+      });
     },
+
     done() {
-      setEndpointStatus(name, { loading: false });
+      setEndpointStatus(name, {
+        loading: false,
+      });
     },
   });
 
   const handleViewChange = (data: any, tab: number, url: string) => {
-    navigate(`/${url}`, { state: { data: data, tab: tab } });
+    navigate(`/${url}`, {
+      state: {
+        data,
+        tab,
+      },
+    });
   };
 
   const loadEnvironmentsModel = async () => {
     const statusEndpoint = buildStatusEndpoint("LoadEnvironments");
+
     try {
       statusEndpoint.loading();
+
       const response = await storageService.loadEnvironments();
+
       const environments = storageModel.EnvironmentsToModel(response);
-      updateModel({ environments });
+
+      updateModel({
+        environments,
+      });
     } catch (e) {
       console.error("Error al cargar entornos:", e);
+
       statusEndpoint.error();
-      updateModel({ environments: [] });
+
+      updateModel({
+        environments: [],
+      });
     } finally {
       statusEndpoint.done();
     }
   };
 
-  return <OnboardingScreen />;
+  const loadLinksModel = async () => {
+    const statusEndpoint = buildStatusEndpoint("LoadLinks");
+
+    try {
+      statusEndpoint.loading();
+
+      const response = await loadLinksData();
+
+      const links = LinksDataToModel(response);
+
+      updateModel({
+        links: links ?? undefined,
+      });
+    } catch (e) {
+      console.error("Error al cargar enlaces:", e);
+
+      statusEndpoint.error();
+
+      updateModel({
+        links: undefined,
+      });
+    } finally {
+      statusEndpoint.done();
+    }
+  };
+
+  return <OnboardingScreen links={model.links} />;
 };
 
 export default OnboardingController;

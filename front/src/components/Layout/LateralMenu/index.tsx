@@ -348,37 +348,93 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
         </div>
       </nav>
 
+      {/* AYUDA Y DOCUMENTACIÓN */}
       <div
         className="
-          w-full
-
-          border-t
-          border-[var(--color-border)]
-        "
+    w-full
+    border-t
+    border-[var(--color-border)]
+  "
       >
         {isOpen ? (
-          <>
+          <div className="p-3">
+            {/* ITEM PRINCIPAL */}
             <div
               className={`
-                w-full
+          w-full
+          h-10
 
-                flex
-                items-center
+          flex
+          items-center
 
-                gap-1
+          rounded-lg
 
-                px-3
-                py-2
+          transition-colors
 
-                transition-colors
-
-                ${
-                  isHelpActive
-                    ? "text-[--color-accent]"
-                    : "text-[--color-text-secondary]"
-                }
-              `}
+          ${
+            isHelpActive
+              ? "bg-[--color-accent-light] text-[--color-accent]"
+              : "text-[--color-text-secondary] hover:bg-[--color-accent-light] hover:text-[--color-accent]"
+          }
+        `}
             >
+              {/* IR A PRIMEROS PASOS */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsHelpExpanded(true);
+                  navigate("/onboarding");
+                }}
+                className="
+            flex
+            items-center
+            gap-3
+
+            flex-1
+            min-w-0
+
+            h-full
+
+            px-1.5
+
+            text-left
+          "
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  className="
+              w-6
+              h-6
+
+              flex-shrink-0
+            "
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M8.625 9a3.375 3.375 0 116.75 0c0 2.25-3.375 2.25-3.375 4.5M12 17.25h.008v.008H12v-.008z"
+                  />
+
+                  <circle cx="12" cy="12" r="9" />
+                </svg>
+
+                <span
+                  className="
+              text-sm
+              font-semibold
+
+              truncate
+            "
+                >
+                  Ayuda y documentación
+                </span>
+              </button>
+
+              {/* EXPANDIR / CONTRAER */}
               <button
                 type="button"
                 onClick={() => setIsHelpExpanded((prev) => !prev)}
@@ -389,87 +445,65 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
                 }
                 aria-expanded={isHelpExpanded}
                 className="
-                  w-7
-                  h-7
+            w-8
+            h-8
 
-                  flex
-                  items-center
-                  justify-center
+            mr-1
 
-                  flex-shrink-0
+            flex
+            items-center
+            justify-center
 
-                  rounded-md
+            flex-shrink-0
 
-                  hover:bg-[--color-accent-light]
+            rounded-md
 
-                  transition-colors
-                "
+            hover:bg-white/50
+
+            transition-colors
+          "
               >
                 <ArrowDown
                   className={`
-                    w-4
-                    h-4
+              w-4
+              h-4
 
-                    transition-transform
-                    duration-300
+              transition-transform
+              duration-300
 
-                    ${isHelpExpanded ? "rotate-90" : "rotate-0"}
-                  `}
+              ${isHelpExpanded ? "rotate-90" : "rotate-0"}
+            `}
                 />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsHelpExpanded(true);
-
-                  navigate("/onboarding");
-                }}
-                className="
-                  flex-1
-                  min-w-0
-
-                  py-1
-
-                  text-left
-                  text-sm
-                  font-semibold
-
-                  hover:text-[--color-accent]
-
-                  transition-colors
-                "
-              >
-                <span className="truncate">Ayuda y documentación</span>
               </button>
             </div>
 
+            {/* SUBMENÚ */}
             <div
               className={`
-                grid
+          grid
 
-                transition-all
-                duration-300
-                ease-in-out
+          transition-all
+          duration-300
+          ease-in-out
 
-                ${
-                  isHelpExpanded
-                    ? "grid-rows-[1fr] opacity-100"
-                    : "grid-rows-[0fr] opacity-0"
-                }
-              `}
+          ${
+            isHelpExpanded
+              ? "grid-rows-[1fr] opacity-100"
+              : "grid-rows-[0fr] opacity-0"
+          }
+        `}
             >
               <div className="overflow-hidden">
                 <div
                   className="
-                    ml-8
-                    mr-3
-                    mb-3
+              ml-8
+              mt-1
 
-                    flex
-                    flex-col
-                    gap-1
-                  "
+              flex
+              flex-col
+
+              gap-1
+            "
                 >
                   {HELP_ITEMS.map((item) => {
                     const isActive = location.pathname === item.path;
@@ -480,46 +514,29 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
                         type="button"
                         onClick={() => navigate(item.path)}
                         className={`
-                            w-full
+                    w-full
+                    min-h-9
 
-                            flex
-                            items-center
-                            gap-2
+                    flex
+                    items-center
 
-                            px-3
-                            py-2
+                    px-1.5
+                    py-2
 
-                            rounded-md
+                    rounded-lg
 
-                            text-left
-                            text-sm
+                    text-left
+                    text-sm
 
-                            transition-colors
+                    transition-colors
 
-                            ${
-                              isActive
-                                ? "bg-[--color-accent-light] text-[--color-accent] font-semibold"
-                                : "text-[--color-text-secondary] hover:bg-[--color-background] hover:text-[--color-accent]"
-                            }
-                          `}
+                    ${
+                      isActive
+                        ? "bg-[--color-accent-light] text-[--color-accent] font-semibold"
+                        : "text-[--color-text-secondary] hover:bg-[--color-accent-light] hover:text-[--color-accent]"
+                    }
+                  `}
                       >
-                        <span
-                          className={`
-                              w-1.5
-                              h-1.5
-
-                              rounded-full
-
-                              flex-shrink-0
-
-                              ${
-                                isActive
-                                  ? "bg-[--color-accent]"
-                                  : "bg-[--color-text-muted]"
-                              }
-                            `}
-                        />
-
                         <span className="truncate">{item.label}</span>
                       </button>
                     );
@@ -527,51 +544,57 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
                 </div>
               </div>
             </div>
-          </>
+          </div>
         ) : (
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(true);
+          <div className="p-3">
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(true);
+                setIsHelpExpanded(true);
+              }}
+              aria-label="Ayuda y documentación"
+              title="Ayuda y documentación"
+              className={`
+          w-full
+          h-10
 
-              setIsHelpExpanded(true);
-            }}
-            aria-label="Ayuda y documentación"
-            title="Ayuda y documentación"
-            className={`
-              w-full
-              h-14
+          flex
+          items-center
+          justify-center
 
-              flex
-              items-center
-              justify-center
+          rounded-lg
 
-              transition-colors
+          transition-colors
 
-              ${
-                isHelpActive
-                  ? "bg-[--color-accent-light] text-[--color-accent]"
-                  : "hover:bg-[--color-accent-light] hover:text-[--color-accent]"
-              }
-            `}
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-              xmlns="http://www.w3.org/2000/svg"
+          ${
+            isHelpActive
+              ? "bg-[--color-accent] text-white"
+              : "text-[--color-text-secondary] hover:bg-[--color-accent-light] hover:text-[--color-accent]"
+          }
+        `}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M8.625 9a3.375 3.375 0 116.75 0c0 2.25-3.375 2.25-3.375 4.5M12 17.25h.008v.008H12v-.008z"
-              />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                className="
+            w-6
+            h-6
+          "
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M8.625 9a3.375 3.375 0 116.75 0c0 2.25-3.375 2.25-3.375 4.5M12 17.25h.008v.008H12v-.008z"
+                />
 
-              <circle cx="12" cy="12" r="9" />
-            </svg>
-          </button>
+                <circle cx="12" cy="12" r="9" />
+              </svg>
+            </button>
+          </div>
         )}
       </div>
       {location.pathname.startsWith("/marketplace") &&

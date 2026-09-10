@@ -2,17 +2,25 @@ import { useEffect, useState } from "react";
 
 import { ReportModel, ReportsDataToModel } from "models/Global/reportsModel";
 
+import { LinksModel, LinksDataToModel } from "models/Global/linksModel";
+
 import loadReportsData from "services/Global/get-reports-data";
+import loadLinksData from "services/Global/get-links-data";
 
 import ReportScreen from "screens/Marketplace/ReportScreen";
 
 const ReportController = () => {
   const [reports, setReports] = useState<ReportModel[]>([]);
+
+  const [links, setLinks] = useState<LinksModel | undefined>();
+
   const [isLoading, setIsLoading] = useState(true);
+
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     loadReports();
+    loadLinks();
   }, []);
 
   const loadReports = async () => {
@@ -35,8 +43,27 @@ const ReportController = () => {
     }
   };
 
+  const loadLinks = async () => {
+    try {
+      const response = await loadLinksData();
+
+      const linksData = LinksDataToModel(response);
+
+      setLinks(linksData ?? undefined);
+    } catch (error) {
+      console.error("Error al cargar enlaces:", error);
+
+      setLinks(undefined);
+    }
+  };
+
   return (
-    <ReportScreen reports={reports} isLoading={isLoading} hasError={hasError} />
+    <ReportScreen
+      reports={reports}
+      links={links}
+      isLoading={isLoading}
+      hasError={hasError}
+    />
   );
 };
 
