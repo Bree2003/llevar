@@ -1,15 +1,19 @@
 import { useMemo } from "react";
+
 import { useNavigate, useParams } from "react-router-dom";
+
 import { ReactComponent as Folder } from "components/Global/Icons/folder.svg";
 import { ReactComponent as Kpi } from "components/Global/Icons/kpi.svg";
 import { ReactComponent as Export } from "components/Global/Icons/export.svg";
 import { ReactComponent as Eye } from "components/Global/Icons/eye.svg";
-import { domainUnits } from "data/domain-units";
+
 import { ReportModel } from "models/Global/reportsModel";
+import { DomainModel } from "models/Global/domainsModel";
 import { LinksModel } from "models/Global/linksModel";
 
 interface ReportScreenProps {
   reports: ReportModel[];
+  domains: DomainModel[];
   links: LinksModel | undefined;
   isLoading: boolean;
   hasError: boolean;
@@ -17,6 +21,7 @@ interface ReportScreenProps {
 
 const ReportScreen = ({
   reports,
+  domains,
   links,
   isLoading,
   hasError,
@@ -34,7 +39,11 @@ const ReportScreen = ({
     [reports, reportId, domainId],
   );
 
-  const domain = domainUnits.find((unit) => unit.id === domainId);
+  const domain = useMemo(
+    () =>
+      domains.find((item) => item.id === domainId || item.id === report?.area),
+    [domains, domainId, report?.area],
+  );
 
   if (isLoading) {
     return (
@@ -67,19 +76,18 @@ const ReportScreen = ({
   }
 
   const iframeSrc = report.iframe?.match(/src=["']([^"']+)["']/i)?.[1];
+
   const requestAccessUrl = links?.enlaceAccesoReporte?.trim();
 
   return (
     <main className="w-full min-h-full bg-[--color-background] text-left py-6 md:py-8">
       <div className="w-full max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8">
-        {/* HEADER */}
         <section className="w-full flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 lg:gap-10">
           <div className="flex-1 min-w-0">
             <h1 className="text-3xl md:text-4xl xl:text-5xl font-bold text-[--color-text-primary] break-words">
               {report.nombre}
             </h1>
 
-            {/* BREADCRUMB */}
             <div className="mt-3 flex items-center gap-2 text-sm md:text-base text-[--color-text-secondary] min-w-0">
               <Folder className="w-5 h-5 flex-shrink-0" />
 
@@ -88,7 +96,7 @@ const ReportScreen = ({
                 onClick={() => navigate(`/marketplace/${domainId}`)}
                 className="hover:text-[--color-accent] transition-colors truncate"
               >
-                {domain?.name}
+                {domain?.name ?? report.area}
               </button>
 
               <span>/</span>
@@ -101,7 +109,6 @@ const ReportScreen = ({
             </p>
           </div>
 
-          {/* ACCIONES */}
           <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-3 w-full sm:w-auto flex-shrink-0">
             <button
               type="button"
@@ -150,42 +157,29 @@ const ReportScreen = ({
               }}
               disabled={!requestAccessUrl}
               className="
-    w-full
-    sm:w-auto
-
-    flex
-    items-center
-    justify-center
-
-    gap-3
-
-    px-5
-    py-2.5
-
-    rounded-[10px]
-
-    border
-    border-[--color-border]
-
-    bg-white
-
-    text-[--color-text-secondary]
-
-    font-semibold
-
-    text-sm
-    md:text-base
-
-    hover:bg-[--color-accent-light]
-    hover:text-[--color-accent]
-
-    transition-colors
-
-    whitespace-nowrap
-
-    disabled:opacity-50
-    disabled:cursor-not-allowed
-  "
+                w-full
+                sm:w-auto
+                flex
+                items-center
+                justify-center
+                gap-3
+                px-5
+                py-2.5
+                rounded-[10px]
+                border
+                border-[--color-border]
+                bg-white
+                text-[--color-text-secondary]
+                font-semibold
+                text-sm
+                md:text-base
+                hover:bg-[--color-accent-light]
+                hover:text-[--color-accent]
+                transition-colors
+                whitespace-nowrap
+                disabled:opacity-50
+                disabled:cursor-not-allowed
+              "
             >
               <Eye className="w-5 h-5 flex-shrink-0" />
               Solicitar acceso
@@ -193,9 +187,7 @@ const ReportScreen = ({
           </div>
         </section>
 
-        {/* CONTENIDO PRINCIPAL */}
         <section className="w-full grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_300px] 2xl:grid-cols-[minmax(0,1fr)_340px] gap-6 md:gap-8 mt-8 md:mt-10">
-          {/* PREVIEW */}
           <div className="w-full min-w-0 bg-white border border-[--color-border] rounded-2xl overflow-hidden">
             {iframeSrc ? (
               <iframe
@@ -211,7 +203,6 @@ const ReportScreen = ({
             )}
           </div>
 
-          {/* KPIS */}
           <aside className="w-full bg-white border border-[--color-border] rounded-2xl p-5 md:p-6 h-fit">
             <h2 className="text-xl md:text-2xl font-bold text-[--color-accent]">
               KPIs principales
@@ -242,7 +233,6 @@ const ReportScreen = ({
           </aside>
         </section>
 
-        {/* INFORMACIÓN ADICIONAL */}
         <section className="w-full grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 mt-6 md:mt-8">
           <div className="bg-white border border-[--color-border] rounded-2xl p-5 md:p-6">
             <p className="uppercase text-xs md:text-sm font-bold text-[--color-text-secondary]">
@@ -260,7 +250,7 @@ const ReportScreen = ({
             </p>
 
             <h3 className="mt-3 md:mt-4 text-base md:text-lg font-semibold text-[--color-text-primary]">
-              No especificado
+              {report.productOwner || "No especificado"}
             </h3>
           </div>
         </section>

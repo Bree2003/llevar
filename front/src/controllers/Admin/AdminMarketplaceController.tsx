@@ -5,17 +5,17 @@ import {
   ReportDataToModel,
   ReportsDataToModel,
 } from "models/Global/reportsModel";
-import {
-  DomainModel,
-  DomainsDataToModel
-} from "models/Global/domainsModel";
+
+import { DomainModel, DomainsDataToModel } from "models/Global/domainsModel";
+
 import loadReportsData from "services/Global/get-reports-data";
 import loadDomainsData from "services/Global/get-domains-data";
+
+import createReportData from "services/Admin/create-reports-data";
+import updateReportData from "services/Admin/update-reports-data";
 import deleteReportsData from "services/Admin/delete-reports-data";
 
 import AdminMarketplaceScreen from "screens/Admin/AdminMarketplaceScreen";
-import createReportData from "services/Admin/create-reports-data";
-import updateReportData from "services/Admin/update-reports-data";
 
 export interface EndpointStatus {
   loading?: boolean;
@@ -180,7 +180,6 @@ const AdminMarketplaceController = () => {
 
     try {
       statusEndpoint.loading();
-
       const response = await updateReportData(report);
 
       const updatedReport = ReportDataToModel(response);

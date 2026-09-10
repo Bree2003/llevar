@@ -2,27 +2,30 @@ import { ReactComponent as Edit } from "components/Global/Icons/edit.svg";
 import { ReactComponent as Trash } from "components/Global/Icons/trash.svg";
 import { ReactComponent as Kpi } from "components/Global/Icons/kpi.svg";
 
-import { domainUnits } from "data/domain-units";
-
 import { ReportModel } from "models/Global/reportsModel";
+import { DomainModel } from "models/Global/domainsModel";
 
 interface ReportsTableProps {
   reports: ReportModel[];
-
+  domains: DomainModel[];
   onEdit: (report: ReportModel) => void;
-
   onDelete: (id: string) => void;
 }
 
-const getDomainUnitName = (area: string) => {
-  const domainUnit = domainUnits.find(
+const getDomainUnitName = (domains: DomainModel[], area: string) => {
+  const domainUnit = domains.find(
     (unit) => unit.id === area || unit.name === area,
   );
 
   return domainUnit?.name ?? area;
 };
 
-const ReportsTable = ({ reports, onEdit, onDelete }: ReportsTableProps) => {
+const ReportsTable = ({
+  reports,
+  domains,
+  onEdit,
+  onDelete,
+}: ReportsTableProps) => {
   return (
     <div
       className="
@@ -41,14 +44,12 @@ const ReportsTable = ({ reports, onEdit, onDelete }: ReportsTableProps) => {
       <table
         className="
           w-full
-
-          min-w-[900px]
+          min-w-[1100px]
         "
       >
         <thead
           className="
             bg-[--color-background]
-
             text-[--color-text-muted]
           "
         >
@@ -59,7 +60,6 @@ const ReportsTable = ({ reports, onEdit, onDelete }: ReportsTableProps) => {
                 py-4
 
                 text-left
-
                 text-xs
                 uppercase
               "
@@ -73,7 +73,6 @@ const ReportsTable = ({ reports, onEdit, onDelete }: ReportsTableProps) => {
                 py-4
 
                 text-left
-
                 text-xs
                 uppercase
               "
@@ -87,7 +86,19 @@ const ReportsTable = ({ reports, onEdit, onDelete }: ReportsTableProps) => {
                 py-4
 
                 text-left
+                text-xs
+                uppercase
+              "
+            >
+              Data Product Owner
+            </th>
 
+            <th
+              className="
+                px-6
+                py-4
+
+                text-left
                 text-xs
                 uppercase
               "
@@ -101,7 +112,6 @@ const ReportsTable = ({ reports, onEdit, onDelete }: ReportsTableProps) => {
                 py-4
 
                 text-left
-
                 text-xs
                 uppercase
               "
@@ -115,7 +125,6 @@ const ReportsTable = ({ reports, onEdit, onDelete }: ReportsTableProps) => {
                 py-4
 
                 text-right
-
                 text-xs
                 uppercase
               "
@@ -134,12 +143,11 @@ const ReportsTable = ({ reports, onEdit, onDelete }: ReportsTableProps) => {
           {reports.length === 0 ? (
             <tr>
               <td
-                colSpan={5}
+                colSpan={6}
                 className="
                   py-12
 
                   text-center
-
                   text-sm
 
                   text-[--color-text-secondary]
@@ -153,90 +161,98 @@ const ReportsTable = ({ reports, onEdit, onDelete }: ReportsTableProps) => {
               <tr
                 key={report.id}
                 className="
-                    hover:bg-[--color-background]
+                  hover:bg-[--color-background]
 
-                    transition-colors
-                  "
+                  transition-colors
+                "
               >
-                {/* REPORTE */}
                 <td
                   className="
-                      px-6
-                      py-4
+                    px-6
+                    py-4
 
-                      max-w-[420px]
-                    "
+                    max-w-[420px]
+                  "
                 >
                   <p
                     className="
-                        font-semibold
-
-                        text-[--color-text-primary]
-                      "
+                      font-semibold
+                      text-[--color-text-primary]
+                    "
                   >
                     {report.nombre}
                   </p>
 
                   <p
                     className="
-                        mt-1
+                      mt-1
 
-                        text-sm
+                      text-sm
+                      text-[--color-text-muted]
 
-                        text-[--color-text-muted]
-
-                        leading-relaxed
-                      "
+                      leading-relaxed
+                    "
                   >
                     {report.descripcion}
                   </p>
                 </td>
 
-                {/* AREA */}
                 <td className="px-6 py-4">
                   <span
                     className="
-                        inline-flex
+                      inline-flex
 
-                        py-[6px]
-                        px-[10px]
+                      py-[6px]
+                      px-[10px]
 
-                        bg-[--color-background]
+                      bg-[--color-background]
 
-                        rounded-md
+                      rounded-md
 
-                        text-xs
-                        font-medium
+                      text-xs
+                      font-medium
 
-                        text-[--color-text-secondary]
-                      "
+                      text-[--color-text-secondary]
+                    "
                   >
-                    {getDomainUnitName(report.area)}
+                    {getDomainUnitName(domains, report.area)}
                   </span>
                 </td>
 
-                {/* KPIS */}
+                <td
+                  className="
+                    px-6
+                    py-4
+
+                    text-sm
+                    font-medium
+
+                    text-[--color-text-secondary]
+                  "
+                >
+                  {report.productOwner || "-"}
+                </td>
+
                 <td className="px-6 py-4">
                   {report.kpis?.length > 0 ? (
                     <div
                       className="
-                          flex
-                          flex-wrap
+                        flex
+                        flex-wrap
+                        items-center
 
-                          items-center
-
-                          gap-1
-                        "
+                        gap-1
+                      "
                     >
                       {report.kpis.map((kpi, index) => (
                         <span
                           key={`${report.id}-${kpi}-${index}`}
                           title={kpi}
                           className="
-                                flex
-                                items-center
-                                justify-center
-                              "
+                              flex
+                              items-center
+                              justify-center
+                            "
                         >
                           <Kpi />
                         </span>
@@ -245,70 +261,69 @@ const ReportsTable = ({ reports, onEdit, onDelete }: ReportsTableProps) => {
                   ) : (
                     <span
                       className="
-                          text-[--color-text-muted]
-                        "
+                        text-[--color-text-muted]
+                      "
                     >
                       -
                     </span>
                   )}
                 </td>
 
-                {/* FECHA */}
                 <td
                   className="
-                      px-6
-                      py-4
+                    px-6
+                    py-4
 
-                      whitespace-nowrap
+                    whitespace-nowrap
 
-                      text-[--color-text-secondary]
-                    "
+                    text-[--color-text-secondary]
+                  "
                 >
                   {report.fechaModificacion || "-"}
                 </td>
 
-                {/* ACCIONES */}
                 <td
                   className="
-                      px-6
-                      py-4
+                    px-6
+                    py-4
 
-                      text-right
-                    "
+                    text-right
+                  "
                 >
                   <div
                     className="
-                        flex
-                        justify-end
+                      flex
+                      justify-end
 
-                        gap-2
-                      "
+                      gap-2
+                    "
                   >
                     <button
                       type="button"
                       onClick={() => onEdit(report)}
                       className="
-                          py-[6px]
-                          px-[10px]
+                        py-[6px]
+                        px-[10px]
 
-                          flex
-                          items-center
-                          gap-1
+                        flex
+                        items-center
 
-                          rounded-md
+                        gap-1
 
-                          bg-[--color-background]
+                        rounded-md
 
-                          text-sm
-                          font-medium
+                        bg-[--color-background]
 
-                          text-[--color-text-secondary]
+                        text-sm
+                        font-medium
 
-                          hover:bg-[--color-accent-light]
-                          hover:text-[--color-accent]
+                        text-[--color-text-secondary]
 
-                          transition-colors
-                        "
+                        hover:bg-[--color-accent-light]
+                        hover:text-[--color-accent]
+
+                        transition-colors
+                      "
                     >
                       <Edit />
                       Editar
@@ -318,26 +333,27 @@ const ReportsTable = ({ reports, onEdit, onDelete }: ReportsTableProps) => {
                       type="button"
                       onClick={() => onDelete(report.id)}
                       className="
-                          py-[6px]
-                          px-[10px]
+                        py-[6px]
+                        px-[10px]
 
-                          flex
-                          items-center
-                          gap-1
+                        flex
+                        items-center
 
-                          rounded-md
+                        gap-1
 
-                          bg-[--color-error]
+                        rounded-md
 
-                          text-sm
-                          font-medium
+                        bg-[--color-error]
 
-                          text-white
+                        text-sm
+                        font-medium
 
-                          hover:opacity-90
+                        text-white
 
-                          transition-opacity
-                        "
+                        hover:opacity-90
+
+                        transition-opacity
+                      "
                     >
                       <Trash />
                       Eliminar

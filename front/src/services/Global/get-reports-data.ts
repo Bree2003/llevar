@@ -5,6 +5,7 @@ export interface ReportDataResponse {
   nombre: string;
   descripcion: string;
   area: string;
+  productOwner: string;
   iframe: string;
   kpis: string[];
   fechaModificacion: string;

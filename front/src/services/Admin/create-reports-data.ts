@@ -7,6 +7,7 @@ export interface ReportDataResponse {
   nombre: string;
   descripcion: string;
   area: string;
+  productOwner: string;
   iframe: string;
   kpis: string[];
   fechaModificacion: string;
@@ -17,6 +18,7 @@ export interface ReportDataCreation {
   nombre: string;
   descripcion: string;
   area: string;
+  productOwner: string;
   iframe: string;
   kpis: string[];
 }
@@ -27,6 +29,7 @@ const ReportModelToData = (reportData: ReportModel): ReportDataCreation => {
     nombre: reportData.nombre,
     descripcion: reportData.descripcion,
     area: reportData.area,
+    productOwner: reportData.productOwner,
     iframe: reportData.iframe,
     kpis: reportData.kpis,
   };

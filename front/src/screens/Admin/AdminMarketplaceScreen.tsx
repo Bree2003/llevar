@@ -7,12 +7,11 @@ import {
 } from "controllers/Admin/AdminMarketplaceController";
 
 import { ReportModel } from "models/Global/reportsModel";
+import { DomainModel } from "models/Global/domainsModel";
 
 import { ReactComponent as FilterAdd } from "components/Global/Icons/filter-add.svg";
 import { ReactComponent as FilterRemove } from "components/Global/Icons/filter-remove.svg";
 import { ReactComponent as Add } from "components/Global/Icons/add.svg";
-
-import { domainUnits } from "data/domain-units";
 
 import ReportDrawer from "../Marketplace/Admin/ReportDrawer";
 import ReportsTable from "../Marketplace/Admin/ReportsTable";
@@ -29,8 +28,8 @@ interface AdminMarketplaceScreenProps {
   handleReportDelete: (report: ReportModel) => void;
 }
 
-const getDomainUnitId = (area: string) => {
-  const domainUnit = domainUnits.find(
+const getDomainUnitId = (domains: DomainModel[], area: string) => {
+  const domainUnit = domains.find(
     (unit) => unit.id === area || unit.name === area,
   );
 
@@ -60,14 +59,15 @@ const AdminMarketplaceScreen = ({
 
   const filterRef = useRef<HTMLDivElement>(null);
 
-  /*
-   * Los reportes ahora vienen desde
-   * AdminMarketplaceController.
-   */
   const reports = model?.reports ?? [];
 
+  const domains = model?.domains ?? [];
+
   const isLoading =
-    endpoints?.loadReports?.loading ?? model?.reports === undefined;
+    endpoints?.loadReports?.loading ||
+    endpoints?.loadDomains?.loading ||
+    model?.reports === undefined ||
+    model?.domains === undefined;
 
   const isBusy =
     (endpoints?.createReport?.loading ||
@@ -75,10 +75,6 @@ const AdminMarketplaceScreen = ({
       endpoints?.deleteReport?.loading) ??
     false;
 
-  /*
-   * Cerrar dropdown al hacer click
-   * fuera de los filtros.
-   */
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -106,10 +102,21 @@ const AdminMarketplaceScreen = ({
     setIsDrawerOpen(true);
   };
 
+  /* ==========================================
+     GUARDAR REPORTE
+  ========================================== */
+
   const handleSaveReport = (report: ReportModel) => {
     const reportToSave: ReportModel = {
       ...report,
-      area: getDomainUnitId(report.area),
+
+      area: getDomainUnitId(domains, report.area),
+
+      /*
+       * productOwner ya viene dentro
+       * del ReportModel desde el Drawer.
+       */
+      productOwner: report.productOwner.trim(),
     };
 
     if (selectedReport) {
@@ -141,9 +148,7 @@ const AdminMarketplaceScreen = ({
 
   const handleEditReport = (report: ReportModel) => {
     setShowFilters(false);
-
     setSelectedReport(report);
-
     setIsDrawerOpen(true);
   };
 
@@ -153,7 +158,6 @@ const AdminMarketplaceScreen = ({
 
   const handleCloseDrawer = () => {
     setSelectedReport(null);
-
     setIsDrawerOpen(false);
   };
 
@@ -163,7 +167,7 @@ const AdminMarketplaceScreen = ({
 
   const filteredReports = [...reports]
     .filter((report) =>
-      areaFilter ? getDomainUnitId(report.area) === areaFilter : true,
+      areaFilter ? getDomainUnitId(domains, report.area) === areaFilter : true,
     )
     .sort((a, b) => {
       switch (sortBy) {
@@ -218,9 +222,7 @@ const AdminMarketplaceScreen = ({
           lg:px-8
         "
       >
-        {/* ==========================================
-            HEADER
-        ========================================== */}
+        {/* HEADER */}
         <section className="w-full">
           <h1
             className="
@@ -439,7 +441,7 @@ const AdminMarketplaceScreen = ({
                         >
                           <option value="">Todas las áreas</option>
 
-                          {domainUnits.map((unit) => (
+                          {domains.map((unit) => (
                             <option key={unit.id} value={unit.id}>
                               {unit.name}
                             </option>
@@ -540,7 +542,7 @@ const AdminMarketplaceScreen = ({
               <button
                 type="button"
                 onClick={handleNewReport}
-                disabled={isBusy}
+                disabled={isBusy || isLoading}
                 className="
                   w-full
                   sm:w-auto
@@ -584,9 +586,7 @@ const AdminMarketplaceScreen = ({
           </div>
         </section>
 
-        {/* ==========================================
-            TABLA
-        ========================================== */}
+        {/* TABLA */}
         <section
           className="
             w-full
@@ -628,6 +628,7 @@ const AdminMarketplaceScreen = ({
             >
               <ReportsTable
                 reports={filteredReports}
+                domains={domains}
                 onEdit={handleEditReport}
                 onDelete={handleDeleteReport}
               />
@@ -637,7 +638,7 @@ const AdminMarketplaceScreen = ({
       </div>
 
       <ReportDrawer
-        domains={model?.domains ?? []}
+        domains={domains}
         isOpen={isDrawerOpen}
         onClose={handleCloseDrawer}
         onSave={handleSaveReport}

@@ -1,7 +1,11 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import { ReactComponent as Download } from "components/Global/Icons/download.svg";
 import { ReactComponent as ArrowUp } from "components/Global/Icons/arrow-up.svg";
+
 import ManualUsuario from "assets/docs/Manual-Plataforma-Inteligente-de-Datos.pdf";
+
 import { LinksModel } from "models/Global/linksModel";
 
 interface OnboardingScreenProps {
@@ -12,10 +16,21 @@ const OnboardingScreen = ({ links }: OnboardingScreenProps) => {
   const navigate = useNavigate();
 
   const supportUrl = links?.enlaceSoporte?.trim();
+
   const PLACEHOLDER_IMAGE = "/images/video-introductorio.png";
+
+  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
 
   const handleDownloadManual = () => {
     window.open(ManualUsuario, "_blank");
+  };
+
+  const openVideo = (title: string) => {
+    setSelectedVideo(title);
+  };
+
+  const closeVideo = () => {
+    setSelectedVideo(null);
   };
 
   const learning_items = [
@@ -51,28 +66,28 @@ const OnboardingScreen = ({ links }: OnboardingScreenProps) => {
       title: "Ingesta de tablas",
       description:
         "Aprende a cargar información de forma segura y mantener actualizados los datos utilizados por la organización",
-      onClick: () => navigate("/dashboard"),
+      onClick: () => openVideo("Ingesta de tablas"),
     },
     {
       img: PLACEHOLDER_IMAGE,
       title: "Crear nueva tabla",
       description:
         "Conoce el proceso para incorporar nuevas fuentes de información y disponibilizarlas para su uso analítico",
-      onClick: () => navigate("/dashboard"),
+      onClick: () => openVideo("Crear nueva tabla"),
     },
     {
       img: PLACEHOLDER_IMAGE,
       title: "Modificación de tablas manuales",
       description:
         "Aprende a actualizar registros existentes y asegurar la consistencia de la información gestionada",
-      onClick: () => navigate("/dashboard"),
+      onClick: () => openVideo("Modificación de tablas manuales"),
     },
     {
       img: PLACEHOLDER_IMAGE,
       title: "Acceder reporte",
       description:
         "Descubre cómo encontrar, visualizar y utilizar reportes certificados para apoyar tus decisiones",
-      onClick: () => navigate("/marketplace"),
+      onClick: () => openVideo("Acceder reporte"),
     },
   ];
 
@@ -104,337 +119,606 @@ const OnboardingScreen = ({ links }: OnboardingScreenProps) => {
   ];
 
   return (
-    <main className="flex flex-col items-start w-full min-h-full text-left py-6 md:py-8">
-      <div className="w-full max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm mb-6">
-          <button
-            type="button"
-            // onClick={() => navigate("/help")}
-            className="text-[--color-text-secondary] pointer-events-none"
-          >
-            Ayuda y documentación
-          </button>
+    <>
+      <main className="flex flex-col items-start w-full min-h-full text-left py-6 md:py-8">
+        <div className="w-full max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8">
+          <div className="flex items-center gap-2 text-sm mb-6">
+            <button
+              type="button"
+              className="text-[--color-text-secondary] pointer-events-none"
+            >
+              Ayuda y documentación
+            </button>
 
-          <span className="text-[--color-text-muted]">›</span>
+            <span className="text-[--color-text-muted]">›</span>
 
-          <span className="font-semibold text-[--color-text-primary]">
-            Primeros pasos
-          </span>
-        </div>
+            <span className="font-semibold text-[--color-text-primary]">
+              Primeros pasos
+            </span>
+          </div>
 
-        {/* Header */}
-        <section className="w-full mb-6 md:mb-8">
-          <h1 className="text-3xl md:text-4xl xl:text-5xl font-bold text-[--color-accent] mb-3">
-            Primeros pasos en la Plataforma Inteligente de Datos
-          </h1>
+          <section className="w-full mb-6 md:mb-8">
+            <h1 className="text-3xl md:text-4xl xl:text-5xl font-bold text-[--color-accent] mb-3">
+              Primeros pasos en la Plataforma Inteligente de Datos
+            </h1>
 
-          <p className="text-base md:text-lg text-[--color-text-secondary] max-w-5xl">
-            Descubre las capacidades de la Plataforma Inteligente de Datos y
-            aprende a utilizar información confiable para tomar mejores
-            decisiones
-          </p>
-        </section>
+            <p className="text-base md:text-lg text-[--color-text-secondary] max-w-5xl">
+              Descubre las capacidades de la Plataforma Inteligente de Datos y
+              aprende a utilizar información confiable para tomar mejores
+              decisiones
+            </p>
+          </section>
 
-        {/* Introducción */}
-        <section className="w-full bg-white border border-[--color-border] rounded-[20px] overflow-hidden mb-8 md:mb-12">
-          {/* Hero de introducción */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 p-5 md:p-8 lg:p-10">
-            {/* Imagen */}
-            <div className="w-full min-h-[220px] md:min-h-[300px] lg:min-h-[340px] bg-[--color-background] rounded-2xl overflow-hidden flex items-center justify-center">
-              <img
-                src={PLACEHOLDER_IMAGE}
-                alt="Video introductorio"
-                className="w-full h-full object-cover"
-              />
+          <section className="w-full bg-white border border-[--color-border] rounded-[20px] overflow-hidden mb-8 md:mb-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 p-5 md:p-8 lg:p-10">
+              <div className="w-full min-h-[220px] md:min-h-[300px] lg:min-h-[340px] bg-[--color-background] rounded-2xl overflow-hidden flex items-center justify-center">
+                <img
+                  src={PLACEHOLDER_IMAGE}
+                  alt="Video introductorio"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              <div className="flex flex-col justify-center items-start">
+                <h2 className="text-xl md:text-2xl font-bold mb-4">
+                  Descubre todo el potencial de tus datos
+                </h2>
+
+                <p className="text-base md:text-lg text-[--color-text-secondary] mb-6 max-w-xl">
+                  Esta guía te acompañará en tus primeros pasos para explorar
+                  información certificada, comprender indicadores clave y
+                  aprovechar las herramientas disponibles para el análisis y la
+                  toma de decisiones
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() => openVideo("Video introductorio")}
+                  className="
+                    flex
+                    items-center
+                    justify-center
+                    gap-3
+                    bg-[--color-accent]
+                    text-white
+                    px-6
+                    py-3
+                    rounded-[10px]
+                    uppercase
+                    text-sm
+                    font-semibold
+                    hover:opacity-90
+                    transition-opacity
+                  "
+                >
+                  Ver video introductorio
+                  <img
+                    src="/images/play-circle.png"
+                    alt="play-circle"
+                    className="w-5 h-5"
+                  />
+                </button>
+              </div>
             </div>
 
-            {/* Texto */}
-            <div className="flex flex-col justify-center items-start">
-              <h2 className="text-xl md:text-2xl font-bold mb-4">
-                Descubre todo el potencial de tus datos
+            <div className="px-5 md:px-8 lg:px-10">
+              <div className="w-full border-t border-[--color-border]" />
+            </div>
+
+            <div className="px-5 pb-5 pt-6 md:px-8 md:pb-8 md:pt-8 lg:px-10 lg:pb-10">
+              <h2 className="text-xl md:text-2xl font-bold mb-6 md:mb-8">
+                ¿Qué aprenderás?
               </h2>
 
-              <p className="text-base md:text-lg text-[--color-text-secondary] mb-6 max-w-xl">
-                Esta guía te acompañará en tus primeros pasos para explorar
-                información certificada, comprender indicadores clave y
-                aprovechar las herramientas disponibles para el análisis y la
-                toma de decisiones
-              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 w-full">
+                {learning_items.map((item, index) => (
+                  <div
+                    key={index}
+                    className={`
+                      flex
+                      gap-4
+                      py-5
 
-              <button
-                type="button"
-                className="
-          flex
-          items-center
-          justify-center
-          gap-3
-          bg-[--color-accent]
-          text-white
-          px-6
-          py-3
-          rounded-[10px]
-          uppercase
-          text-sm
-          font-semibold
-          hover:opacity-90
-          transition-opacity
-        "
-              >
-                Ver video introductorio
-                <img
-                  src="/images/play-circle.png"
-                  alt="play-circle"
-                  className="w-5 h-5"
-                />
-              </button>
+                      ${
+                        index !== learning_items.length - 1
+                          ? "border-b border-[--color-border]"
+                          : ""
+                      }
+
+                      md:px-6
+
+                      xl:py-0
+                      xl:border-b-0
+
+                      ${
+                        index !== learning_items.length - 1
+                          ? "xl:border-r xl:border-[--color-border]"
+                          : ""
+                      }
+
+                      ${index === 0 ? "md:pl-0 xl:pl-0" : ""}
+
+                      ${index === learning_items.length - 1 ? "xl:pr-0" : ""}
+                    `}
+                  >
+                    <img
+                      src={item.img}
+                      alt={item.title}
+                      className="w-12 h-12 md:w-14 md:h-14 object-contain flex-shrink-0"
+                    />
+
+                    <div className="flex-1">
+                      <h3 className="text-base md:text-lg font-bold mb-2">
+                        {item.title}
+                      </h3>
+
+                      <p className="text-sm md:text-base text-[--color-text-secondary] leading-relaxed">
+                        {item.description}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          </section>
 
-          {/* Línea horizontal respetando padding */}
-          <div className="px-5 md:px-8 lg:px-10">
-            <div className="w-full border-t border-[--color-border]" />
-          </div>
-
-          {/* Qué aprenderás */}
-          <div className="px-5 pb-5 pt-6 md:px-8 md:pb-8 md:pt-8 lg:px-10 lg:pb-10">
-            <h2 className="text-xl md:text-2xl font-bold mb-6 md:mb-8">
-              ¿Qué aprenderás?
+          <section className="w-full mb-8 md:mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold mb-3">
+              Aprende lo que te interesa
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 w-full">
-              {learning_items.map((item, index) => (
-                <div
+            <p className="text-base md:text-lg text-[--color-text-secondary] mb-8">
+              Explora contenidos prácticos para aprender a utilizar la
+              plataforma según tus necesidades
+            </p>
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8">
+              {content_items.map((item, index) => (
+                <button
                   key={index}
-                  className={`
-            flex
-            gap-4
-            py-5
+                  type="button"
+                  onClick={item.onClick}
+                  className="
+                    w-full
+                    text-left
 
-            ${
-              index !== learning_items.length - 1
-                ? "border-b border-[--color-border]"
-                : ""
-            }
+                    grid
+                    grid-cols-1
+                    sm:grid-cols-[180px_1fr]
+                    md:grid-cols-[220px_1fr]
 
-            md:px-6
+                    gap-5
+                    items-center
 
-            xl:py-0
-            xl:border-b-0
+                    p-4
 
-            ${
-              index !== learning_items.length - 1
-                ? "xl:border-r xl:border-[--color-border]"
-                : ""
-            }
+                    rounded-2xl
 
-            ${index === 0 ? "md:pl-0 xl:pl-0" : ""}
+                    hover:bg-white
+                    hover:shadow-sm
 
-            ${index === learning_items.length - 1 ? "xl:pr-0" : ""}
-          `}
+                    transition-all
+                  "
                 >
-                  <img
-                    src={item.img}
-                    alt={item.title}
-                    className="w-12 h-12 md:w-14 md:h-14 object-contain flex-shrink-0"
-                  />
+                  <div className="relative w-full h-[160px] md:h-[180px] bg-white rounded-xl overflow-hidden">
+                    <img
+                      src={item.img}
+                      alt={item.title}
+                      className="w-full h-full object-cover"
+                    />
 
-                  <div className="flex-1">
-                    <h3 className="text-base md:text-lg font-bold mb-2">
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/5">
+                      <div
+                        className="
+                          w-12
+                          h-12
+
+                          rounded-full
+
+                          bg-white/90
+
+                          shadow-md
+
+                          flex
+                          items-center
+                          justify-center
+                        "
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                          className="w-6 h-6 text-[--color-accent]"
+                        >
+                          <path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.2-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14Z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg md:text-xl font-bold mb-3">
                       {item.title}
                     </h3>
 
-                    <p className="text-sm md:text-base text-[--color-text-secondary] leading-relaxed">
+                    <p className="text-sm md:text-base text-[--color-text-secondary]">
                       {item.description}
                     </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="w-full mb-6 md:mb-8">
+            <div
+              className="
+                grid
+                grid-cols-1
+                md:grid-cols-2
+                xl:grid-cols-3
+
+                gap-6
+                md:gap-8
+
+                w-full
+
+                bg-white
+
+                rounded-[20px]
+
+                border
+                border-[--color-border]
+
+                p-5
+                md:p-7
+              "
+            >
+              {next_steps.map((card, index) => (
+                <div
+                  key={index}
+                  className={`
+                    flex
+                    flex-col
+                    sm:flex-row
+
+                    gap-4
+                    md:gap-5
+
+                    w-full
+
+                    ${
+                      index !== next_steps.length - 1
+                        ? "xl:border-r xl:border-[--color-border] xl:pr-8"
+                        : ""
+                    }
+                  `}
+                >
+                  <img
+                    src={card.img}
+                    alt={card.title}
+                    className="w-14 h-14 md:w-16 md:h-16 object-contain flex-shrink-0"
+                    loading="lazy"
+                  />
+
+                  <div className="flex flex-col flex-1">
+                    <h3 className="text-lg md:text-xl font-bold pb-2">
+                      {card.title}
+                    </h3>
+
+                    <p className="text-sm md:text-base text-[--color-text-secondary] pb-4 flex-1">
+                      {card.description}
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={card.onClick}
+                      className="text-[--color-accent] flex gap-2 items-center w-fit text-sm"
+                    >
+                      <strong>{card.button}</strong>
+
+                      {card.button === "DESCARGAR PDF" ? (
+                        <Download className="w-4 h-4 flex-shrink-0" />
+                      ) : (
+                        <ArrowUp className="w-4 h-4 flex-shrink-0" />
+                      )}
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* Aprende lo que te interesa */}
-        <section className="w-full mb-8 md:mb-12">
-          <h2 className="text-2xl md:text-3xl font-bold mb-3">
-            Aprende lo que te interesa
-          </h2>
-
-          <p className="text-base md:text-lg text-[--color-text-secondary] mb-8">
-            Explora contenidos prácticos para aprender a utilizar la plataforma
-            según tus necesidades
-          </p>
-
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8">
-            {content_items.map((item, index) => (
-              <button
-                key={index}
-                type="button"
-                onClick={item.onClick}
-                className="
-                  w-full
-                  text-left
-                  grid
-                  grid-cols-1
-                  sm:grid-cols-[180px_1fr]
-                  md:grid-cols-[220px_1fr]
-                  gap-5
-                  items-center
-                  p-4
-                  rounded-2xl
-                  hover:bg-white
-                  hover:shadow-sm
-                  transition-all
-                "
-              >
-                <div className="w-full h-[160px] md:h-[180px] bg-white rounded-xl overflow-hidden">
-                  <img
-                    src={item.img}
-                    alt={item.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
-                <div>
-                  <h3 className="text-lg md:text-xl font-bold mb-3">
-                    {item.title}
-                  </h3>
-
-                  <p className="text-sm md:text-base text-[--color-text-secondary]">
-                    {item.description}
-                  </p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* Siguientes pasos */}
-        <section className="w-full mb-6 md:mb-8">
-          <div
+          <section
             className="
-              grid
-              grid-cols-1
-              md:grid-cols-2
-              xl:grid-cols-3
-              gap-6
-              md:gap-8
               w-full
-              bg-white
-              rounded-[20px]
+
+              bg-blue-50
+
               border
-              border-[--color-border]
-              p-5
-              md:p-7
+              border-blue-100
+
+              rounded-[16px]
+
+              px-5
+              py-5
+
+              md:px-7
+              md:py-6
+
+              mb-8
+
+              flex
+              flex-col
+              sm:flex-row
+
+              gap-4
+
+              items-start
             "
           >
-            {next_steps.map((card, index) => (
+            <div className="w-10 h-10 rounded-full border border-blue-400 text-blue-500 flex items-center justify-center flex-shrink-0 font-bold">
+              ?
+            </div>
+
+            <div>
+              <h2 className="text-base md:text-lg font-bold mb-2">
+                ¿Necesitas más ayuda?
+              </h2>
+
+              <p className="text-sm md:text-base text-[--color-text-secondary] mb-2">
+                Nuestro equipo está disponible para ayudarte a resolver dudas y
+                aprovechar al máximo la Plataforma Inteligente de Datos. Si
+                tienes alguna inquietud o duda sobre el funcionamiento de la
+                plataforma puedes gestionar tu solicitud en{" "}
+                <span>
+                  {supportUrl ? (
+                    <a
+                      href={supportUrl}
+                      rel="noreferrer"
+                      className="text-sm md:text-base text-[--color-info] font-semibold hover:underline"
+                      target="_blank"
+                    >
+                      Aranda
+                    </a>
+                  ) : (
+                    <span className="text-sm md:text-base font-semibold text-[--color-text-muted]">
+                      Aranda
+                    </span>
+                  )}
+                </span>
+              </p>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      {selectedVideo && (
+        <div
+          className="
+            fixed
+            inset-0
+            z-[100]
+
+            flex
+            items-center
+            justify-center
+
+            p-4
+            md:p-6
+
+            bg-black/55
+            backdrop-blur-sm
+          "
+          onClick={closeVideo}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={selectedVideo}
+            className="
+              w-[95vw]
+              md:w-[90vw]
+              lg:w-[80vw]
+
+              h-[75vh]
+              md:h-[80vh]
+
+              max-w-[1500px]
+
+              bg-white
+
+              rounded-2xl
+
+              shadow-2xl
+
+              overflow-hidden
+
+              flex
+              flex-col
+            "
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div
+              className="
+                flex
+                items-center
+                justify-between
+
+                px-5
+                py-4
+
+                md:px-6
+                md:py-5
+
+                border-b
+                border-[--color-border]
+
+                flex-shrink-0
+              "
+            >
+              <div className="min-w-0 pr-4">
+                <h2
+                  className="
+                    text-lg
+                    md:text-xl
+                    lg:text-2xl
+
+                    font-bold
+
+                    text-[--color-text-primary]
+
+                    truncate
+                  "
+                >
+                  {selectedVideo}
+                </h2>
+
+                <p className="mt-1 text-left text-sm text-[--color-text-secondary]">
+                  Video de ayuda
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeVideo}
+                aria-label="Cerrar video"
+                className="
+                  w-10
+                  h-10
+
+                  flex
+                  items-center
+                  justify-center
+
+                  rounded-lg
+
+                  text-[--color-text-secondary]
+
+                  hover:bg-[--color-background]
+                  hover:text-[--color-text-primary]
+
+                  transition-colors
+
+                  flex-shrink-0
+                "
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  className="w-6 h-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18 18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div
+              className="
+                flex-1
+                min-h-0
+
+                p-4
+                md:p-6
+
+                bg-[--color-background]
+              "
+            >
               <div
-                key={index}
-                className={`
+                className="
+                  w-full
+                  h-full
+
+                  rounded-xl
+
+                  border
+                  border-[--color-border]
+
+                  bg-[#111827]
+
+                  overflow-hidden
+
                   flex
                   flex-col
-                  sm:flex-row
-                  gap-4
-                  md:gap-5
-                  w-full
-                  ${
-                    index !== next_steps.length - 1
-                      ? "xl:border-r xl:border-[--color-border] xl:pr-8"
-                      : ""
-                  }
-                `}
+                  items-center
+                  justify-center
+
+                  px-6
+
+                  text-center
+                "
               >
-                <img
-                  src={card.img}
-                  alt={card.title}
-                  className="w-14 h-14 md:w-16 md:h-16 object-contain flex-shrink-0"
-                  loading="lazy"
-                />
+                <div
+                  className="
+                    w-16
+                    h-16
 
-                <div className="flex flex-col flex-1">
-                  <h3 className="text-lg md:text-xl font-bold pb-2">
-                    {card.title}
-                  </h3>
+                    md:w-20
+                    md:h-20
 
-                  <p className="text-sm md:text-base text-[--color-text-secondary] pb-4 flex-1">
-                    {card.description}
-                  </p>
+                    rounded-full
 
-                  <button
-                    type="button"
-                    onClick={card.onClick}
-                    className="text-[--color-accent] flex gap-2 items-center w-fit text-sm"
+                    border
+                    border-white/20
+
+                    bg-white/10
+
+                    flex
+                    items-center
+                    justify-center
+                  "
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="w-8 h-8 md:w-10 md:h-10 text-white"
                   >
-                    <strong>{card.button}</strong>
-
-                    {card.button === "DESCARGAR PDF" ? (
-                      <Download className="w-4 h-4 flex-shrink-0" />
-                    ) : (
-                      <ArrowUp className="w-4 h-4 flex-shrink-0" />
-                    )}
-                  </button>
+                    <path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.2-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14Z" />
+                  </svg>
                 </div>
+
+                <p
+                  className="
+                    mt-5
+
+                    text-lg
+                    md:text-xl
+                    lg:text-2xl
+
+                    font-semibold
+
+                    text-white
+                  "
+                >
+                  Video próximamente
+                </p>
+
+                <p
+                  className="
+                    mt-2
+
+                    text-sm
+                    md:text-base
+
+                    text-white/60
+                  "
+                >
+                  El contenido del video se agregará aquí.
+                </p>
               </div>
-            ))}
+            </div>
           </div>
-        </section>
-
-        {/* Necesitas más ayuda */}
-        <section
-          className="
-            w-full
-            bg-blue-50
-            border
-            border-blue-100
-            rounded-[16px]
-            px-5
-            py-5
-            md:px-7
-            md:py-6
-            mb-8
-            flex
-            flex-col
-            sm:flex-row
-            gap-4
-            items-start
-          "
-        >
-          <div className="w-10 h-10 rounded-full border border-blue-400 text-blue-500 flex items-center justify-center flex-shrink-0 font-bold">
-            ?
-          </div>
-
-          <div>
-            <h2 className="text-base md:text-lg font-bold mb-2">
-              ¿Necesitas más ayuda?
-            </h2>
-
-            <p className="text-sm md:text-base text-[--color-text-secondary] mb-2">
-              Nuestro equipo está disponible para ayudarte a resolver dudas y
-              aprovechar al máximo la Plataforma Inteligente de Datos. Si tienes
-              alguna inquietud o duda sobre el funcionamiento de la plataforma
-              puedes gestionar tu solicitud en{" "}
-              <span>
-                {supportUrl ? (
-                  <a
-                    href={supportUrl}
-                    rel="noreferrer"
-                    className="text-sm md:text-base text-[--color-info] font-semibold hover:underline"
-                    target="_blank"
-                  >
-                    Aranda
-                  </a>
-                ) : (
-                  <span className="text-sm md:text-base font-semibold text-[--color-text-muted]">
-                    Aranda
-                  </span>
-                )}
-              </span>
-            </p>
-          </div>
-        </section>
-      </div>
-    </main>
+        </div>
+      )}
+    </>
   );
 };
 

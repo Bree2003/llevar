@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+
 import { ReactComponent as Text } from "components/Global/Icons/text.svg";
 import { ReactComponent as TextAlignLeft } from "components/Global/Icons/textalign-left.svg";
 import { ReactComponent as Chart } from "components/Global/Icons/chart.svg";
 import { ReactComponent as Close } from "components/Global/Icons/close.svg";
+
 import { DomainModel } from "models/Global/domainsModel";
 import { ReportModel } from "models/Global/reportsModel";
 
@@ -18,11 +20,12 @@ const initialForm = {
   nombre: "",
   descripcion: "",
   area: "",
+  productOwner: "",
   iframe: "",
 };
 
-const getDomainUnitId = (dom: DomainModel[], area: string) => {
-  const domainUnit = dom.find(
+const getDomainUnitId = (domains: DomainModel[], area: string) => {
+  const domainUnit = domains.find(
     (unit) => unit.id === area || unit.name === area,
   );
 
@@ -48,12 +51,18 @@ const ReportDrawer = ({
     if (report) {
       setForm({
         nombre: report.nombre,
+
         descripcion: report.descripcion,
+
         area: getDomainUnitId(domains, report.area),
+
+        productOwner: report.productOwner ?? "",
+
         iframe: report.iframe,
       });
 
       setKpis(report.kpis || []);
+
       setKpiInput("");
     } else {
       setForm(initialForm);
@@ -79,6 +88,10 @@ const ReportDrawer = ({
     }));
   };
 
+  /* ==========================================
+     KPIS
+  ========================================== */
+
   const handleAddKpi = () => {
     const normalizedKpi = kpiInput.trim();
 
@@ -95,6 +108,10 @@ const ReportDrawer = ({
     setKpis((prev) => prev.filter((_, currentIndex) => currentIndex !== index));
   };
 
+  /* ==========================================
+     RESET
+  ========================================== */
+
   const resetForm = () => {
     setForm(initialForm);
     setKpiInput("");
@@ -105,6 +122,10 @@ const ReportDrawer = ({
     resetForm();
     onClose();
   };
+
+  /* ==========================================
+     ID
+  ========================================== */
 
   const generateReportId = (nombre: string) => {
     return nombre
@@ -117,12 +138,20 @@ const ReportDrawer = ({
       .replace(/-+/g, "-");
   };
 
+  /* ==========================================
+     GUARDAR
+  ========================================== */
+
   const handleSave = () => {
     const nombre = form.nombre.trim();
+
     const descripcion = form.descripcion.trim();
+
+    const productOwner = form.productOwner.trim();
+
     const iframe = form.iframe.trim();
 
-    if (!nombre || !descripcion || !form.area || !iframe) {
+    if (!nombre || !descripcion || !form.area || !productOwner || !iframe) {
       return;
     }
 
@@ -130,9 +159,15 @@ const ReportDrawer = ({
       id: report?.id ?? generateReportId(nombre),
 
       nombre,
+
       descripcion,
+
       area: form.area,
+
+      productOwner,
+
       iframe,
+
       kpis,
 
       fechaModificacion: report?.fechaModificacion ?? "",
@@ -145,6 +180,7 @@ const ReportDrawer = ({
     form.nombre.trim() !== "" &&
     form.descripcion.trim() !== "" &&
     form.area !== "" &&
+    form.productOwner.trim() !== "" &&
     form.iframe.trim() !== "";
 
   return (
@@ -409,6 +445,50 @@ const ReportDrawer = ({
               </select>
             </label>
 
+            {/* DATA PRODUCT OWNER */}
+            <label htmlFor="productOwner" className="block">
+              <div
+                className="
+                  flex
+                  items-center
+                  gap-1
+
+                  mb-1.5
+
+                  text-xs
+                  font-semibold
+                  uppercase
+                "
+              >
+                <Text />
+                Data Product Owner
+              </div>
+
+              <input
+                id="productOwner"
+                name="productOwner"
+                value={form.productOwner}
+                onChange={handleChange}
+                placeholder="Añadir Data Product Owner..."
+                className="
+                  w-full
+
+                  border
+                  border-[--color-border]
+
+                  rounded-lg
+
+                  p-3
+
+                  text-[--color-text-primary]
+
+                  outline-none
+
+                  focus:border-[--color-accent]
+                "
+              />
+            </label>
+
             {/* KPIS */}
             <div>
               <div
@@ -436,6 +516,7 @@ const ReportDrawer = ({
                   onKeyDown={(event) => {
                     if (event.key === "Enter") {
                       event.preventDefault();
+
                       handleAddKpi();
                     }
                   }}
@@ -624,21 +705,21 @@ const ReportDrawer = ({
             onClick={handleSave}
             disabled={!canSave}
             className="
-    px-4
-    py-2.5
+              px-4
+              py-2.5
 
-    bg-[--color-accent]
+              bg-[--color-accent]
 
-    text-white
-    font-medium
+              text-white
+              font-medium
 
-    rounded-lg
+              rounded-lg
 
-    hover:opacity-90
+              hover:opacity-90
 
-    disabled:opacity-50
-    disabled:cursor-not-allowed
-  "
+              disabled:opacity-50
+              disabled:cursor-not-allowed
+            "
           >
             {report ? "Guardar cambios" : "Crear reporte"}
           </button>

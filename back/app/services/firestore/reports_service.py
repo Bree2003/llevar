@@ -1,5 +1,6 @@
 import re
 import unicodedata
+
 from datetime import date
 from typing import Any
 
@@ -16,6 +17,7 @@ DEFAULTS: dict[str, Any] = {
     "nombre": "",
     "descripcion": "",
     "area": "",
+    "productOwner": "",
     "iframe": "",
     "kpis": [],
     "fechaModificacion": "",
@@ -26,6 +28,7 @@ TEXT_FIELDS = (
     "nombre",
     "descripcion",
     "area",
+    "productOwner",
     "iframe",
 )
 
@@ -70,7 +73,6 @@ def _normalize_id(value: str) -> str:
 def _generate_report_id(nombre: str) -> str:
     """
     Replica la lógica utilizada en frontend:
-
     'Reporte Ventas Región' -> 'reporte-ventas-region'
     """
 
@@ -217,6 +219,11 @@ def create_report(
             "The 'area' field is required"
         )
 
+    if not changes.get("productOwner"):
+        raise ValueError(
+            "The 'productOwner' field is required"
+        )
+
     if not changes.get("iframe"):
         raise ValueError(
             "The 'iframe' field is required"
@@ -304,6 +311,14 @@ def update_report(
     ):
         raise ValueError(
             "The 'area' field cannot be empty"
+        )
+
+    if (
+        "productOwner" in changes
+        and not changes["productOwner"]
+    ):
+        raise ValueError(
+            "The 'productOwner' field cannot be empty"
         )
 
     if (
