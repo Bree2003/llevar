@@ -1,7 +1,7 @@
-from app.core.gcp import get_storage_client
+from app.core.gcp import create_storage_client, create_storage_client
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
-from app.services.logging_service import log_info, log_warning, log_error
+from app.services.logging_service import log_info, log_warning
 from app.utils.file_converter import dataframe_to_parquet_tempfile
 from dotenv import load_dotenv
 import pandas as pd
@@ -41,7 +41,7 @@ def list_data_products(project_id, bucket_name):
     """
     Lista las "carpetas" de nivel superior en un bucket de GCS.
     """
-    storage_client = get_storage_client(project_id)
+    storage_client = create_storage_client(project_id)
     bucket = storage_client.bucket(bucket_name)
     # El delimitador agrupa los resultados por "carpetas"
     blobs_iterator = bucket.list_blobs(delimiter="/")
@@ -58,7 +58,7 @@ def list_datasets_in_product(project_id, bucket_name, product_name):
     """
     Lista los archivos (datasets) dentro de una "carpeta" (Producto de Datos) específica.
     """
-    storage_client = get_storage_client(project_id)
+    storage_client = create_storage_client(project_id)
     bucket = storage_client.bucket(bucket_name)
     # El prefijo asegura que solo busquemos dentro de la carpeta deseada
     prefix = f"{product_name}/"
@@ -84,7 +84,7 @@ def list_subfolders_in_path(project_id, bucket_name, path):
     Returns:
         list: Una lista de nombres de las subcarpetas directas.
     """
-    storage_client = get_storage_client(project_id)
+    storage_client = create_storage_client(project_id)
     bucket = storage_client.bucket(bucket_name)
 
     # Nos aseguramos de que el prefijo termine con '/' para buscar DENTRO de la carpeta.
@@ -121,7 +121,7 @@ def get_latest_dataset_in_product(project_id, bucket_name, product_path):
     Returns:
         str or None: El nombre del archivo más reciente, o None si la carpeta está vacía.
     """
-    storage_client = get_storage_client(project_id)
+    storage_client = create_storage_client(project_id)
     bucket = storage_client.bucket(bucket_name)
 
     # El prefijo asegura que solo busquemos dentro de la carpeta deseada
@@ -153,7 +153,7 @@ def create_resumable_upload_session(project_id, bucket_name, destination_blob_na
     """
     Inicia una sesión de subida reanudable y devuelve la URL de sesión.
     """
-    storage_client = get_storage_client(project_id)
+    storage_client = create_storage_client(project_id)
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(destination_blob_name)
 
@@ -194,7 +194,7 @@ def upload_file(project_id, bucket_name, local_path, table_path):
     destination_blob_name = f"{table_path}/year={year}/month={month}/day={day}/{filename}"
 
     # 5. Subir el archivo como antes.
-    storage_client = get_storage_client(project_id)
+    storage_client = create_storage_client(project_id)
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(destination_blob_name)
     blob.upload_from_filename(local_path)
@@ -283,7 +283,7 @@ def read_latest_dataset_content(project_id, bucket_name, product_path):
     ):
         return aux_case_versionado(case_config)
 
-    storage_client = get_storage_client(project_id)
+    storage_client = create_storage_client(project_id)
 
     bucket = storage_client.bucket(bucket_name)
 
@@ -547,7 +547,7 @@ def save_full_dataset(project_id, bucket_name, product_path, rows, filename=None
         f"{product_path}/year={year}/month={month}/day={day}/{filename}"
     )
 
-    storage_client = get_storage_client(project_id)
+    storage_client = create_storage_client(project_id)
 
     bucket = storage_client.bucket(bucket_name)
 
@@ -592,7 +592,7 @@ def upload_blob(project_id: str,
             or "application/octet-stream"
         )
 
-        storage_client = get_storage_client(project_id)
+        storage_client = create_storage_client(project_id)
         bucket = storage_client.bucket(bucket_name)
         blob = bucket.blob(destination_blob_name)
 
@@ -605,6 +605,30 @@ def upload_blob(project_id: str,
 
     except Exception as e:
         raise Exception(f"Error subiendo archivo a GCP: {e}")
+
+def list_buckets_from_project(project_id: str) -> list:
+    """
+    Recibe un project_id y tratará de listar los buckets asociados.
+    """
+
+    try:
+        storage_client = create_storage_client(project_id)
+        buckets = storage_client.list_buckets()
+        
+        curated_list = []
+        
+        for bucket in buckets:
+            curated_list.append({
+                "name": bucket.name,
+                "id": bucket.id,
+                "created_at": bucket.time_created.isoformat() if bucket.time_created else None,
+                "updated_at": bucket.updated.isoformat() if bucket.updated else None,
+            })
+
+        return curated_list
+
+    except Exception as e:
+        raise Exception(f"Error obteniendo buckets desde proyecto {project_id}: {e}")
 
 def dataframe_to_excel_tempfile(df, filename: str):
     """
@@ -681,7 +705,7 @@ def _list_direct_subfolders(project_id, bucket_name, path):
         "tbl-otra-tabla"
     ]
     """
-    storage_client = get_storage_client(project_id)
+    storage_client = create_storage_client(project_id)
     bucket = storage_client.bucket(bucket_name)
 
     prefix = f"{path.strip('/')}/" if path else ""
@@ -713,7 +737,7 @@ def _get_latest_partition_prefix(project_id, bucket_name, table_path):
 
     o None si no encuentra particiones.
     """
-    storage_client = get_storage_client(project_id)
+    storage_client = create_storage_client(project_id)
     bucket = storage_client.bucket(bucket_name)
 
     table_path = table_path.strip("/")
@@ -769,7 +793,7 @@ def _list_direct_subfolders_safe(project_id, bucket_name, path):
         "tbl-otra-tabla"
     ]
     """
-    storage_client = get_storage_client(project_id)
+    storage_client = create_storage_client(project_id)
     bucket = storage_client.bucket(bucket_name)
 
     clean_path = path.strip("/")
@@ -795,7 +819,7 @@ def _get_parquet_paths_from_partition(project_id, bucket_name, partition_prefix)
     """
     Retorna todos los archivos parquet dentro de una partición como rutas gs://.
     """
-    storage_client = get_storage_client(project_id)
+    storage_client = create_storage_client(project_id)
     bucket = storage_client.bucket(bucket_name)
 
     clean_partition_prefix = partition_prefix.strip("/")

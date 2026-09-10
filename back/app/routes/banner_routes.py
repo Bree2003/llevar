@@ -8,6 +8,15 @@ banner_bp = Blueprint("banner", __name__)
 
 @banner_bp.route("/", methods=["GET"])
 def get_banners():
+    oid = g.user_id
+    if not oid:
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
+
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='reader')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
+
     banner = banner_service.list_banners()
     return jsonify(banner), 200
 
@@ -21,24 +30,23 @@ def create_banner():
         raise InvalidUsage("No se proporcionó ningún archivo.", status_code=400)
 
     file = request.files["file"]
+    name = request.form.get('name')
+
     if not file.filename:
         logging_service.log_error("El archivo enviado no tiene nombre.", user=oid)
         raise InvalidUsage("El archivo enviado no tiene nombre.", status_code=400)
 
+    if not name:
+        logging_service.log_error("El form-data no tiene el campo 'name'.", user=oid)
+        raise InvalidUsage("El form-data no tiene el campo 'name'.", status_code=400)
+
     if not oid:
         return jsonify({"error": "The token does not contain 'oid'"}), 400
 
-    user = users_service.get_user(oid)
-    if user is None:
-        return jsonify({"error": "User not found"}), 404
-
-    #permissions = user.get("permissions", [])
-    #if "admin" not in permissions:
-        #return jsonify({"error": "User does not have the required permission"}), 403
-
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "No data provided"}), 400
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='platform-admin')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
 
     try:
         project_id = Config.GCP_PROJECT_ID
@@ -52,7 +60,7 @@ def create_banner():
             return jsonify({"error: File could not be uploaded."}), 500
 
         curated_data = {
-            "name": data["name"] if not None else "nameless-banner",
+            "name": name,
             "src": uploaded_file
         }
 
@@ -71,24 +79,23 @@ def update_banner(banner_id):
         raise InvalidUsage("No se proporcionó ningún archivo.", status_code=400)
 
     file = request.files["file"]
+    name = request.form.get('name')
+
     if not file.filename:
         logging_service.log_error("El archivo enviado no tiene nombre.", user=oid)
         raise InvalidUsage("El archivo enviado no tiene nombre.", status_code=400)
 
+    if not name:
+        logging_service.log_error("El form-data no tiene el campo 'name'.", user=oid)
+        raise InvalidUsage("El form-data no tiene el campo 'name'.", status_code=400)
+
     if not oid:
         return jsonify({"error": "The token does not contain 'oid'"}), 400
 
-    user = users_service.get_user(oid)
-    if user is None:
-        return jsonify({"error": "User not found"}), 404
-
-    #permissions = user.get("permissions", [])
-    #if "admin" not in permissions:
-        #return jsonify({"error": "User does not have the required permission"}), 403
-
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "No data provided"}), 400
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='platform-admin')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
 
     try:
         project_id = Config.GCP_PROJECT_ID
@@ -102,7 +109,7 @@ def update_banner(banner_id):
             return jsonify({"error: File could not be uploaded."}), 500
 
         curated_data = {
-            "name": data["name"] if not None else "nameless-banner",
+            "name": name,
             "src": uploaded_file
         }
 
@@ -118,13 +125,10 @@ def delete_banner(banner_id):
     if not oid:
         return jsonify({"error": "The token does not contain 'oid'"}), 400
 
-    user = users_service.get_user(oid)
-    if user is None:
-        return jsonify({"error": "User not found"}), 404
-
-    #permissions = user.get("permissions", [])
-    #if "admin" not in permissions:
-        #return jsonify({"error": "User does not have the required permission"}), 403
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='platform-admin')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
 
     try:
         banner_service.delete_banner(banner_id)

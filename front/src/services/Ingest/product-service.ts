@@ -6,12 +6,12 @@ export interface ProductsResponse {
 }
 
 export const getProductsService = async (
-  envId: string, 
+  projectId: string, 
   bucketName: string
 ): Promise<ProductsResponse> => {
   // AxiosGet acepta un segundo argumento para los Query Params (?env_id=...&bucket_name=...)
   const response = await AxiosGet('/api/storage/products', {
-    env_id: envId,
+    project_id: projectId,
     bucket_name: bucketName
   });
 

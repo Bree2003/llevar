@@ -15,7 +15,7 @@ export interface SaveDatasetResponse {
 }
 
 export const getLatestDatasetPreviewService = async (
-  envId: string, 
+  projectId: string, 
   bucketName: string,
   productName: string,
   tableName: string
@@ -26,7 +26,7 @@ export const getLatestDatasetPreviewService = async (
   const response = await AxiosGet(
     `/api/storage/products/${path}/preview-latest`,
     {
-      env_id: envId,
+      project_id: projectId,
       bucket_name: bucketName
     }
   );
@@ -35,7 +35,7 @@ export const getLatestDatasetPreviewService = async (
 };
 
 export const saveDatasetDataService = async (
-  envId: string,
+  projectId: string,
   bucketName: string,
   productName: string,
   tableName: string,
@@ -43,7 +43,7 @@ export const saveDatasetDataService = async (
 ): Promise<SaveDatasetResponse> => {
   
   const payload = {
-    env_id: envId,
+    project_id: projectId,
     bucket_name: bucketName,
     product_name: productName,
     table_name: tableName,
@@ -61,7 +61,7 @@ export const saveDatasetDataService = async (
 
 
 export const downloadDatasetExcelService = async (
-  envId: string,
+  projectId: string,
   bucketName: string,
   productName: string,
   tableName: string
@@ -72,7 +72,7 @@ export const downloadDatasetExcelService = async (
   const response = await AxiosGetConfig(
     `/api/storage/products/${path}/download-excel`,
     {
-      env_id: envId,
+      project_id: projectId,
       bucket_name: bucketName,
     },
     {
@@ -107,14 +107,14 @@ export const downloadDatasetExcelService = async (
 };
 
 export const downloadMarketplaceProductExcelService = async (
-  envId: string,
+  projectId: string,
   bucketName: string,
   productName: string
 ): Promise<void> => {
   const response = await AxiosGetConfig(
     `/api/storage/marketplace/products/${productName}/download-excel`,
     {
-      env_id: envId,
+      project_id: projectId,
       bucket_name: bucketName,
     },
     {

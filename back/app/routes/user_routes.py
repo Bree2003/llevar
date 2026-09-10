@@ -9,13 +9,10 @@ def list_users():
     if not oid:
         return jsonify({"error": "The token does not contain 'oid'"}), 400
 
-    user = users_service.get_user(oid)
-    if user is None:
-        return jsonify({"error": "User not found"}), 404
-
-    #permissions = user.get("permissions", [])
-    #if "admin" not in permissions:
-        #return jsonify({"error": "User does not have the required permission"}), 403
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='platform-admin')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
 
     users = users_service.list_users(active_only=False, limit=1000)
     return jsonify(users), 200
@@ -26,13 +23,10 @@ def update_user():
     if not oid:
         return jsonify({"error": "The token does not contain 'oid'"}), 400
 
-    user = users_service.get_user(oid)
-    if user is None:
-        return jsonify({"error": "User not found"}), 404
-
-    #permissions = user.get("permissions", [])
-    #if "admin" not in permissions:
-        #return jsonify({"error": "User does not have the required permission"}), 403
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='platform-admin')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
 
     data = request.get_json()
 
@@ -47,3 +41,32 @@ def update_user():
 
     updated_user = users_service.update_user(target_oid, **payload)
     return jsonify(updated_user), 200
+
+@user_bp.route("/delete", methods=["DELETE"])
+def delete_user():
+    oid = g.user_id
+    if not oid:
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
+
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='platform-admin')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
+
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    if not "oid" in data:
+        return jsonify({"error": "Missing 'oid' in request data"}), 400
+
+    try:
+        payload = dict(data)
+        target_oid = payload.pop("oid")
+        users_service.delete_user(target_oid)
+        return jsonify({"message": f"User with ID {target_oid} has been deleted."}), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except KeyError as e:
+        return jsonify({"error": str(e)}), 500

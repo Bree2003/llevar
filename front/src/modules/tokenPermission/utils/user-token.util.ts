@@ -42,5 +42,4 @@ export const checkDomain = (
     }
 
     return true;
-
 };

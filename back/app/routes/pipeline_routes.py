@@ -1,7 +1,8 @@
 import os
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from app.utils.dataform_mapping import resolve_dataform_name
 from app.services import dataform_service, logging_service
+from app.services.firestore import users_service
 from app.utils.exceptions import InvalidUsage
 
 pipeline_bp = Blueprint("pipeline", __name__)
@@ -13,6 +14,15 @@ def run_product_pipeline_api():
     """
     Ejecuta el workspace de Dataform según el entorno.
     """
+    oid = g.user_id
+    if not oid:
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
+
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='file-upload')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
+
     data = request.get_json()
 
     if not data:

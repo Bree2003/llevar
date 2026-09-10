@@ -1,41 +1,35 @@
 from flask import Blueprint, jsonify, request, g
-
 from google.api_core.exceptions import NotFound
-
 from app.services.firestore import reports_service, users_service
-
 
 reports_bp = Blueprint("reports", __name__)
 
 
 @reports_bp.route("/", methods=["GET"])
 def get_reports():
-    reports = reports_service.list_reports()
+    oid = g.user_id
+    if not oid:
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
 
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='marketplace-reader')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
+
+    reports = reports_service.list_reports()
     return jsonify(reports), 200
 
 
 @reports_bp.route("/", methods=["POST"])
 def create_report():
     oid = g.user_id
-
     if not oid:
-        return jsonify({
-            "error": "The token does not contain 'oid'"
-        }), 400
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
 
-    user = users_service.get_user(oid)
-
-    if user is None:
-        return jsonify({
-            "error": "User not found"
-        }), 404
-
-    # permissions = user.get("permissions", [])
-    # if "admin" not in permissions:
-    #     return jsonify({
-    #         "error": "User does not have the required permission"
-    #     }), 403
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='marketplace-admin')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
 
     data = request.get_json()
 
@@ -58,24 +52,13 @@ def create_report():
 @reports_bp.route("/<report_id>", methods=["PUT"])
 def update_report(report_id):
     oid = g.user_id
-
     if not oid:
-        return jsonify({
-            "error": "The token does not contain 'oid'"
-        }), 400
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
 
-    user = users_service.get_user(oid)
-
-    if user is None:
-        return jsonify({
-            "error": "User not found"
-        }), 404
-
-    # permissions = user.get("permissions", [])
-    # if "admin" not in permissions:
-    #     return jsonify({
-    #         "error": "User does not have the required permission"
-    #     }), 403
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='marketplace-admin')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
 
     data = request.get_json()
 
@@ -106,24 +89,13 @@ def update_report(report_id):
 @reports_bp.route("/<report_id>", methods=["DELETE"])
 def delete_report(report_id):
     oid = g.user_id
-
     if not oid:
-        return jsonify({
-            "error": "The token does not contain 'oid'"
-        }), 400
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
 
-    user = users_service.get_user(oid)
-
-    if user is None:
-        return jsonify({
-            "error": "User not found"
-        }), 404
-
-    # permissions = user.get("permissions", [])
-    # if "admin" not in permissions:
-    #     return jsonify({
-    #         "error": "User does not have the required permission"
-    #     }), 403
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='marketplace-admin')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
 
     try:
         reports_service.delete_report(report_id)

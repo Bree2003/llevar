@@ -1,8 +1,11 @@
 // controllers/Main/controller.tsx
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import MainScreen from "screens/Main/Main";
-
+import {
+    BannerModel,
+    BannersDataToModel
+} from "models/Global/bannerModel";
+import loadBannerData from "services/Global/get-banner-data";
 import * as storageService from "services/Main/storage";
 import * as storageModel from "models/Main/storageModel";
 
@@ -11,22 +14,19 @@ export interface EndpointStatus {
     error?: boolean;
 }
 
-export type EndpointName = "LoadEnvironments";
+export type EndpointName =
+    "LoadEnvironments" |
+    "loadBanner";
 
 export interface Model {
     environments: storageModel.EnvironmentModel[];
+    banners: BannerModel[] | undefined;
     lastUpdate: Date | undefined;
 }
 
 const MainController = () => {
-
-    const navigate = useNavigate();
-
-    // --- NOTA: Esta lógica ahora no se usa en la vista, pero se mantiene aquí ---
-    // --- por si se necesita para otros componentes en el futuro. ---
     const [model, setModel] = useState<Partial<Model>>({ environments: [] });
-    const [endpoints, setEndpoints] =
-        useState<Partial<Record<EndpointName, EndpointStatus>>>();
+    const [endpoints, setEndpoints] = useState<Partial<Record<EndpointName, EndpointStatus>>>();
 
     useEffect(() => {
         refreshAllData();
@@ -34,6 +34,7 @@ const MainController = () => {
 
     const refreshAllData = async () => {
         loadEnvironmentsModel();
+        loadBanners();
     };
 
     const updateModel = (
@@ -68,11 +69,6 @@ const MainController = () => {
         done() { setEndpointStatus(name, { loading: false }); },
     });
 
-    const handleViewChange = (data: any, tab: number, url: string) => {
-        navigate(`/${url}`, { state: { data: data, tab: tab } });
-    };
-
-
 
     const loadEnvironmentsModel = async () => {
         const statusEndpoint = buildStatusEndpoint("LoadEnvironments");
@@ -89,8 +85,28 @@ const MainController = () => {
             statusEndpoint.done();
         }
     };
+
+    const loadBanners = async () => {
+        const statusEndpoint = buildStatusEndpoint("loadBanner");
+        try {
+            statusEndpoint.loading();
+            const response = await loadBannerData();
+            const banners = BannersDataToModel(response);
+            updateModel({ banners });
+        } catch (e) {
+            console.error("Error al cargar banners:", e);
+            statusEndpoint.error();
+            updateModel({ banners: [] });
+        } finally {
+            statusEndpoint.done();
+        }
+    };
+
     return (
-        <MainScreen />
+        <MainScreen
+            model={model}
+            endpoints={endpoints}
+        />
     );
 }
 

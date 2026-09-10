@@ -1,7 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
+import {
+  BucketModel,
+  BucketDataToModel,
+} from "models/Ingest/buckets-model";
 import EnvironmentAdapter from "models/Ingest/environment-model";
+import { getBucketsService } from "services/Ingest/get-buckets-service";
 import { getEnvironmentsService } from "services/Ingest/ingest-service";
 import BucketListScreen from "screens/Ingest/BucketListScreen";
 
@@ -14,8 +19,8 @@ export type EndpointName = "GetBuckets";
 
 export interface BucketListModel {
   environmentName: string;
-  buckets: string[];
-}
+  buckets: BucketModel[];
+};
 
 const BucketListController = () => {
   const { envId } = useParams();
@@ -30,7 +35,8 @@ const BucketListController = () => {
 
   useEffect(() => {
     if (envId) {
-      loadBuckets();
+      updateModel({ environmentName: envId });
+      loadBuckets(envId);
     }
   }, [envId]);
 
@@ -48,25 +54,16 @@ const BucketListController = () => {
     }));
   };
 
-  const loadBuckets = async () => {
+  const loadBuckets = async (project_id: string) => {
     setEndpointStatus("GetBuckets", { loading: true, error: false });
 
     try {
-      const response = await getEnvironmentsService();
-      const allEnvs = EnvironmentAdapter(response);
-      const selectedEnv = allEnvs.find((env) => env.id === envId);
-
-      if (selectedEnv) {
-        updateModel({
-          environmentName: selectedEnv.label,
-          buckets: selectedEnv.buckets,
-        });
-      } else {
-        console.error("Entorno no encontrado");
-        setEndpointStatus("GetBuckets", { error: true });
-      }
+      const response = await getBucketsService(project_id);
+      const buckets = BucketDataToModel(response);
+      updateModel({ buckets });
     } catch (e) {
       console.error(e);
+      updateModel({ buckets: []});
       setEndpointStatus("GetBuckets", { error: true });
     } finally {
       setEndpointStatus("GetBuckets", { loading: false });
@@ -78,13 +75,11 @@ const BucketListController = () => {
   };
 
   // --- NUEVO: Función para navegar al siguiente nivel ---
-  const handleSelectBucket = (bucketName: string) => {
-    if (!envId) return; // Guard clause para asegurar que envId existe
-
-    if (envId === "sap") {
+  const handleSelectBucket = (bucketName: string, kind: string) => {
+    if (kind === "sap") {
       // Ruta específica para SAP
       navigate(`/dashboard/${envId}/${bucketName}/manual/folders`);
-    } else if (envId === "pd") {
+    } else if (kind === "manual") {
       // Ruta específica para PD
       navigate(`/dashboard/${envId}/${bucketName}/products`);
     }

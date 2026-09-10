@@ -12,8 +12,10 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
 import SettingsIcon from '@mui/icons-material/Settings';
+import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import DomainConfigModal from 'components/AdminPlatform/DomainConfigModal';
 import PermissionConfigModal from 'components/AdminPlatform/PermissionConfigModal';
+import UserDeleteModal from 'components/AdminPlatform/UserDeleteModal';
 import { UserModel } from 'models/Admin/usersModel';
 import { DomainModel } from 'models/Global/domainsModel';
 import { PermissionModel } from 'models/Admin/permissionsModel';
@@ -27,6 +29,7 @@ export default function UserAdminTable({
     isBusy,
     isLoading,
     handleUserUpdate,
+    handleUserDelete,
 }: {
     userData: UserModel[] | undefined;
     domains: DomainModel[] | undefined;
@@ -34,11 +37,13 @@ export default function UserAdminTable({
     isBusy: boolean;
     isLoading: boolean;
     handleUserUpdate: (user: UserModel) => void;
+    handleUserDelete: (user: UserModel) => void;
 }) {
     const [page, setPage] = useState<number>(0);
     const [rowsPerPage, setRowsPerPage] = useState<number>(5);
     const [editingUserDomain, setEditingUserDomain] = useState<UserModel | null>(null);
     const [editingUserPermission, setEditingUserPermission] = useState<UserModel | null>(null);
+    const [deleteModal, setDeleteModal] = useState<UserModel | null>(null);
 
     const { user } = useAppSelector((state) => state.UserPermissions);
     const userEmail = user?.email || '';
@@ -74,6 +79,12 @@ export default function UserAdminTable({
         return;
     };
 
+    const handleOnUserDelete = (user: UserModel) => {
+        handleUserDelete(user);
+        setDeleteModal(null);
+        return;
+    };
+
     const paginatedData = useMemo(() => {
         if (!userData) {
             return [];
@@ -95,6 +106,7 @@ export default function UserAdminTable({
                                 <TableCell align="center">Dominios</TableCell>
                                 <TableCell align="center">Permisos</TableCell>
                                 <TableCell align="center">Activo</TableCell>
+                                <TableCell align="center">Eliminar</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -132,7 +144,7 @@ export default function UserAdminTable({
                                         <TableCell align="center">
                                             <Tooltip title="Editar permisos">
                                                 <IconButton
-                                                    disabled={isBusy}
+                                                    disabled={u.email === userEmail || isBusy}
                                                     onClick={() => setEditingUserPermission(u)}
                                                 >
                                                     <SettingsIcon />
@@ -147,6 +159,16 @@ export default function UserAdminTable({
                                                     onChange={(event) => handleSwitchChange(event, u)}
                                                     slotProps={{ input: { 'aria-label': 'controlled' } }}
                                                 />
+                                            </Tooltip>
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            <Tooltip title="Eliminar usuario">
+                                                <IconButton
+                                                    disabled={u.email === userEmail || isBusy}
+                                                    onClick={() => setDeleteModal(u)}
+                                                >
+                                                    <PersonRemoveIcon />
+                                                </IconButton>
                                             </Tooltip>
                                         </TableCell>
                                     </TableRow>
@@ -180,6 +202,13 @@ export default function UserAdminTable({
                     permissions={permissions}
                     onClose={() => setEditingUserPermission(null)}
                     onSave={handleUserPermissionChange}
+                />
+            )}
+            {deleteModal && (
+                <UserDeleteModal
+                    user={deleteModal}
+                    onClose={() => setDeleteModal(null)}
+                    onDelete={handleOnUserDelete}
                 />
             )}
         </Box>

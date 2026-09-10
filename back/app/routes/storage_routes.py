@@ -1,7 +1,8 @@
 from datetime import datetime
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from app.config import Config
 from app.services import storage_service, logging_service, bq_service
+from app.services.firestore import users_service
 from app.utils.gcp_utils import get_project_id_for_bucket
 from app.utils.file_processing import read_file_to_dataframe
 from app.utils.file_converter import dataframe_to_parquet_tempfile
@@ -26,7 +27,43 @@ def get_environments():
     Devuelve la lista de entornos configurados para que el frontend pueda
     poblar selectores. Esta es la única ruta que no necesita validación.
     """
+    oid = g.user_id
+    if not oid:
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
+
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='ingestion-reader')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
+
     return jsonify(Config.GCP_ENVIRONMENTS)
+
+
+@storage_bp.route("/buckets", methods=["GET"])
+def list_buckets_api():
+    """
+    Lista los buckets de un dominio (project_id).
+    """
+    oid = g.user_id
+    if not oid:
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
+
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='ingestion-reader')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
+
+    project_id = request.args.get('project_id')
+    if not project_id:
+        raise InvalidUsage("El parámetros 'project_id' es requerido.", status_code=400)
+
+    try:
+        buckets = storage_service.list_buckets_from_project(project_id=project_id)
+        return jsonify(buckets), 200
+    except InvalidUsage as e:
+        raise e  # Propagar errores de validación
+    except Exception as e:
+        raise InvalidUsage(f"Error al listar buckets: {e}", status_code=500)
 
 
 @storage_bp.route("/products", methods=["GET"])
@@ -34,14 +71,22 @@ def list_data_products_api():
     """
     Lista los productos de datos (carpetas raíz) en un bucket.
     """
-    env_id = request.args.get('env_id')
+    oid = g.user_id
+    if not oid:
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
+
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='ingestion-reader')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
+
+    project_id = request.args.get('project_id')
     bucket_name = request.args.get('bucket_name')
-    if not all([env_id, bucket_name]):
+    if not all([project_id, bucket_name]):
         raise InvalidUsage(
-            "Los parámetros 'env_id' y 'bucket_name' son requeridos.", status_code=400)
+            "Los parámetros 'project_id' y 'bucket_name' son requeridos.", status_code=400)
 
     try:
-        project_id = get_project_id_for_bucket(env_id, bucket_name)
         products = storage_service.list_data_products(project_id, bucket_name)
         return jsonify({"data_products": products})
     except InvalidUsage as e:
@@ -55,14 +100,22 @@ def list_subfolders_api(folder_path):
     """
     Lista las subcarpetas (tablas) dentro de una ruta específica.
     """
-    env_id = request.args.get('env_id')
+    oid = g.user_id
+    if not oid:
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
+
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='ingestion-reader')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
+
+    project_id = request.args.get('project_id')
     bucket_name = request.args.get('bucket_name')
-    if not all([env_id, bucket_name]):
+    if not all([project_id, bucket_name]):
         raise InvalidUsage(
-            "Los parámetros 'env_id' y 'bucket_name' son requeridos.", status_code=400)
+            "Los parámetros 'project_id' y 'bucket_name' son requeridos.", status_code=400)
 
     try:
-        project_id = get_project_id_for_bucket(env_id, bucket_name)
         subfolders = storage_service.list_subfolders_in_path(
             project_id, bucket_name, folder_path)
         return jsonify({"tables": subfolders})
@@ -78,14 +131,22 @@ def get_latest_dataset_api(product_path):
     """
     Obtiene el nombre del dataset más reciente dentro de una ruta de producto/tabla.
     """
-    env_id = request.args.get('env_id')
+    oid = g.user_id
+    if not oid:
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
+
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='ingestion-reader')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
+
+    project_id = request.args.get('project_id')
     bucket_name = request.args.get('bucket_name')
-    if not all([env_id, bucket_name]):
+    if not all([project_id, bucket_name]):
         raise InvalidUsage(
-            "Los parámetros 'env_id' y 'bucket_name' son requeridos.", status_code=400)
+            "Los parámetros 'project_id' y 'bucket_name' son requeridos.", status_code=400)
 
     try:
-        project_id = get_project_id_for_bucket(env_id, bucket_name)
         latest_dataset = storage_service.get_latest_dataset_in_product(
             project_id, bucket_name, product_path)
         return jsonify({"latest_dataset": latest_dataset})
@@ -98,11 +159,20 @@ def get_latest_dataset_api(product_path):
 
 @storage_bp.route("/initiate-resumable-upload", methods=["POST"])
 def initiate_resumable_upload_api():
+    oid = g.user_id
+    if not oid:
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
+
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='file-upload')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
+
     data = request.get_json()
-    if not data or not all(k in data for k in ['env_id', 'bucket_name', 'destination', 'fileName']):
+    if not data or not all(k in data for k in ['project_id', 'bucket_name', 'destination', 'fileName']):
         raise InvalidUsage("Faltan parámetros requeridos.", status_code=400)
 
-    env_id = data['env_id']
+    project_id = data['project_id']
     bucket_name = data['bucket_name']
     table_path = data['destination']
     file_name = data['fileName']
@@ -115,8 +185,6 @@ def initiate_resumable_upload_api():
             "La cabecera 'Origin' es requerida.", status_code=400)
 
     try:
-        project_id = get_project_id_for_bucket(env_id, bucket_name)
-
         # Construimos la ruta final particionada con el nombre del archivo original
         today = datetime.now()
         year, month, day = today.strftime(
@@ -161,21 +229,28 @@ def initiate_resumable_upload_api():
 
 @storage_bp.route("/process-cuadratura-upload", methods=["POST"])
 def process_cuadratura_upload():
+    oid = g.user_id
+    if not oid:
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
+
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='ingestion-reader')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
+
     data = request.get_json()
 
-    required = ["env_id", "bucket_name", "destination", "fileName"]
+    required = ["project_id", "bucket_name", "destination", "fileName"]
     if not data or not all(k in data for k in required):
         raise InvalidUsage("Faltan parámetros requeridos.", status_code=400)
 
-    env_id = data["env_id"]
+    project_id = data["project_id"]
     bucket_name = data["bucket_name"]
     destination = data["destination"]
     file_name = data["fileName"]
     user = data.get("user", "anonymous")
 
     try:
-        project_id = get_project_id_for_bucket(env_id, bucket_name)
-
         parts = destination.split("/")
 
         if len(parts) < 2:
@@ -224,6 +299,15 @@ def analyze_file_api():
     """
     Analiza un archivo en varios pasos.
     """
+    oid = g.user_id
+    if not oid:
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
+
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='file-upload')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
+
     if "file" not in request.files:
         raise InvalidUsage(
             "No se proporcionó ningún archivo.", status_code=400)
@@ -290,15 +374,14 @@ def analyze_file_api():
                     "alertas": []
                 })
 
-            env_id = request.form.get('env_id')
+            project_id = request.form.get('project_id')
             bucket_name = request.form.get('bucket_name')
             destination = request.form.get('destination', "")
 
-            if not all([env_id, bucket_name, destination]):
+            if not all([project_id, bucket_name, destination]):
                 return jsonify({"bloqueantes": [], "alertas": ["No se pudo validar: Faltan parámetros."]})
 
             try:
-                project_id = get_project_id_for_bucket(env_id, bucket_name)
                 parts = destination.split('/')
                 if len(parts) < 2:
                     return jsonify({"bloqueantes": [], "alertas": ["Ruta de destino inválida."]})
@@ -310,6 +393,7 @@ def analyze_file_api():
                     project_id, product_name, table_name, bucket_name)
 
                 target_dataset = ""
+                env_id = 'sap' if not '-manual-' in bucket_name else 'pd'
                 
                 if env_id == 'sap':
                     try:
@@ -405,22 +489,30 @@ def analyze_file_api():
 
 @storage_bp.route("/upload", methods=["POST"])
 def upload_file_api():
+    oid = g.user_id
+    if not oid:
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
+
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='file-upload')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
+
     user = request.form.get("user", "anonymous")
-    
     if "file" not in request.files:
         logging_service.log_error("No se proporcionó ningún archivo.", user=user)
         raise InvalidUsage(msg, status_code=400)
 
-    env_id = request.form.get('env_id')
+    project_id = request.form.get('project_id')
     bucket_name = request.form.get('bucket_name')
     destination = request.form.get("destination", "")
     
     metadata_json = request.form.get('metadata')
     schema_json = request.form.get('schema')
 
-    if not all([env_id, bucket_name, destination]):
-        msg = "Faltan campos 'env_id', 'bucket_name' y 'destination'."
-        logging_service.log_error(msg, user=user, env_id=env_id, bucket=bucket_name)
+    if not all([project_id, bucket_name, destination]):
+        msg = "Faltan campos 'project_id', 'bucket_name' y 'destination'."
+        logging_service.log_error(msg, user=user, project_id=project_id, bucket=bucket_name)
         raise InvalidUsage(msg, status_code=400)
 
     file = request.files["file"]
@@ -431,8 +523,8 @@ def upload_file_api():
     product = path_parts[0] if len(path_parts) > 0 else None
     dataset = path_parts[1] if len(path_parts) > 1 else None
     try:
+        env_id = 'sap' if not '-manual-' in bucket_name else 'pd'
         try:
-            project_id = get_project_id_for_bucket(env_id, bucket_name)
             parts = destination.split('/')
             if len(parts) < 2:
                 raise ValueError("La ruta de destino debe ser 'producto/tabla'.")
@@ -532,7 +624,7 @@ def upload_file_api():
         logging_service.log_info(
             "Archivo subido exitosamente",
             user=user,
-            env_id=env_id,
+            project_id=project_id,
             bucket=bucket_name,
             file_name=file.filename, 
             product=product,       
@@ -560,17 +652,23 @@ def get_latest_dataset_preview_api(product_path):
     """
     Obtiene el contenido COMPLETO del dataset más reciente para cargarlo en la grilla.
     """
-    env_id = request.args.get('env_id')
+    oid = g.user_id
+    if not oid:
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
+
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='ingestion-reader')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
+
+    project_id = request.args.get('project_id')
     bucket_name = request.args.get('bucket_name')
 
-    if not all([env_id, bucket_name]):
+    if not all([project_id, bucket_name]):
         raise InvalidUsage("Faltan parámetros.", status_code=400)
 
     try:
-        project_id = get_project_id_for_bucket(env_id, bucket_name)
-
-        filename, df = storage_service.read_latest_dataset_content(
-            project_id, bucket_name, product_path)
+        filename, df = storage_service.read_latest_dataset_content(project_id, bucket_name, product_path)
 
         if filename is None:
             return jsonify({"exists": False, "message": "No se encontraron archivos."})
@@ -617,13 +715,22 @@ def save_full_data_api():
     """
     Recibe data del front -> Sube a GCS.
     """
+    oid = g.user_id
+    if not oid:
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
+
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='file-upload')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
+
     data = request.get_json()
 
     if not data:
         raise InvalidUsage("No payload.", status_code=400)
 
     # Extraemos datos
-    env_id = data['env_id']
+    project_id = data['project_id']
     bucket_name = data['bucket_name']
     product_name = data['product_name']
     table_name = data['table_name']
@@ -632,7 +739,6 @@ def save_full_data_api():
 
     try:
         # 1. Subir a GCS
-        project_id = get_project_id_for_bucket(env_id, bucket_name)
         product_path = f"{product_name}/{table_name}"
 
         filename, df = storage_service.read_latest_dataset_content(project_id, bucket_name, product_path)
@@ -670,15 +776,22 @@ def download_latest_dataset_excel(product_path):
     """
     Descarga el dataset más reciente como archivo Excel.
     """
-    env_id = request.args.get('env_id')
+    oid = g.user_id
+    if not oid:
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
+
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='ingestion-reader')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
+
+    project_id = request.args.get('project_id')
     bucket_name = request.args.get('bucket_name')
 
-    if not all([env_id, bucket_name]):
+    if not all([project_id, bucket_name]):
         raise InvalidUsage("Faltan parámetros.", status_code=400)
 
     try:
-        project_id = get_project_id_for_bucket(env_id, bucket_name)
-
         filename, df = storage_service.read_latest_dataset_content(
             project_id, bucket_name, product_path
         )
@@ -731,21 +844,28 @@ def download_cdp_product_latest_excel(product_path):
     Usa la última partición year/month/day disponible por tabla.
 
     Ejemplo:
-    GET /api/storage/marketplace/products/pd-mermas/download-excel?env_id=prd&bucket_name=raw-prd-osc-cdp-bucket
+    GET /api/storage/marketplace/products/pd-mermas/download-excel?project_id=prd&bucket_name=raw-prd-osc-cdp-bucket
     """
-    env_id = request.args.get("env_id")
+    oid = g.user_id
+    if not oid:
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
+
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='ingestion-reader')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
+
+    project_id = request.args.get("project_id")
     bucket_name = request.args.get("bucket_name")
     user = request.args.get("user", "anonymous")
 
-    if not all([env_id, bucket_name]):
+    if not all([project_id, bucket_name]):
         raise InvalidUsage(
-            "Los parámetros 'env_id' y 'bucket_name' son requeridos.",
+            "Los parámetros 'project_id' y 'bucket_name' son requeridos.",
             status_code=400
         )
 
     try:
-        project_id = get_project_id_for_bucket(env_id, bucket_name)
-
         temp_excel_path, excel_filename = storage_service.cdp_product_latest_partitions_to_excel(
             project_id=project_id,
             bucket_name=bucket_name,

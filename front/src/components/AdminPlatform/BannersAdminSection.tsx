@@ -1,58 +1,65 @@
 import { useMemo, useState } from "react";
-import BannerModal, { BannerImage } from "./BannerModal";
+import BannerModal, { ActionKind } from "./BannerModal";
+import BannerDeleteModal from "./BannerDeleteModal";
+import { BannerModel } from "models/Global/bannerModel";
 
-const INITIAL_BANNERS: BannerImage[] = [
-  {
-    id: "1",
-    name: "Banner principal",
-    src: "/images/banner-1.png",
-  },
-  {
-    id: "2",
-    name: "Banner secundario",
-    src: "/images/banner-2.png",
-  },
-];
-
-const BannersAdminSection = () => {
-  const [banners, setBanners] = useState<BannerImage[]>(INITIAL_BANNERS);
-
-  const [search, setSearch] = useState("");
-
-  const [editingBanner, setEditingBanner] = useState<BannerImage | null>(null);
+const BannersAdminSection = ({
+    bannerData,
+    isBusy,
+    isLoading,
+    handleBannerCreate,
+    handleBannerUpdate,
+    handleBannerDelete,
+}: {
+    bannerData: BannerModel[] | undefined;
+    isBusy: boolean;
+    isLoading: boolean;
+    handleBannerCreate: (
+      banner: BannerModel,
+      file: File,
+      onProgress: (percent: number) => void,
+    ) => void;
+    handleBannerUpdate: (
+      banner: BannerModel,
+      file: File,
+      onProgress: (percent: number) => void,
+    ) => void;
+    handleBannerDelete: (banner: BannerModel) => void;
+}) => {
+  const [search, setSearch] = useState<string>("");
+  const [editingBanner, setEditingBanner] = useState<BannerModel | null>(null);
+  const [deleteModal, setDeleteModal] = useState<BannerModel | null>(null);
 
   const filteredBanners = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    if (!query) {
-      return banners;
+    if(!bannerData) {
+      return [];
     }
 
-    return banners.filter((banner) =>
+    if (!query) {
+      return bannerData;
+    }
+
+    return bannerData.filter((banner) =>
       banner.name.toLowerCase().includes(query),
     );
-  }, [banners, search]);
+  }, [bannerData, search]);
 
-  const handleSave = (savedBanner: BannerImage) => {
-    setBanners((previous) => {
-      const exists = previous.some((banner) => banner.id === savedBanner.id);
+  const handleSave = (bannerData: BannerModel, file: File, onProgress: (percent: number) => void, kind: ActionKind) => {
+    if(kind === "Create") {
+      handleBannerCreate(bannerData, file, onProgress);
+    }
 
-      if (!exists) {
-        return [
-          ...previous,
-          {
-            ...savedBanner,
-            id: Date.now().toString(),
-          },
-        ];
-      }
+    if(kind === "Update") {
+      handleBannerUpdate(bannerData, file, onProgress);
+    }
+  };
 
-      return previous.map((banner) =>
-        banner.id === savedBanner.id ? savedBanner : banner,
-      );
-    });
-
-    setEditingBanner(null);
+  const handleOnDelete = (bannerData: BannerModel) => {
+    handleBannerDelete(bannerData);
+    setDeleteModal(null);
+    return;
   };
 
   return (
@@ -120,6 +127,8 @@ const BannersAdminSection = () => {
                 id: "",
                 name: "",
                 src: "",
+                createdAt: "",
+                updatedAt: "",
               })
             }
             className="
@@ -341,11 +350,7 @@ const BannersAdminSection = () => {
 
                     <button
                       type="button"
-                      onClick={() =>
-                        setBanners((previous) =>
-                          previous.filter((item) => item.id !== banner.id),
-                        )
-                      }
+                      onClick={() => setDeleteModal(banner)}
                       className="
                           px-3
                           py-2
@@ -405,6 +410,14 @@ const BannersAdminSection = () => {
           banner={editingBanner}
           onClose={() => setEditingBanner(null)}
           onSave={handleSave}
+        />
+      )}
+
+      {deleteModal && (
+        <BannerDeleteModal
+          banner={deleteModal}
+          onClose={() => setDeleteModal(null)}
+          onDelete={handleOnDelete}
         />
       )}
     </>

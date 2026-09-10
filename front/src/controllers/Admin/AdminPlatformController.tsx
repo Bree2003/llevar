@@ -24,22 +24,32 @@ import {
   DictionaryDataToModel,
   DictionariesDataToModel
 } from "models/Global/dictionaryModel";
+import {
+  BannerModel,
+  BannerDataToModel,
+  BannersDataToModel
+} from "models/Global/bannerModel";
 import loadUsersData from "services/Admin/get-users-data";
-import loadDomainsData from "services/Admin/get-domains-data";
+import loadDomainsData from "services/Global/get-domains-data";
 import loadFaqData from "services/Global/get-faq-data";
 import loadDictionaryData from "services/Global/get-dictionary-data";
 import loadPermissionsData from "services/Admin/get-permissions-data";
+import loadBannerData from "services/Global/get-banner-data";
 import createDomainData from "services/Admin/create-domains-data";
 import createPermissionData from "services/Admin/create-permissions-data";
 import createFaqData from "services/Admin/create-faqs-data";
 import createDictionaryData from "services/Admin/create-dictionaries-data";
+import createBannerData from "services/Admin/create-banners-data";
 import updateUserData from "services/Admin/update-users-data";
 import updateDomainData from "services/Admin/update-domains-data";
 import updateFaqData from "services/Admin/update-faqs-data";
 import updateDictionaryData from "services/Admin/update-dictionaries-data";
 import updatePermissionData from "services/Admin/update-permissions-data";
+import updateBannerData from "services/Admin/update-banners-data";
+import deleteUsersData from "services/Admin/delete-users-data";
 import deleteFaqData from "services/Admin/delete-faqs-data";
 import deleteDictionariesData from "services/Admin/delete-dictionaries-data";
+import deleteBannerData from "services/Admin/delete-banners-data";
 import AdminPlatformScreen from "screens/Admin/AdminPlatformScreen";
 
 
@@ -50,21 +60,26 @@ export interface EndpointStatus {
 
 export type EndpointName = 
   "loadUsers" |
-  "updateUser" |
   "loadDomains" |
-  "updateDomain" |
   "loadPermissions" |
-  "updatePermission" |
+  "loadFaq" |
+  "loadDictionary" |
+  "loadBanner" |
   "createDomain" |
   "createPermission" |
-  "loadFaq" |
   "createFaq" |
-  "updateFaq" |
-  "loadDictionary" |
   "createDictionary" |
+  "createBanner" |
+  "updateUser" |
+  "updateDomain" |
+  "updatePermission" |
+  "updateFaq" |
   "updateDictionary" |
+  "updateBanner" |
+  "deleteUser" |
   "deleteFaq" |
-  "deleteDictionary";
+  "deleteDictionary" |
+  "deleteBanner";
 
 export interface Model {
   users: UserModel[] | undefined;
@@ -72,6 +87,7 @@ export interface Model {
   permissions: PermissionModel[] | undefined;
   faqs: FaqModel[] | undefined;
   dictionaries: DictionaryModel[] | undefined;
+  banners: BannerModel[] | undefined;
   lastUpdate: Date | undefined;
 };
 
@@ -85,6 +101,7 @@ const AdminPlatformController = () => {
     loadPermissions();
     loadFaqs();
     loadDictionaries();
+    loadBanners();
   }, []);
 
   const updateModel = (
@@ -199,6 +216,22 @@ const AdminPlatformController = () => {
     }
   };
 
+  const loadBanners = async () => {
+    const statusEndpoint = buildStatusEndpoint("loadBanner");
+    try {
+      statusEndpoint.loading();
+      const response = await loadBannerData();
+      const banners = BannersDataToModel(response);
+      updateModel({ banners });
+    } catch (e) {
+      console.error("Error al cargar banners:", e);
+      statusEndpoint.error();
+      updateModel({ banners: [] });
+    } finally {
+      statusEndpoint.done();
+    }
+  };
+
   const updateUser = async (user: UserModel) => {
     const statusEndpoint = buildStatusEndpoint("updateUser");
     try {
@@ -289,6 +322,33 @@ const AdminPlatformController = () => {
     }
   };
 
+  const createBanner = async (banner: BannerModel, file: File, onProgress: (percent: number) => void) => {
+    const statusEndpoint = buildStatusEndpoint("createBanner");
+    try {
+      statusEndpoint.loading();
+      const response = await createBannerData(banner, file, onProgress);
+
+      if (!response || response.status !== 201) {
+        console.error("Error al crear banner:", response);
+        statusEndpoint.error();
+        return;
+      }
+
+      const success = response.data;
+      const newBanner = BannerDataToModel(success);
+      if(newBanner) {
+        const newBanners = [...(model?.banners || []), newBanner];
+        updateModel({ banners: newBanners });
+        return;
+      }
+    } catch (e) {
+      console.error("Error al crear diccionario:", e);
+      statusEndpoint.error();
+    } finally {
+      statusEndpoint.done();
+    }
+  };
+
   const updateDomain = async (domain: DomainModel) => {
     const statusEndpoint = buildStatusEndpoint("updateDomain");
     try {
@@ -361,6 +421,50 @@ const AdminPlatformController = () => {
     }
   };
 
+  const updateBanner = async (banner: BannerModel, file: File, onProgress: (percent: number) => void) => {
+    const statusEndpoint = buildStatusEndpoint("updateBanner");
+    try {
+      statusEndpoint.loading();
+      const response = await updateBannerData(banner, file, onProgress);
+
+      if (!response || response.status !== 200) {
+        console.error("Error al actualizar banner:", response);
+        statusEndpoint.error();
+        return;
+      }
+
+      const success = response.data;
+      const updatedBanner = BannerDataToModel(success);
+      if(updatedBanner) {
+        const newBanners = model?.banners?.map((p) => (p.id === updatedBanner.id ? updatedBanner : p));
+        updateModel({ banners: newBanners });
+        return;
+      }
+    } catch (e) {
+      console.error("Error al crear diccionario:", e);
+      statusEndpoint.error();
+    } finally {
+      statusEndpoint.done();
+    }
+  };
+
+  const deleteUser = async (user: UserModel) => {
+    const statusEndpoint = buildStatusEndpoint("deleteUser");
+    try {
+      statusEndpoint.loading();
+      const response = await deleteUsersData(user);
+      if (response) {
+        const newUsers = model?.users?.filter((p) => p.oid !== user.oid);
+        updateModel({ users: newUsers });
+      }
+    } catch (e) {
+      console.error("Error al eliminar usuario:", e);
+      statusEndpoint.error();
+    } finally {
+      statusEndpoint.done();
+    }
+  };
+
   const deleteFaq = async (faq: FaqModel) => {
     const statusEndpoint = buildStatusEndpoint("deleteFaq");
     try {
@@ -395,6 +499,23 @@ const AdminPlatformController = () => {
     }
   };
 
+  const deleteBanner = async (banner: BannerModel) => {
+    const statusEndpoint = buildStatusEndpoint("deleteBanner");
+    try {
+      statusEndpoint.loading();
+      const response = await deleteBannerData(banner);
+      if (response) {
+        const newBanners = model?.banners?.filter((b) => b.id !== banner.id);
+        updateModel({ banners: newBanners });
+      }
+    } catch (e) {
+      console.error("Error al eliminar banner:", e);
+      statusEndpoint.error();
+    } finally {
+      statusEndpoint.done();
+    }
+  };
+
   return (
     <AdminPlatformScreen
       model={model}
@@ -403,13 +524,17 @@ const AdminPlatformController = () => {
       handlePermissionCreate={createPermission}
       handleFaqCreate={createFaq}
       handleDictionaryCreate={createDictionary}
+      handleBannerCreate={createBanner}
       handleUserUpdate={updateUser}
       handleDomainUpdate={updateDomain}
       handlePermissionUpdate={updatePermission}
       handleFaqUpdate={updateFaq}
       handleDictionaryUpdate={updateDictionary}
+      handleBannerUpdate={updateBanner}
+      handleUserDelete={deleteUser}
       handleFaqDelete={deleteFaq}
       handleDictionaryDelete={deleteDictionary}
+      handleBannerDelete={deleteBanner}
     />
   );
 };

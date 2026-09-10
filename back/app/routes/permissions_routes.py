@@ -5,6 +5,15 @@ permissions_bp = Blueprint("permissions", __name__)
 
 @permissions_bp.route("/", methods=["GET"])
 def permissions():
+    oid = g.user_id
+    if not oid:
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
+
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='platform-admin')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
+
     permissions = permissions_service.list_permissions(only_active=False)
     return jsonify(permissions), 200
 
@@ -15,13 +24,10 @@ def create_permission():
     if not oid:
         return jsonify({"error": "The token does not contain 'oid'"}), 400
 
-    user = users_service.get_user(oid)
-    if user is None:
-        return jsonify({"error": "User not found"}), 404
-
-    #permissions = user.get("permissions", [])
-    #if "admin" not in permissions:
-        #return jsonify({"error": "User does not have the required permission"}), 403
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='platform-admin')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
 
     data = request.get_json()
     if not data:
@@ -40,13 +46,10 @@ def update_permission(permission_id):
     if not oid:
         return jsonify({"error": "The token does not contain 'oid'"}), 400
 
-    user = users_service.get_user(oid)
-    if user is None:
-        return jsonify({"error": "User not found"}), 404
-
-    #permissions = user.get("permissions", [])
-    #if "admin" not in permissions:
-        #return jsonify({"error": "User does not have the required permission"}), 403
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='platform-admin')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
 
     data = request.get_json()
     if not data:

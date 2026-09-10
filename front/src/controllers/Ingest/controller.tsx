@@ -4,6 +4,11 @@ import { useState, useEffect } from "react";
 import EnvironmentAdapter, {
   EnvironmentModel,
 } from "models/Ingest/environment-model";
+import {
+  DomainModel,
+  DomainsDataToModel,
+} from "models/Global/domainsModel";
+import loadDomainsData from "services/Global/get-domains-data";
 import { getEnvironmentsService } from "services/Ingest/ingest-service";
 import IngestScreen from "screens/Ingest/Ingest";
 import { useNavigate } from "react-router";
@@ -16,10 +21,13 @@ export interface EndpointStatus {
 }
 
 // Aquí listamos los endpoints que este controlador va a gestionar
-export type EndpointName = "GetEnvironments";
+export type EndpointName = 
+  "GetEnvironments" |
+  "loadDomains";
 
 export interface IngestModel {
   environments: EnvironmentModel[]; // Nuestra lista limpia de entornos
+  domains: DomainModel[] | undefined;
   lastUpdate: Date | undefined;
 }
 
@@ -41,28 +49,13 @@ const IngestController = () => {
   // 3. Carga inicial
   useEffect(() => {
     loadEnvironments();
+    loadDomains();
   }, []);
 
   // --- LÓGICA DE NAVEGACIÓN ---
-  const handleSelectEnvironment = (envId: string) => {
-    if (envId === "pd") {
-      const envSuffix = process.env.REACT_APP_ENVIRONMENT || "dev";
-      console.log("env", process.env.REACT_APP_ENVIRONMENT);
-
-      console.log("[DEBUG] Environment detectado (env var):", envSuffix);
-
-      // El nombre del bucket se construye usando la variable (ej: dev o prd)
-      const bucketName = `raw-${envSuffix}-osc-manual-bucket`;
-
-      console.log("[DEBUG] Bucket seleccionado:", bucketName);
-
-      navigate(`/dashboard/${envId}/${bucketName}/products`);
-    } else {
-      navigate(`/dashboard/${envId}`);
-    }
+  const handleSelectEnvironment = (projectId: string) => {
+      navigate(`/dashboard/${projectId}`);
   };
-
-  // --- HELPERS DE ESTADO (Patrón idéntico a tu ejemplo) ---
 
   const updateModel = (
     partialModel:
@@ -125,6 +118,22 @@ const IngestController = () => {
       // Opcional: Manejar alertas con snackbar aquí
     } finally {
       status.done();
+    }
+  };
+
+  const loadDomains = async () => {
+    const statusEndpoint = buildStatusEndpoint("loadDomains");
+    try {
+      statusEndpoint.loading();
+      const response = await loadDomainsData();
+      const domains = DomainsDataToModel(response);
+      updateModel({ domains });
+    } catch (e) {
+      console.error("Error al cargar dominios:", e);
+      statusEndpoint.error();
+      updateModel({ domains: [] });
+    } finally {
+      statusEndpoint.done();
     }
   };
 

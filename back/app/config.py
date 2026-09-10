@@ -15,7 +15,7 @@ class Config:
     GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID")
     GOOGLE_APPLICATION_CREDENTIALS = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
     GCP_LOGGER_NAME = os.environ.get("GCP_LOGGER_NAME")
-    GCP_PUBLIC_BUCKET = 'cyt-public-files'
+    GCP_PUBLIC_BUCKET = f"cyt-{ENV}-public-cdn"
 
     CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "").split(",")
 

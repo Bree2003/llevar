@@ -9,6 +9,7 @@ import { ReactComponent as Export } from "components/Global/Icons/export.svg";
 import { ReactComponent as ArrowDown } from "components/Global/Icons/arrow-right.svg";
 import { ReactComponent as Folder } from "components/Global/Icons/folder.svg";
 import { ReactComponent as BarChart } from "components/Global/Icons/bar-chart.svg";
+import SmartToyIcon from '@mui/icons-material/SmartToy';
 
 import { useLocation, useNavigate } from "react-router";
 import { useMemo, useState } from "react";
@@ -108,6 +109,13 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
       path: "/",
       permission: "reader",
       onClick: () => navigate("/"),
+    },
+    {
+      label: "Agente Documental",
+      icon: SmartToyIcon,
+      path: "/docs_agent",
+      permission: "reader",
+      onClick: () => navigate("/docs_agent"),
     },
     {
       label: "Ingestas",

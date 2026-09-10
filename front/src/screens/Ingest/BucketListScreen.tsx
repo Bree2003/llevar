@@ -14,7 +14,7 @@ interface Props {
 
   onBack: () => void;
 
-  onSelectBucket: (bucketName: string) => void;
+  onSelectBucket: (bucketName: string, kind: string) => void;
 }
 
 const BucketListScreen = ({

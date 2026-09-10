@@ -1,3 +1,9 @@
+import {
+  Model,
+  EndpointStatus,
+  EndpointName,
+} from "controllers/Main/controller";
+
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "store/hooks/redux-hooks";
 import { checkPermission } from "modules/tokenPermission/utils/user-token.util";
@@ -7,7 +13,15 @@ import { ReactComponent as ArrowUp } from "components/Global/Icons/arrow-up.svg"
 import BannerCarousel from "components/BannerCarousel/BannerCarousel";
 import ManualUsuario from "assets/docs/Manual-Plataforma-Inteligente-de-Datos.pdf";
 
-const MainScreen = () => {
+interface MainScreenProps {
+  model: Partial<Model> | undefined;
+  endpoints: Partial<Record<EndpointName, EndpointStatus>> | undefined;
+}
+
+const MainScreen = ({
+  model,
+  endpoints,
+}: MainScreenProps) => {
   const { user } = useAppSelector((state) => state.UserPermissions);
   const userPermissions = user.permissions;
   const navigate = useNavigate();
@@ -60,13 +74,6 @@ const MainScreen = () => {
       button: "DESCARGAR PDF",
       onClick: handleDownloadManual,
     },
-  ];
-
-  const banner_images = [
-    "/images/banner-marketplace.png",
-    "/images/banner-ingesta.png",
-    "/images/banner-cloud.png",
-    "/images/banner-ia.png",
   ];
 
   const card_subhero = [
@@ -125,7 +132,10 @@ const MainScreen = () => {
       "
       >
         {/* Banner */}
-        <BannerCarousel images={banner_images} />
+        <BannerCarousel
+          images={model?.banners}
+          isLoading={endpoints?.loadBanner?.loading ?? false}
+        />
         {/* Hero */}
         <section className="w-full py-12">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-16 items-center">

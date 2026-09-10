@@ -1,3 +1,4 @@
+import { BucketModel } from "models/Ingest/buckets-model";
 import Skeleton from "react-loading-skeleton";
 
 const BucketIcon = () => (
@@ -72,25 +73,15 @@ const SAP_MODULES_CONFIG: Record<string, string> = {
   le: "Ejecución logística y envíos.",
 
   bc: "Módulo base y conectividad.",
-};
 
-type GridItem =
-  | string
-  | {
-      name: string;
-      label?: string;
-      description?: string;
-      icon?: "product" | "bucket";
-    };
+  anaplan: "Módulo Anaplan.",
+};
 
 interface ProductCardGridProps {
   title: string;
-
-  items: GridItem[];
-
+  items: BucketModel[];
   loading?: boolean;
-
-  onItemClick: (itemName: string) => void;
+  onItemClick: (itemName: string, kind: string) => void;
 }
 
 const ProductCardSkeleton = () => (
@@ -136,10 +127,22 @@ const ProductCardSkeleton = () => (
 
       <Skeleton count={2} />
     </div>
-
     <Skeleton width={100} />
   </div>
 );
+
+const formatName = (name: string): string => {
+  return name.split('-').join(' ');
+};
+
+const normalizeName =(input: string): string => {
+  return input
+    .replace(/^cyt-[^-]+-/i, "")
+    .replace(/-gcp$/i, "")
+    .replace(/-/g, " ")
+    .toUpperCase()
+    .trim();
+};
 
 export default function ProductCardGrid({
   title,
@@ -163,12 +166,12 @@ export default function ProductCardGrid({
     /*
      * Título visible
      */
-    let label = bucketName;
+    let name = bucketName;
 
     if (code && code.length <= 3) {
-      label = `Módulo ${code.toUpperCase()}`;
+      name = `Módulo ${code.toUpperCase()}`;
     } else {
-      label = bucketName.replace(/-/g, " ");
+      name = bucketName.replace(/-/g, " ");
     }
 
     /*
@@ -178,7 +181,7 @@ export default function ProductCardGrid({
       configDescription || "Almacenamiento de datos crudos (Raw Zone).";
 
     return {
-      label,
+      name,
       description,
     };
   };
@@ -208,12 +211,12 @@ export default function ProductCardGrid({
           md:mb-10
         "
       >
-        {loading ? <Skeleton width={400} /> : title}
+        {loading ? <Skeleton width={400} /> : `Dominio: ${normalizeName(title)}`}
       </h1>
 
       {/* Cards */}
       <div
-        className="
+        className=" 
           flex
           flex-wrap
 
@@ -226,37 +229,20 @@ export default function ProductCardGrid({
           }).map((_, index) => <ProductCardSkeleton key={index} />)
         ) : items.length > 0 ? (
           items.map((item) => {
-            let name = "";
-            let label = "";
-            let description = "";
-
-            let IconComponent = BucketIcon;
-
-            if (typeof item === "string") {
-              name = item;
-
-              const info = getModuleInfo(name);
-
-              label = info.label;
-
-              description = info.description;
-
-              IconComponent = BucketIcon;
-            } else {
-              name = item.name;
-
-              label = item.label || item.name;
-
-              description = item.description || "Descripción no disponible.";
-
-              IconComponent =
-                item.icon === "product" ? ProductIcon : BucketIcon;
+            if(item.name.includes('-adp-') || item.name.includes('-cdp-')){
+              return null;
             }
+
+            const sap_module = getModuleInfo(item.name);
+            const label = sap_module.name || item.name;
+            const kind = item.name.includes('-manual-') ? "manual" : "sap";
+            const description = item.name.includes('-manual-') ? "Bucket de ingesta de datos manuales" : sap_module.description;
+            const IconComponent = item.name.includes('bucket') ? BucketIcon : ProductIcon;
 
             return (
               <div
-                key={name}
-                onClick={() => onItemClick(name)}
+                key={item.id}
+                onClick={() => onItemClick(item.name, kind)}
                 className="
                   group
 
@@ -334,7 +320,7 @@ export default function ProductCardGrid({
                         transition-colors
                       "
                     >
-                      {label}
+                      {formatName(label)}
                     </h2>
                   </div>
 

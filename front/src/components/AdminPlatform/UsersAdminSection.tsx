@@ -11,6 +11,7 @@ const UsersAdminSection = ({
     isBusy,
     isLoading,
     handleUserUpdate,
+    handleUserDelete,
 }: {
     userData: UserModel[] | undefined;
     domains: DomainModel[] | undefined;
@@ -18,6 +19,7 @@ const UsersAdminSection = ({
     isBusy: boolean;
     isLoading: boolean;
     handleUserUpdate: (user: UserModel) => void;
+    handleUserDelete: (user: UserModel) => void;
 }) => {
   const [search, setSearch] = useState("");
 
@@ -180,6 +182,7 @@ const UsersAdminSection = ({
             isBusy={isBusy}
             isLoading={isLoading}
             handleUserUpdate={handleUserUpdate}
+            handleUserDelete={handleUserDelete}
           />
         </div>
       </section>

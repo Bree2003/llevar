@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
-
+import { useAppSelector } from "store/hooks/redux-hooks";
+import { checkPermission } from "modules/tokenPermission/utils/user-token.util";
 import { UploadState } from "controllers/Ingest/FolderListController";
 
 import AlertMessage from "components/UI/AlertMessage";
@@ -35,6 +36,8 @@ export default function FileUploadSection({
   setIsNewTable,
 }: FileUploadSectionProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAppSelector((state) => state.UserPermissions);
+  const userPermissions = user.permissions;
 
   const handleCustomClick = () => {
     fileInputRef.current?.click();
@@ -324,6 +327,7 @@ export default function FileUploadSection({
               type="file"
               accept=".csv, .xlsx, .xls, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, text/csv"
               className="hidden"
+              disabled={!checkPermission(userPermissions, 'file-upload')}
               onChange={(event) => {
                 if (event.target.files && event.target.files.length > 0) {
                   onFileChange(event.target.files[0]);
@@ -344,6 +348,7 @@ export default function FileUploadSection({
             >
               <button
                 type="button"
+                disabled={!checkPermission(userPermissions, 'file-upload')}
                 onClick={handleCustomClick}
                 className="
                   w-fit
@@ -410,7 +415,7 @@ export default function FileUploadSection({
           <button
             type="button"
             onClick={onAction}
-            disabled={!uploadState.file || !uploadState.selectedTable}
+            disabled={!uploadState.file || !uploadState.selectedTable || !checkPermission(userPermissions, 'file-upload')}
             className="
               w-full
 

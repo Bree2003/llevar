@@ -12,12 +12,22 @@ storage_client = {
     for env in Config.GCP_ENVIRONMENTS
 }
 
+def create_storage_client(project_id: str):
+    """
+    Función de ayuda para obtener el cliente de Storage correcto para un project_id.
+    """
+    try:
+        client = storage.Client(project=project_id)
+        return client
+    except Exception as e:
+        raise Exception(f"Error al crear cliente de Storage: {str(e)}")
+
+
 def get_storage_client(project_id: str):
     """
     Función de ayuda para obtener el cliente de Storage correcto para un project_id.
     Lanza un error si se solicita un cliente para un proyecto no configurado
     """
-    
     client = storage_client.get(project_id)
     if not client:
         raise ValueError(f"No se encontró un cliente de Storage configurado para el project_id: '{project_id}'")

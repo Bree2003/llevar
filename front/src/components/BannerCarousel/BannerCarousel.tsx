@@ -1,23 +1,26 @@
 import { useEffect, useState } from "react";
+import { BannerModel } from "models/Global/bannerModel";
 
 interface BannerCarouselProps {
-  images: string[];
-}
+  images: BannerModel[] | undefined;
+  isLoading: boolean;
+};
 
-const BannerCarousel = ({ images }: BannerCarouselProps) => {
+const BannerCarousel = ({ images, isLoading }: BannerCarouselProps) => {
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
+    if (!images) return;
     if (!images.length) return;
 
     const interval = setInterval(() => {
       setCurrent((prev) => (prev + 1) % images.length);
-    }, 8000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [images]);
 
-  return (
+  return !isLoading ? (
     <div
       className="
         relative
@@ -42,10 +45,10 @@ const BannerCarousel = ({ images }: BannerCarouselProps) => {
           transform: `translateX(-${current * 100}%)`,
         }}
       >
-        {images.map((image, index) => (
+        {images && images.map((image, index) => (
           <div key={index} className="w-full h-full flex-none relative">
             <img
-              src={image}
+              src={image.src}
               alt={`Slide ${index + 1}`}
               className="w-full h-full object-cover"
               draggable={false}
@@ -70,7 +73,7 @@ const BannerCarousel = ({ images }: BannerCarouselProps) => {
           z-10
         "
       >
-        {images.map((_, index) => (
+        {images && images.map((_, index) => (
           <button
             key={index}
             type="button"
@@ -90,6 +93,24 @@ const BannerCarousel = ({ images }: BannerCarouselProps) => {
         ))}
       </div>
     </div>
+  ) : (
+    <div
+      className="
+        relative
+        w-full
+        h-[180px]
+        sm:h-[220px]
+        md:h-[300px]
+        lg:h-[400px]
+        xl:h-[480px]
+        2xl:h-[560px]
+        overflow-hidden
+        rounded-xl
+        sm:rounded-2xl
+        lg:rounded-[20px]
+        bg-gray-200
+      "
+    />
   );
 };
 

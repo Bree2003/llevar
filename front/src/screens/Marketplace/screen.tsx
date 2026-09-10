@@ -1,28 +1,32 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { useAppSelector } from "store/hooks/redux-hooks";
+import { checkDomain } from "modules/tokenPermission/utils/user-token.util";
 import { ReactComponent as PresentationChart } from "components/Global/Icons/presention-chart.svg";
 
-import { domainUnits } from "data/domain-units";
-
+import { DomainModel } from "models/Global/domainsModel";
 import { ReportModel } from "models/Global/reportsModel";
 
 interface MarketplaceScreenProps {
   reports: ReportModel[];
+  domains: DomainModel[];
   isLoading: boolean;
   hasError: boolean;
 }
 
-const getDomainUnitByArea = (area: string) => {
-  return domainUnits.find((unit) => unit.id === area || unit.name === area);
+const getDomainUnitByArea = (dom: DomainModel[], area: string) => {
+  return dom.find((unit) => unit.id === area || unit.name === area);
 };
 
 const MarketplaceScreen = ({
   reports,
+  domains,
   isLoading,
   hasError,
 }: MarketplaceScreenProps) => {
   const navigate = useNavigate();
+  const { user } = useAppSelector((state) => state.UserPermissions);
+  const userDomains = user.domains;
 
   const businessUnits = useMemo(() => {
     const groupedReports = reports.reduce(
@@ -31,7 +35,7 @@ const MarketplaceScreen = ({
           return acc;
         }
 
-        const domainUnit = getDomainUnitByArea(report.area);
+        const domainUnit = getDomainUnitByArea(domains, report.area);
 
         if (!domainUnit) {
           return acc;
@@ -46,9 +50,13 @@ const MarketplaceScreen = ({
 
     return Object.entries(groupedReports)
       .map(([domainUnitId, reportsCount]) => {
-        const domainUnit = domainUnits.find((unit) => unit.id === domainUnitId);
+        const domainUnit = domains.find((unit) => unit.id === domainUnitId);
 
         if (!domainUnit) {
+          return null;
+        }
+
+        if(!checkDomain(userDomains, domainUnitId)) {
           return null;
         }
 
@@ -69,7 +77,7 @@ const MarketplaceScreen = ({
           reportsCount: number;
         } => unit !== null,
       );
-  }, [reports]);
+  }, [domains, reports]);
 
   return (
     <main className="flex flex-col items-start w-full min-h-full bg-[--color-background] text-left py-6 md:py-8">

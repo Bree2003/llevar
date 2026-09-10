@@ -1,39 +1,18 @@
-import { ReactComponent as Calendar } from "components/Global/Icons/calendar.svg";
-import { ReactComponent as Notification } from "components/Global/Icons/notification.svg";
-import { ReactComponent as Mantenimiento } from "components/Global/Icons/mantenimiento.svg";
-import { ReactComponent as Mermas } from "components/Global/Icons/mermas.svg";
-import { ReactComponent as MTS } from "components/Global/Icons/mts.svg";
-import { ReactComponent as Stock } from "components/Global/Icons/stock.svg";
-import { ReactComponent as Export } from "components/Global/Icons/export.svg";
+import { useMemo } from "react";
+import { ReactComponent as Database } from "components/Global/Icons/database.svg";
+import Tooltip from "@mui/material/Tooltip";
+import NotInterestedIcon from '@mui/icons-material/NotInterested';
 
+import { useAppSelector } from "store/hooks/redux-hooks";
+import { checkDomain } from "modules/tokenPermission/utils/user-token.util";
+import { DomainModel } from "models/Global/domainsModel";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 
-interface Product {
-  id: string;
-  label: string;
-}
-
 interface DataProductProps {
-  products: Product[];
+  products: DomainModel[];
   loading?: boolean;
   onProductClick: (id: string) => void;
-}
-
-const productIcons: Record<string, React.ComponentType<any>> = {
-  programa_fabricacion: Calendar,
-  notificaciones: Notification,
-  avisos_mantenimiento: Mantenimiento,
-  mermas: Mermas,
-  mts: MTS,
-  stock_materiales: Stock,
-  venta_exportacion: Export,
-};
-
-const environmentDescriptions: Record<string, string> = {
-  dominio_de_origen: "Fuentes transversales a más de un producto de datos.",
-
-  dominio_de_negocio: "Fuentes propias de cada producto de datos.",
 };
 
 const ProductCardSkeleton = () => (
@@ -42,7 +21,7 @@ const ProductCardSkeleton = () => (
       bg-[--color-background]
       border
       border-[--color-border]
-      p-5
+      p-4
       rounded-xl
       w-[290px]
       h-40
@@ -65,6 +44,9 @@ export default function DataProduct({
   loading,
   onProductClick,
 }: DataProductProps) {
+  const { user } = useAppSelector((state) => state.UserPermissions);
+  const userDomains = user.domains;
+
   return (
     <div className="w-full text-left p-10">
       <h1
@@ -81,95 +63,71 @@ export default function DataProduct({
       <div className="flex flex-wrap gap-5">
         {loading
           ? Array.from({
-              length: 6,
-            }).map((_, index) => <ProductCardSkeleton key={index} />)
-          : products.map((product) => {
-              const nameKey = product.label
-                .toLowerCase()
-                .trim()
-                .replace(/\s+/g, "_");
+            length: 6,
+          }).map((_, index) => <ProductCardSkeleton key={index} />)
+          : products.map((d) => {
+            if(!checkDomain(userDomains, d.id) || !d.active) {
+              return null;
+            }
 
-              const IconComponent = productIcons[nameKey] || Calendar;
-
-              const description =
-                environmentDescriptions[nameKey] ||
-                "Descripción no disponible.";
-
-              return (
+            return (
+              <button
+                key={d.id}
+                disabled={!d.active}
+                onClick={() => onProductClick(d.id)}
+                className="relative group bg-[--color-background] border border-[--color-border] p-4 rounded-xl w-[290px] h-40 cursor-pointer bg-white hover:border-[--color-accent] hover:shadow-sm transition-all duration-200"
+              >
+                {/*
+                {!d.active ? (
+                  <div className="absolute top-0 right-0 p-4">
+                    <Tooltip title="Dominio Deshabilitado">
+                      <NotInterestedIcon sx={{ color: 'red' }} />
+                    </Tooltip>
+                  </div>
+                ) : null}
+                */}
                 <div
-                  key={product.id}
-                  onClick={() => onProductClick(product.id)}
                   className="
-                      group
-
-                      bg-[--color-background]
-
-                      border
-                      border-[--color-border]
-
-                      p-5
-
-                      rounded-xl
-
-                      w-[290px]
-                      h-40
-
-                      cursor-pointer
-
-                      bg-white
-                      hover:border-[--color-accent]
-                      hover:shadow-sm
-
-                      transition-all
-                      duration-200
-                    "
-                >
-                  <div
-                    className="
                         flex
                         items-center
-                        gap-5
+                        gap-3
                         mb-2
                         h-16
                       "
-                  >
-                    <IconComponent
-                      className="
+                >
+                  <Database
+                    className="
                           w-8
                           h-8
-
                           flex-shrink-0
-
                           text-[--color-accent]
                         "
-                    />
-
-                    <h2
-                      className="
-                          text-2xl
+                  />
+                  <h2
+                    className="
+                          text-xl
                           font-semibold
-
                           text-[--color-text-primary]
-
                           transition-colors
-
                           group-hover:text-[--color-accent]
                         "
-                    >
-                      {product.label}
-                    </h2>
-                  </div>
-
-                  <p
-                    className="
-                        text-[--color-text-secondary]
-                      "
                   >
-                    {description}
-                  </p>
+                    {d.name}
+                  </h2>
                 </div>
-              );
-            })}
+                <p
+                  className="
+                        text-sm
+                        text-[--color-text-secondary]
+                        text-wrap
+                        line-clamp-2
+                      "
+                >
+                  {d.description}
+                </p>
+              </button>
+            );
+          })}
       </div>
     </div>
   );

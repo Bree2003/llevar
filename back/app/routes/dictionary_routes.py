@@ -5,6 +5,15 @@ dictionary_bp = Blueprint("dictionary", __name__)
 
 @dictionary_bp.route("/", methods=["GET"])
 def get_dictionarys():
+    oid = g.user_id
+    if not oid:
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
+
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='reader')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
+
     dictionary = dictionary_service.list_dictionaries()
     return jsonify(dictionary), 200
 
@@ -15,13 +24,10 @@ def create_dictionary():
     if not oid:
         return jsonify({"error": "The token does not contain 'oid'"}), 400
 
-    user = users_service.get_user(oid)
-    if user is None:
-        return jsonify({"error": "User not found"}), 404
-
-    #permissions = user.get("permissions", [])
-    #if "admin" not in permissions:
-        #return jsonify({"error": "User does not have the required permission"}), 403
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='platform-admin')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
 
     data = request.get_json()
     if not data:
@@ -40,13 +46,10 @@ def update_dictionary(dictionary_id):
     if not oid:
         return jsonify({"error": "The token does not contain 'oid'"}), 400
 
-    user = users_service.get_user(oid)
-    if user is None:
-        return jsonify({"error": "User not found"}), 404
-
-    #permissions = user.get("permissions", [])
-    #if "admin" not in permissions:
-        #return jsonify({"error": "User does not have the required permission"}), 403
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='platform-admin')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
 
     data = request.get_json()
     if not data:
@@ -65,13 +68,10 @@ def delete_dictionary(dictionary_id):
     if not oid:
         return jsonify({"error": "The token does not contain 'oid'"}), 400
 
-    user = users_service.get_user(oid)
-    if user is None:
-        return jsonify({"error": "User not found"}), 404
-
-    #permissions = user.get("permissions", [])
-    #if "admin" not in permissions:
-        #return jsonify({"error": "User does not have the required permission"}), 403
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='platform-admin')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
 
     try:
         dictionary_service.delete_dictionary(dictionary_id)

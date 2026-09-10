@@ -6,6 +6,7 @@ import {
   Outlet,
   Navigate,
   useNavigate,
+  useParams,
 } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import { SnackbarProvider } from "notistack";
@@ -13,7 +14,7 @@ import commonTheme from "themes/common-theme";
 import { Provider } from "react-redux";
 import store from "../store/store";
 import UserTokenPermission from "modules/tokenPermission/components/userTokenPermission";
-import { checkPermission, PermissionList } from "modules/tokenPermission/utils/user-token.util";
+import { checkPermission, checkDomain, PermissionList } from "modules/tokenPermission/utils/user-token.util";
 import { useAppSelector } from "store/hooks/redux-hooks";
 
 import NotAuthorizedScreen from "screens/Errors/401";
@@ -48,6 +49,7 @@ import FaqController from "controllers/Faq/controller";
 import ConceptosController from "controllers/Conceptos/controller";
 import AdminMarketplaceController from "controllers/Admin/AdminMarketplaceController";
 import AdminPlatformController from "controllers/Admin/AdminPlatformController";
+import DocsAgentController from "controllers/DocsAgent/DocsAgentController";
 
 const msalInstance = new PublicClientApplication(msalConfig as Configuration);
 
@@ -60,12 +62,15 @@ const NotFoundRedirectRoute = () => {
 };
 
 const ProtectedRoute = ({
-  permission
+  permission,
+  domain
 }: {
   permission?: PermissionList;
+  domain?: string;
 }) => {
   const { user } = useAppSelector((state) => state.UserPermissions);
   const permissions = user.permissions;
+  const domains = user.domains;
   const isUserActive = user.active;
 
   if (!isUserActive) {
@@ -80,7 +85,21 @@ const ProtectedRoute = ({
     return <Navigate to="/401" />;
   }
 
+  if (domain && !checkDomain(domains, domain)) {
+    return <Navigate to="/401" />;
+  }
+
   return <Outlet />;
+};
+
+const ProtectedDomainRoute = () => {
+  const { domainId } = useParams<{ domainId: string }>();
+  return <ProtectedRoute domain={domainId} />;
+};
+
+const ProtectedProductRoute = () => {
+  const { envId } = useParams<{ envId: string }>();
+  return <ProtectedRoute domain={envId} />;
 };
 
 const Router = () => {
@@ -106,6 +125,10 @@ const Router = () => {
                           <Route element={<AppLayout />}>
                             <Route path="/" element={<MainController />} />
                             <Route
+                              path="/docs_agent"
+                              element={<DocsAgentController />}
+                            />
+                            <Route
                               path="/onboarding"
                               element={<OnboardingController />}
                             />
@@ -121,12 +144,16 @@ const Router = () => {
                               />
                               <Route
                                 path="/marketplace/:domainId"
-                                element={<DomainController />}
-                              />
+                                element={<ProtectedDomainRoute />}
+                              >
+                                <Route index element={<DomainController />} />
+                              </Route>
                               <Route
                                 path="/marketplace/:domainId/:reportId"
-                                element={<ReportController />}
-                              />
+                                element={<ProtectedDomainRoute />}
+                              >
+                                <Route index element={<ReportController />} />
+                              </Route>
                             </Route>
                             <Route element={<ProtectedRoute permission="admin" />}>
                               <Route
@@ -153,20 +180,28 @@ const Router = () => {
                               />
                               <Route
                                 path="/dashboard/:envId"
-                                element={<BucketListController />}
-                              />
+                                element={<ProtectedProductRoute />}
+                              >
+                                <Route index element={<BucketListController />} />
+                              </Route>
                               <Route
                                 path="/dashboard/:envId/:bucketName/products"
-                                element={<ProductListController />}
-                              />
+                                element={<ProtectedProductRoute />}
+                              >
+                                <Route index element={<ProductListController />} />
+                              </Route>
                               <Route
                                 path="/dashboard/:envId/:bucketName/:productName/folders"
-                                element={<FolderListController />}
-                              />
+                                element={<ProtectedProductRoute />}
+                              >
+                                <Route index element={<FolderListController />} />
+                              </Route>
                               <Route
                                 path="/dashboard/:envId/:bucketName/:productName/:tableName/table"
-                                element={<PreviewController />}
-                              />
+                                element={<ProtectedProductRoute />}
+                              >
+                                <Route index element={<PreviewController />} />
+                              </Route>
                             </Route>
                           </Route>
                         </Route>

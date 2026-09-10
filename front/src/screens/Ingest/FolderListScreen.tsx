@@ -1,4 +1,6 @@
 import { useParams } from "react-router-dom";
+import { useAppSelector } from "store/hooks/redux-hooks";
+import { checkPermission } from "modules/tokenPermission/utils/user-token.util";
 
 import {
   FolderStateModel,
@@ -83,6 +85,14 @@ const FeedbackToast = ({ feedback }: { feedback: PipelineFeedback }) => {
   );
 };
 
+const isDataProduct = (bucketname: string | undefined): boolean => {
+  if(!bucketname){
+    return false;
+  }
+
+  return bucketname.includes('-manual-');
+};
+
 interface Props {
   model: Partial<FolderStateModel>;
 
@@ -135,10 +145,11 @@ const FolderListScreen = ({
   const { envId } = useParams<{
     envId: string;
   }>();
+  const { user } = useAppSelector((state) => state.UserPermissions);
+  const userPermissions = user.permissions;
 
-  const showPipelineSection = envId === "pd";
-
-  const pageTitle = envId === "sap" ? model?.bucketName : model?.productName;
+  const showPipelineSection = isDataProduct(model?.bucketName);
+  const pageTitle = isDataProduct(model?.bucketName) ? model?.productName : model?.bucketName;
 
   const formatName = (text: string) => {
     return text
@@ -362,7 +373,7 @@ const FolderListScreen = ({
                     onRun={onRunPipeline}
                     isLoading={isPipelineRunning}
                     disabled={
-                      uploadState.isUploading || uploadState.isWizardOpen
+                      uploadState.isUploading || uploadState.isWizardOpen || !checkPermission(userPermissions, 'file-upload')
                     }
                   />
                 </div>

@@ -1,4 +1,4 @@
-import { DomainDataResponse } from "services/Admin/get-domains-data";
+import { DomainDataResponse } from "services/Global/get-domains-data";
 
 export interface DomainModel {
     id: string;

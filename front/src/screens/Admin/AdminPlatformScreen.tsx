@@ -11,6 +11,7 @@ import { DomainModel } from "models/Global/domainsModel";
 import { PermissionModel } from "models/Admin/permissionsModel";
 import { FaqModel } from "models/Global/faqModel";
 import { DictionaryModel } from "models/Global/dictionaryModel";
+import { BannerModel } from "models/Global/bannerModel";
 
 import AdminPlatformMenu, {
   AdminPlatformSection,
@@ -30,13 +31,25 @@ interface AdminPlatformScreenProps {
   handlePermissionCreate: (permission: PermissionModel) => void;
   handleFaqCreate: (faq: FaqModel) => void;
   handleDictionaryCreate: (dictionary: DictionaryModel) => void;
+  handleBannerCreate: (
+    banner: BannerModel,
+    file: File,
+    onProgress: (percent: number) => void,
+  ) => void;
   handleUserUpdate: (user: UserModel) => void;
   handleDomainUpdate: (domain: DomainModel) => void;
   handlePermissionUpdate: (permission: PermissionModel) => void;
   handleFaqUpdate: (faq: FaqModel) => void;
   handleDictionaryUpdate: (dictionary: DictionaryModel) => void;
+  handleBannerUpdate: (
+    banner: BannerModel,
+    file: File,
+    onProgress: (percent: number) => void,
+  ) => void;
+  handleUserDelete: (user: UserModel) => void;
   handleFaqDelete: (faq: FaqModel) => void;
   handleDictionaryDelete: (dictionary: DictionaryModel) => void;
+  handleBannerDelete: (banner: BannerModel) => void;
 }
 
 const AdminPlatformScreen = ({
@@ -46,13 +59,17 @@ const AdminPlatformScreen = ({
   handlePermissionCreate,
   handleFaqCreate,
   handleDictionaryCreate,
+  handleBannerCreate,
   handleUserUpdate,
   handleDomainUpdate,
   handlePermissionUpdate,
   handleFaqUpdate,
   handleDictionaryUpdate,
+  handleBannerUpdate,
+  handleUserDelete,
   handleFaqDelete,
   handleDictionaryDelete,
+  handleBannerDelete,
 }: AdminPlatformScreenProps) => {
   const [section, setSection] = useState<AdminPlatformSection>("users");
 
@@ -168,9 +185,10 @@ const AdminPlatformScreen = ({
                 userData={model?.users}
                 domains={model?.domains}
                 permissions={model?.permissions}
-                isBusy={endpoints?.updateUser?.loading ?? false}
+                isBusy={(endpoints?.updateUser?.loading || endpoints?.deleteUser?.loading) ?? false}
                 isLoading={endpoints?.loadUsers?.loading ?? false}
                 handleUserUpdate={handleUserUpdate}
+                handleUserDelete={handleUserDelete}
               />
             )}
 
@@ -205,17 +223,22 @@ const AdminPlatformScreen = ({
             )}
 
             {/* NOTICIAS */}
-            {section === "banners" && <BannersAdminSection />}
+            {section === "banners" && (
+              <BannersAdminSection
+                bannerData={model?.banners}
+                isBusy={(endpoints?.createBanner?.loading || endpoints?.updateBanner?.loading || endpoints?.deleteBanner?.loading) ?? false}
+                isLoading={endpoints?.loadBanner?.loading ?? false}
+                handleBannerCreate={handleBannerCreate}
+                handleBannerUpdate={handleBannerUpdate}
+                handleBannerDelete={handleBannerDelete}
+              />
+            )}
 
             {/* FAQ */}
             {section === "faq" && (
               <FaqAdminSection
                 faqData={model?.faqs}
-                isBusy={
-                  (endpoints?.createFaq?.loading ||
-                    endpoints?.updateFaq?.loading) ??
-                  false
-                }
+                isBusy={(endpoints?.createFaq?.loading || endpoints?.updateFaq?.loading || endpoints?.deleteFaq?.loading) ?? false}
                 isLoading={endpoints?.loadFaq?.loading ?? false}
                 handleFaqCreate={handleFaqCreate}
                 handleFaqUpdate={handleFaqUpdate}
@@ -227,11 +250,7 @@ const AdminPlatformScreen = ({
             {section === "concepts" && (
               <ConceptsAdminSection
                 dictionaryData={model?.dictionaries}
-                isBusy={
-                  (endpoints?.createDictionary?.loading ||
-                    endpoints?.updateDictionary?.loading) ??
-                  false
-                }
+                isBusy={(endpoints?.createDictionary?.loading || endpoints?.updateDictionary?.loading || endpoints?.deleteDictionary?.loading) ?? false}
                 isLoading={endpoints?.loadDictionary?.loading ?? false}
                 handleDictionaryCreate={handleDictionaryCreate}
                 handleDictionaryUpdate={handleDictionaryUpdate}

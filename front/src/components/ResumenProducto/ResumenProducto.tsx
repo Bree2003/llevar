@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-
+import { getHeadersRequests } from "services/utils";
 import { ReactComponent as Ok } from "components/Global/Icons/tick-circle.svg";
 import { ReactComponent as Error } from "components/Global/Icons/close-circle.svg";
 
@@ -49,9 +49,7 @@ export default function ResumenProducto({ productName }: ResumenProductoProps) {
         {
           method: "GET",
 
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: getHeadersRequests(),
         },
       );
 

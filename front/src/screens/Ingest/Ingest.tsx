@@ -38,7 +38,7 @@ const IngestScreen = ({ model, endpoints, onSelectEnvironment }: Props) => {
         "
       >
         <DataProduct
-          products={model?.environments || []}
+          products={model?.domains ?? []}
           loading={isLoading}
           onProductClick={onSelectEnvironment}
         />

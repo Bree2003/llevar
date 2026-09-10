@@ -17,12 +17,12 @@ export interface ProcessCuadraturaResponse {
 
 // 1. Obtener carpetas (Ya la tenías)
 export const getFoldersService = async (
-  envId: string, 
+  projectId: string, 
   bucketName: string,
   productPath: string 
 ): Promise<FolderResponse> => {
   const response = await AxiosGet(`/api/storage/folders/${productPath}`, {
-    env_id: envId,
+    project_id: projectId,
     bucket_name: bucketName
   });
   return response?.data;
@@ -30,13 +30,13 @@ export const getFoldersService = async (
 
 // 1. CAMINO PESADO: Iniciar sesión resumable (Igual que antes)
 export const initiateUploadService = async (
-  envId: string,
+  projectId: string,
   bucketName: string,
   destinationPath: string,
   fileName: string
 ): Promise<InitiateUploadResponse> => {
   const body = {
-    env_id: envId,
+    project_id: projectId,
     bucket_name: bucketName,
     destination: destinationPath,
     fileName: fileName
@@ -46,13 +46,13 @@ export const initiateUploadService = async (
 };
 
 export const processCuadraturaUploadService = async (
-  envId: string,
+  projectId: string,
   bucketName: string,
   destination: string,
   fileName: string
 ): Promise<ProcessCuadraturaResponse> => {
   const body = {
-    env_id: envId,
+    project_id: projectId,
     bucket_name: bucketName,
     destination,
     fileName
@@ -63,14 +63,14 @@ export const processCuadraturaUploadService = async (
 };
 
 export const uploadLargeFileAndCreateCuadraturaTable = async (
-  envId: string,
+  projectId: string,
   bucketName: string,
   destinationPath: string,
   file: File,
   onProgress: (percent: number) => void
 ): Promise<ProcessCuadraturaResponse> => {
   const { sessionUrl, finalPath } = await initiateUploadService(
-    envId,
+    projectId,
     bucketName,
     destinationPath,
     file.name
@@ -83,7 +83,7 @@ export const uploadLargeFileAndCreateCuadraturaTable = async (
   const destination = finalPath.substring(0, lastSlash);
   const fileName = finalPath.substring(lastSlash + 1);
 
-  return await processCuadraturaUploadService(envId, bucketName, destination, fileName);
+  return await processCuadraturaUploadService(projectId, bucketName, destination, fileName);
 };
 
 // 2. CAMINO PESADO: Subir a GCS (Igual que antes)
@@ -105,7 +105,7 @@ export const uploadFileDirectlyService = async (
 
 // 3. NUEVO - CAMINO RÁPIDO: Subir al Backend (< 300MB)
 export const uploadSmallFileService = async (
-  envId: string,
+  projectId: string,
   bucketName: string,
   destinationPath: string,
   file: File,
@@ -116,7 +116,7 @@ export const uploadSmallFileService = async (
 ): Promise<AxiosResponse> => {
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("env_id", envId);
+  formData.append("project_id", projectId);
   formData.append("bucket_name", bucketName);
   formData.append("destination", destinationPath);
   formData.append("user", "frontend-user");
@@ -140,7 +140,7 @@ export const uploadSmallFileService = async (
 export const analyzeFileService = async (
   file: File,
   step: number,
-  envId: string,
+  projectId: string,
   bucketName: string,
   destination: string,
   // NUEVO ARGUMENTO
@@ -150,7 +150,7 @@ export const analyzeFileService = async (
   const formData = new FormData();
   formData.append("file", file);
   formData.append("step", step.toString());
-  formData.append("env_id", envId);
+  formData.append("project_id", projectId);
   formData.append("bucket_name", bucketName);
   formData.append("destination", destination);
   

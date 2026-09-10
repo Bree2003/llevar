@@ -5,6 +5,15 @@ faq_bp = Blueprint("faq", __name__)
 
 @faq_bp.route("/", methods=["GET"])
 def get_faqs():
+    oid = g.user_id
+    if not oid:
+        return jsonify({"error": "The token does not contain 'oid'"}), 400
+
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='reader')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
+
     faq = faq_service.list_faqs()
     return jsonify(faq), 200
 
@@ -15,13 +24,10 @@ def create_faq():
     if not oid:
         return jsonify({"error": "The token does not contain 'oid'"}), 400
 
-    user = users_service.get_user(oid)
-    if user is None:
-        return jsonify({"error": "User not found"}), 404
-
-    #permissions = user.get("permissions", [])
-    #if "admin" not in permissions:
-        #return jsonify({"error": "User does not have the required permission"}), 403
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='platform-admin')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
 
     data = request.get_json()
     if not data:
@@ -40,13 +46,10 @@ def update_faq(faq_id):
     if not oid:
         return jsonify({"error": "The token does not contain 'oid'"}), 400
 
-    user = users_service.get_user(oid)
-    if user is None:
-        return jsonify({"error": "User not found"}), 404
-
-    #permissions = user.get("permissions", [])
-    #if "admin" not in permissions:
-        #return jsonify({"error": "User does not have the required permission"}), 403
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='platform-admin')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
 
     data = request.get_json()
     if not data:
@@ -65,13 +68,10 @@ def delete_faq(faq_id):
     if not oid:
         return jsonify({"error": "The token does not contain 'oid'"}), 400
 
-    user = users_service.get_user(oid)
-    if user is None:
-        return jsonify({"error": "User not found"}), 404
-
-    #permissions = user.get("permissions", [])
-    #if "admin" not in permissions:
-        #return jsonify({"error": "User does not have the required permission"}), 403
+    have_permission = users_service.user_have_permission(oid=oid,
+                                                         permission='platform-admin')
+    if not have_permission:
+        return jsonify({"error": "User does not have the required permission"}), 403
 
     try:
         faq_service.delete_faq(faq_id)
