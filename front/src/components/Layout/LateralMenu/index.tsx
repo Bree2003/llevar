@@ -1,3 +1,6 @@
+import { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router";
+
 import { ReactComponent as Menu } from "components/Global/Icons/menu.svg";
 import { ReactComponent as Close } from "components/Global/Icons/close.svg";
 import { ReactComponent as House } from "components/Global/Icons/house.svg";
@@ -9,15 +12,23 @@ import { ReactComponent as Export } from "components/Global/Icons/export.svg";
 import { ReactComponent as ArrowDown } from "components/Global/Icons/arrow-right.svg";
 import { ReactComponent as Folder } from "components/Global/Icons/folder.svg";
 import { ReactComponent as BarChart } from "components/Global/Icons/bar-chart.svg";
-import SmartToyIcon from '@mui/icons-material/SmartToy';
 
-import { useLocation, useNavigate } from "react-router";
-import { useMemo, useState } from "react";
+import SmartToyIcon from "@mui/icons-material/SmartToy";
+
 import { useAppSelector } from "store/hooks/redux-hooks";
-import { checkPermission, PermissionList } from "modules/tokenPermission/utils/user-token.util";
 
-import { Report } from "screens/Marketplace/Admin/types";
-import { domainUnits } from "data/domain-units";
+import {
+  checkDomain,
+  checkPermission,
+  PermissionList,
+} from "modules/tokenPermission/utils/user-token.util";
+
+import { ReportModel, ReportsDataToModel } from "models/Global/reportsModel";
+
+import { DomainModel, DomainsDataToModel } from "models/Global/domainsModel";
+
+import loadReportsData from "services/Global/get-reports-data";
+import loadDomainsData from "services/Global/get-domains-data";
 
 interface LateralMenuProps {
   isOpen: boolean;
@@ -30,6 +41,13 @@ interface MenuItemProps {
   path: string;
   permission: PermissionList;
   onClick: () => void;
+}
+
+interface MarketplaceDomain {
+  id: string;
+  name: string;
+  description: string;
+  reports: ReportModel[];
 }
 
 const HELP_ITEMS = [
@@ -47,14 +65,23 @@ const HELP_ITEMS = [
   },
 ];
 
+const getDomainByArea = (domains: DomainModel[], area: string) => {
+  return domains.find((domain) => domain.id === area || domain.name === area);
+};
+
 const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
   const navigate = useNavigate();
   const location = useLocation();
 
   const { user } = useAppSelector((state) => state.UserPermissions);
+
   const userPermissions = user.permissions;
 
-  const STORAGE_KEY = "admin_reports";
+  const userDomains = user.domains;
+
+  const [reports, setReports] = useState<ReportModel[]>([]);
+
+  const [domains, setDomains] = useState<DomainModel[]>([]);
 
   const [expandedDomains, setExpandedDomains] = useState<
     Record<string, boolean>
@@ -64,43 +91,70 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
     HELP_ITEMS.some((item) => item.path === location.pathname),
   );
 
-  const reports: Report[] = JSON.parse(
-    sessionStorage.getItem(STORAGE_KEY) || "[]",
-  );
+  /*
+   * Cargar reportes + dominios desde API.
+   */
+  useEffect(() => {
+    const loadMarketplaceTree = async () => {
+      try {
+        const [reportsResponse, domainsResponse] = await Promise.all([
+          loadReportsData(),
+          loadDomainsData(),
+        ]);
 
-  const marketplaceTree = useMemo(() => {
-    const grouped = reports.reduce(
-      (acc, report) => {
-        if (!report.area) {
-          return acc;
+        setReports(ReportsDataToModel(reportsResponse));
+
+        setDomains(DomainsDataToModel(domainsResponse));
+      } catch (error) {
+        console.error(
+          "Error al cargar datos del Marketplace en menú lateral:",
+          error,
+        );
+
+        setReports([]);
+        setDomains([]);
+      }
+    };
+
+    loadMarketplaceTree();
+  }, []);
+
+  const marketplaceTree = useMemo<MarketplaceDomain[]>(() => {
+    return domains
+      .filter((domain) => {
+        /*
+         * Solo dominios activos.
+         * Si quieres mostrar también inactivos,
+         * elimina esta condición.
+         */
+        if (!domain.active) {
+          return false;
         }
 
-        if (!acc[report.area]) {
-          acc[report.area] = [];
+        /*
+         * Solo dominios permitidos
+         * para el usuario.
+         */
+        if (!checkDomain(userDomains, domain.id)) {
+          return false;
         }
 
-        acc[report.area].push(report);
-
-        return acc;
-      },
-      {} as Record<string, Report[]>,
-    );
-
-    return Object.entries(grouped)
-      .map(([domainId, reports]) => {
-        const domain = domainUnits.find((unit) => unit.id === domainId);
-
-        if (!domain) {
-          return null;
-        }
+        return true;
+      })
+      .map((domain) => {
+        const domainReports = reports.filter(
+          (report) => report.area === domain.id || report.area === domain.name,
+        );
 
         return {
-          ...domain,
-          reports,
+          id: domain.id,
+          name: domain.name,
+          description: domain.description,
+          reports: domainReports,
         };
       })
-      .filter(Boolean);
-  }, [reports]);
+      .filter((domain) => domain.reports.length > 0);
+  }, [reports, domains, userDomains]);
 
   const menuItems: MenuItemProps[] = [
     {
@@ -141,8 +195,25 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
   ];
 
   /*
-   * Determina si estamos dentro de alguna vista
-   * perteneciente a Ayuda y documentación.
+   * Permite que Marketplace siga
+   * marcado como activo cuando estamos
+   * dentro de un dominio o reporte.
+   *
+   * Lo mismo para dashboard/admin.
+   */
+  const isPathActive = (path: string) => {
+    if (path === "/") {
+      return location.pathname === "/";
+    }
+
+    return (
+      location.pathname === path || location.pathname.startsWith(`${path}/`)
+    );
+  };
+
+  /*
+   * Determina si estamos dentro
+   * de Ayuda y documentación.
    */
   const isHelpActive = HELP_ITEMS.some(
     (item) => item.path === location.pathname,
@@ -159,7 +230,7 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
         ? "https://console.cloud.google.com/welcome?project=cyt-dev-hq-osc-gcp"
         : "https://console.cloud.google.com/welcome?project=cyt-prd-hq-osc-gcp";
 
-    window.open(gcpUrl, "_blank", "noopener, noreferrer");
+    window.open(gcpUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -172,7 +243,9 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
         text-[var(--color-text-secondary)]
 
         font-semibold
-    border-r
+
+        border-r
+        border-[--color-border]
 
         flex
         flex-col
@@ -189,7 +262,7 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
       <nav className="p-3">
         <div className="flex flex-col">
           {menuItems.map(({ label, icon: Icon, onClick, permission, path }) => {
-            const isActive = location.pathname === path;
+            const isActive = isPathActive(path);
 
             if (permission && !checkPermission(userPermissions, permission)) {
               return null;
@@ -211,15 +284,17 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
 
                     transition-colors
 
-                    ${isOpen
-                    ? "justify-start gap-3 px-1.5"
-                    : "justify-center px-1.5"
-                  }
+                    ${
+                      isOpen
+                        ? "justify-start gap-3 px-1.5"
+                        : "justify-center px-1.5"
+                    }
 
-                    ${isActive
-                    ? "bg-[--color-accent] text-white"
-                    : "hover:bg-[--color-accent-light] hover:text-[--color-accent]"
-                  }
+                    ${
+                      isActive
+                        ? "bg-[--color-accent] text-white"
+                        : "hover:bg-[--color-accent-light] hover:text-[--color-accent]"
+                    }
                   `}
               >
                 <Icon className="w-6 h-6 flex-shrink-0" />
@@ -232,26 +307,32 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
               </button>
             );
           })}
+
+          {/* CONSOLA GCP */}
           {checkPermission(userPermissions, "gcp-access") ? (
             <button
               type="button"
               onClick={handleGcpConsoleClick}
               className={`
-              w-full
-              h-10
+                w-full
+                h-10
 
-              flex
-              items-center
+                flex
+                items-center
 
-              rounded-lg
+                rounded-lg
 
-              hover:bg-[--color-accent-light]
-              hover:text-[--color-accent]
+                hover:bg-[--color-accent-light]
+                hover:text-[--color-accent]
 
-              transition-colors
+                transition-colors
 
-              ${isOpen ? "justify-start gap-3 px-1.5" : "justify-center px-1.5"}
-            `}
+                ${
+                  isOpen
+                    ? "justify-start gap-3 px-1.5"
+                    : "justify-center px-1.5"
+                }
+              `}
             >
               <Cloud className="w-6 h-6 flex-shrink-0" />
 
@@ -291,14 +372,13 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
 
                 transition-colors
 
-                ${isHelpActive
-                  ? "text-[--color-accent]"
-                  : "text-[--color-text-secondary]"
+                ${
+                  isHelpActive
+                    ? "text-[--color-accent]"
+                    : "text-[--color-text-secondary]"
                 }
               `}
             >
-              {/* Flecha:
-                  solamente abre / cierra el submenú */}
               <button
                 type="button"
                 onClick={() => setIsHelpExpanded((prev) => !prev)}
@@ -338,12 +418,11 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
                 />
               </button>
 
-              {/* Nombre:
-                  lleva a Primeros pasos */}
               <button
                 type="button"
                 onClick={() => {
                   setIsHelpExpanded(true);
+
                   navigate("/onboarding");
                 }}
                 className="
@@ -373,9 +452,10 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
                 duration-300
                 ease-in-out
 
-                ${isHelpExpanded
-                  ? "grid-rows-[1fr] opacity-100"
-                  : "grid-rows-[0fr] opacity-0"
+                ${
+                  isHelpExpanded
+                    ? "grid-rows-[1fr] opacity-100"
+                    : "grid-rows-[0fr] opacity-0"
                 }
               `}
             >
@@ -416,13 +496,13 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
 
                             transition-colors
 
-                            ${isActive
-                            ? "bg-[--color-accent-light] text-[--color-accent] font-semibold"
-                            : "text-[--color-text-secondary] hover:bg-[--color-background] hover:text-[--color-accent]"
-                          }
+                            ${
+                              isActive
+                                ? "bg-[--color-accent-light] text-[--color-accent] font-semibold"
+                                : "text-[--color-text-secondary] hover:bg-[--color-background] hover:text-[--color-accent]"
+                            }
                           `}
                       >
-                        {/* Indicador hijo */}
                         <span
                           className={`
                               w-1.5
@@ -432,10 +512,11 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
 
                               flex-shrink-0
 
-                              ${isActive
-                              ? "bg-[--color-accent]"
-                              : "bg-[--color-text-muted]"
-                            }
+                              ${
+                                isActive
+                                  ? "bg-[--color-accent]"
+                                  : "bg-[--color-text-muted]"
+                              }
                             `}
                         />
 
@@ -448,17 +529,11 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
             </div>
           </>
         ) : (
-          /*
-           * Sidebar principal cerrado.
-           *
-           * Como no existe espacio para el texto,
-           * mostramos una pequeña representación
-           * visual del grupo.
-           */
           <button
             type="button"
             onClick={() => {
               setIsOpen(true);
+
               setIsHelpExpanded(true);
             }}
             aria-label="Ayuda y documentación"
@@ -473,19 +548,20 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
 
               transition-colors
 
-              ${isHelpActive
-                ? "bg-[--color-accent-light] text-[--color-accent]"
-                : "hover:bg-[--color-accent-light] hover:text-[--color-accent]"
+              ${
+                isHelpActive
+                  ? "bg-[--color-accent-light] text-[--color-accent]"
+                  : "hover:bg-[--color-accent-light] hover:text-[--color-accent]"
               }
             `}
           >
-            {/* Icono simple de ayuda */}
             <svg
               className="w-5 h-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
               strokeWidth={2}
+              xmlns="http://www.w3.org/2000/svg"
             >
               <path
                 strokeLinecap="round"
@@ -498,15 +574,32 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
           </button>
         )}
       </div>
-
       {location.pathname.startsWith("/marketplace") &&
         isOpen &&
         marketplaceTree.length > 0 && (
-          <div className="text-left p-3">
+          <div
+            className="
+              flex-1
+              min-h-0
+
+              text-left
+
+              p-3
+
+              overflow-y-auto
+
+              [&::-webkit-scrollbar]:hidden
+            "
+            style={{
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+            }}
+          >
             <h4
               className="
                 uppercase
                 text-xs
+
                 mb-3
 
                 text-[--color-text-muted]
@@ -517,17 +610,18 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
 
             <div className="flex flex-col gap-1">
               {marketplaceTree.map((domain) => {
-                if (!domain) {
-                  return null;
-                }
-
                 const isDomainActive =
                   location.pathname === `/marketplace/${domain.id}`;
 
-                const isExpanded = expandedDomains[domain.id] ?? false;
+                const isDomainPath = location.pathname.startsWith(
+                  `/marketplace/${domain.id}`,
+                );
+
+                const isExpanded = expandedDomains[domain.id] ?? isDomainPath;
 
                 return (
                   <div key={domain.id}>
+                    {/* DOMINIO */}
                     <div
                       className={`
                           w-full
@@ -544,10 +638,11 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
 
                           transition-colors
 
-                          ${isDomainActive
-                          ? "bg-[--color-accent-light] text-[--color-accent]"
-                          : "hover:bg-[--color-background]"
-                        }
+                          ${
+                            isDomainActive || isDomainPath
+                              ? "bg-[--color-accent-light] text-[--color-accent]"
+                              : "hover:bg-[--color-background]"
+                          }
                         `}
                     >
                       <button
@@ -618,6 +713,7 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
                       </button>
                     </div>
 
+                    {/* REPORTES */}
                     <div
                       className={`
                           grid
@@ -626,10 +722,11 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
                           duration-300
                           ease-in-out
 
-                          ${isExpanded
-                          ? "grid-rows-[1fr] opacity-100"
-                          : "grid-rows-[0fr] opacity-0"
-                        }
+                          ${
+                            isExpanded
+                              ? "grid-rows-[1fr] opacity-100"
+                              : "grid-rows-[0fr] opacity-0"
+                          }
                         `}
                     >
                       <div className="overflow-hidden">
@@ -673,10 +770,11 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
 
                                       transition-colors
 
-                                      ${isReportActive
-                                    ? "bg-[--color-accent-light] text-[--color-accent]"
-                                    : "hover:bg-[--color-background]"
-                                  }
+                                      ${
+                                        isReportActive
+                                          ? "bg-[--color-accent-light] text-[--color-accent] font-semibold"
+                                          : "hover:bg-[--color-background]"
+                                      }
                                     `}
                               >
                                 <BarChart className="w-4 h-4 flex-shrink-0" />
@@ -696,7 +794,6 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
             </div>
           </div>
         )}
-
       <div
         className="
           mt-auto
@@ -711,6 +808,8 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
           items-center
 
           p-2
+
+          bg-white
         "
       >
         <button

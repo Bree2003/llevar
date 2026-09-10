@@ -4,11 +4,11 @@ export type AdminPlatformSection =
   | "permissions"
   | "banners"
   | "faq"
-  | "concepts";
+  | "concepts"
+  | "links";
 
 interface AdminPlatformMenuProps {
   activeSection: AdminPlatformSection;
-
   onChange: (section: AdminPlatformSection) => void;
 }
 
@@ -55,11 +55,8 @@ const menuItems: MenuItem[] = [
         className="w-5 h-5"
       >
         <rect x="3" y="3" width="7" height="7" rx="1" />
-
         <rect x="14" y="3" width="7" height="7" rx="1" />
-
         <rect x="3" y="14" width="7" height="7" rx="1" />
-
         <rect x="14" y="14" width="7" height="7" rx="1" />
       </svg>
     ),
@@ -79,7 +76,6 @@ const menuItems: MenuItem[] = [
         className="w-5 h-5"
       >
         <path d="M12 3 5 6v5c0 4.5 2.8 8.3 7 10 4.2-1.7 7-5.5 7-10V6l-7-3z" />
-
         <path d="m9 12 2 2 4-4" />
       </svg>
     ),
@@ -99,9 +95,7 @@ const menuItems: MenuItem[] = [
         className="w-5 h-5"
       >
         <rect x="3" y="3" width="18" height="18" rx="2" />
-
         <circle cx="8.5" cy="8.5" r="1.5" />
-
         <path d="m21 15-5-5L5 21" />
       </svg>
     ),
@@ -121,9 +115,7 @@ const menuItems: MenuItem[] = [
         className="w-5 h-5"
       >
         <circle cx="12" cy="12" r="9" />
-
         <path d="M9.5 9a2.5 2.5 0 115 0c0 2-2.5 2-2.5 4" />
-
         <path d="M12 17h.01" />
       </svg>
     ),
@@ -143,8 +135,28 @@ const menuItems: MenuItem[] = [
         className="w-5 h-5"
       >
         <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
-
         <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+      </svg>
+    ),
+  },
+
+  {
+    id: "links",
+    label: "Enlaces",
+    description: "Accesos y soporte",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="w-5 h-5"
+      >
+        <path d="M10 13a5 5 0 0 0 7.07.07l2-2a5 5 0 0 0-7.07-7.07l-1.15 1.15" />
+        <path d="M14 11a5 5 0 0 0-7.07-.07l-2 2A5 5 0 0 0 12 20l1.15-1.15" />
       </svg>
     ),
   },
@@ -186,7 +198,6 @@ const AdminPlatformMenu = ({
           className="
             text-xs
             font-bold
-
             uppercase
             tracking-wide
 
@@ -219,73 +230,67 @@ const AdminPlatformMenu = ({
               type="button"
               onClick={() => onChange(item.id)}
               className={`
-                  flex
-                  items-center
-                  gap-3
+                flex
+                items-center
 
-                  min-w-max
-                  lg:min-w-0
+                gap-3
 
-                  lg:w-full
+                min-w-max
+                lg:min-w-0
+                lg:w-full
 
-                  px-3
-                  py-3
+                px-3
+                py-3
 
-                  rounded-lg
+                rounded-lg
 
-                  text-left
+                text-left
 
-                  transition-colors
+                transition-colors
 
-                  ${
-                    active
-                      ? `
-                        bg-[--color-accent-light]
-                        text-[--color-accent]
-                      `
-                      : `
-                        text-[--color-text-secondary]
+                ${
+                  active
+                    ? `
+                      bg-[--color-accent-light]
+                      text-[--color-accent]
+                    `
+                    : `
+                      text-[--color-text-secondary]
 
-                        hover:bg-[--color-background]
-                        hover:text-[--color-accent]
-                      `
-                  }
-                `}
+                      hover:bg-[--color-background]
+                      hover:text-[--color-accent]
+                    `
+                }
+              `}
             >
-              <span
-                className="
-                    flex-shrink-0
-                  "
-              >
-                {item.icon}
-              </span>
+              <span className="flex-shrink-0">{item.icon}</span>
 
               <span className="min-w-0">
                 <span
                   className="
-                      block
+                    block
 
-                      text-sm
-                      font-semibold
+                    text-sm
+                    font-semibold
 
-                      whitespace-nowrap
-                      lg:whitespace-normal
-                    "
+                    whitespace-nowrap
+                    lg:whitespace-normal
+                  "
                 >
                   {item.label}
                 </span>
 
                 <span
                   className="
-                      hidden
-                      lg:block
+                    hidden
+                    lg:block
 
-                      mt-0.5
+                    mt-0.5
 
-                      text-xs
+                    text-xs
 
-                      text-[--color-text-muted]
-                    "
+                    text-[--color-text-muted]
+                  "
                 >
                   {item.description}
                 </span>
