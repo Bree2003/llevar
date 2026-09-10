@@ -5,8 +5,12 @@ import {
   ReportDataToModel,
   ReportsDataToModel,
 } from "models/Global/reportsModel";
-
+import {
+  DomainModel,
+  DomainsDataToModel
+} from "models/Global/domainsModel";
 import loadReportsData from "services/Global/get-reports-data";
+import loadDomainsData from "services/Global/get-domains-data";
 import deleteReportsData from "services/Admin/delete-reports-data";
 
 import AdminMarketplaceScreen from "screens/Admin/AdminMarketplaceScreen";
@@ -20,12 +24,14 @@ export interface EndpointStatus {
 
 export type EndpointName =
   | "loadReports"
+  | "loadDomains"
   | "createReport"
   | "updateReport"
   | "deleteReport";
 
 export interface Model {
   reports: ReportModel[] | undefined;
+  domains: DomainModel[] | undefined;
   lastUpdate: Date | undefined;
 }
 
@@ -37,6 +43,7 @@ const AdminMarketplaceController = () => {
 
   useEffect(() => {
     loadReports();
+    loadDomains();
   }, []);
 
   const updateModel = (
@@ -112,6 +119,32 @@ const AdminMarketplaceController = () => {
 
       updateModel({
         reports: [],
+      });
+    } finally {
+      statusEndpoint.done();
+    }
+  };
+
+  const loadDomains = async () => {
+    const statusEndpoint = buildStatusEndpoint("loadDomains");
+
+    try {
+      statusEndpoint.loading();
+
+      const response = await loadDomainsData();
+
+      const domains = DomainsDataToModel(response);
+
+      updateModel({
+        domains,
+      });
+    } catch (e) {
+      console.error("Error al cargar dominios:", e);
+
+      statusEndpoint.error();
+
+      updateModel({
+        domains: [],
       });
     } finally {
       statusEndpoint.done();

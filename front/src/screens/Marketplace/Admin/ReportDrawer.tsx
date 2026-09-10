@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
-
 import { ReactComponent as Text } from "components/Global/Icons/text.svg";
 import { ReactComponent as TextAlignLeft } from "components/Global/Icons/textalign-left.svg";
 import { ReactComponent as Chart } from "components/Global/Icons/chart.svg";
 import { ReactComponent as Close } from "components/Global/Icons/close.svg";
-
-import { domainUnits } from "data/domain-units";
-
+import { DomainModel } from "models/Global/domainsModel";
 import { ReportModel } from "models/Global/reportsModel";
 
 interface ReportDrawerProps {
+  domains: DomainModel[];
   isOpen: boolean;
   onClose: () => void;
   onSave: (report: ReportModel) => void;
@@ -23,8 +21,8 @@ const initialForm = {
   iframe: "",
 };
 
-const getDomainUnitId = (area: string) => {
-  const domainUnit = domainUnits.find(
+const getDomainUnitId = (dom: DomainModel[], area: string) => {
+  const domainUnit = dom.find(
     (unit) => unit.id === area || unit.name === area,
   );
 
@@ -32,6 +30,7 @@ const getDomainUnitId = (area: string) => {
 };
 
 const ReportDrawer = ({
+  domains,
   isOpen,
   onClose,
   onSave,
@@ -50,7 +49,7 @@ const ReportDrawer = ({
       setForm({
         nombre: report.nombre,
         descripcion: report.descripcion,
-        area: getDomainUnitId(report.area),
+        area: getDomainUnitId(domains, report.area),
         iframe: report.iframe,
       });
 
@@ -61,7 +60,7 @@ const ReportDrawer = ({
       setKpis([]);
       setKpiInput("");
     }
-  }, [report, isOpen]);
+  }, [domains, report, isOpen]);
 
   if (!isOpen) {
     return null;
@@ -402,7 +401,7 @@ const ReportDrawer = ({
                   Seleccione unidad de negocio
                 </option>
 
-                {domainUnits.map((unit) => (
+                {domains.map((unit) => (
                   <option key={unit.id} value={unit.id}>
                     {unit.name}
                   </option>

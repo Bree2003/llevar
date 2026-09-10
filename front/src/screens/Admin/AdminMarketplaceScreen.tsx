@@ -637,6 +637,7 @@ const AdminMarketplaceScreen = ({
       </div>
 
       <ReportDrawer
+        domains={model?.domains ?? []}
         isOpen={isDrawerOpen}
         onClose={handleCloseDrawer}
         onSave={handleSaveReport}
