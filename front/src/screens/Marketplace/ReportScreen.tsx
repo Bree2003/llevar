@@ -1,14 +1,12 @@
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-
 import { ReactComponent as Folder } from "components/Global/Icons/folder.svg";
 import { ReactComponent as Kpi } from "components/Global/Icons/kpi.svg";
 import { ReactComponent as Export } from "components/Global/Icons/export.svg";
 import { ReactComponent as Eye } from "components/Global/Icons/eye.svg";
-
 import { domainUnits } from "data/domain-units";
-
 import { ReportModel } from "models/Global/reportsModel";
+import Agent from "components/Agent/Agent";
 
 interface ReportScreenProps {
   reports: ReportModel[];
@@ -235,6 +233,7 @@ const ReportScreen = ({ reports, isLoading, hasError }: ReportScreenProps) => {
           </div>
         </section>
       </div>
+      <Agent />
     </main>
   );
 };

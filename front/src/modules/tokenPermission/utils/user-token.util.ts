@@ -5,6 +5,7 @@ export type PermissionList =
     "ingestion-reader" |
     "marketplace-reader" |
     "file-upload" |
+    "analytics-agent" |
     "gcp-access" |
     "admin" |
     "platform-admin" |

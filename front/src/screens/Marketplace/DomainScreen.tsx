@@ -1,12 +1,10 @@
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-
 import { ReactComponent as BarChart } from "components/Global/Icons/bar-chart.svg";
 import { ReactComponent as ArrowRight } from "components/Global/Icons/arrow-right.svg";
-
 import { domainUnits } from "data/domain-units";
-
 import { ReportModel } from "models/Global/reportsModel";
+import Agent from "components/Agent/Agent";
 
 interface DomainScreenProps {
   reports: ReportModel[];
@@ -146,6 +144,7 @@ const DomainScreen = ({ reports, isLoading, hasError }: DomainScreenProps) => {
           )}
         </section>
       </div>
+      <Agent />
     </main>
   );
 };

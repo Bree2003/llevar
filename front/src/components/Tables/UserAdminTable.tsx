@@ -134,7 +134,7 @@ export default function UserAdminTable({
                                         <TableCell align="center">
                                             <Tooltip title="Editar dominios">
                                                 <IconButton
-                                                    disabled={isBusy}
+                                                    disabled={u.email === userEmail || isBusy}
                                                     onClick={() => setEditingUserDomain(u)}
                                                 >
                                                     <SettingsIcon />

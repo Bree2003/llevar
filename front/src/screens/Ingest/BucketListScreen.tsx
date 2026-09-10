@@ -3,9 +3,9 @@ import {
   EndpointStatus,
   BucketListModel,
 } from "controllers/Ingest/BucketListController";
-
 import Loading from "components/Global/Loading/Loading";
 import ProductCardGrid from "components/DataProduct/BucketGrid";
+import Agent from "components/Agent/Agent";
 
 interface Props {
   model: Partial<BucketListModel> | undefined;
@@ -123,6 +123,7 @@ const BucketListScreen = ({
         loading={isLoading}
         onItemClick={onSelectBucket}
       />
+      <Agent />
     </div>
   );
 };

@@ -1,9 +1,6 @@
 import { useMemo, useState } from "react";
-
-import Agent from "../../../components/Agent/Agent";
-
+import Agent from "components/Agent/Agent";
 import { ReactComponent as ArrowUp } from "components/Global/Icons/arrow-up.svg";
-
 import { FaqModel } from "models/Global/faqModel";
 import { faqCategories } from "components/AdminPlatform/FaqModal";
 

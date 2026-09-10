@@ -4,6 +4,7 @@ import {
   EndpointStatus,
   ProductsStateModel,
 } from "controllers/Ingest/ProductListController";
+import Agent from "components/Agent/Agent";
 
 interface Props {
   model: Partial<ProductsStateModel> | undefined;
@@ -47,6 +48,7 @@ const ProductListScreen = ({
         // Le pasamos el nombre del bucket para que lo renderice internamente
         bucketName={model?.bucketName}
       />
+      <Agent />
     </div>
   );
 };

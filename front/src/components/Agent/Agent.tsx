@@ -1,19 +1,24 @@
 import Box from "@mui/material/Box";
 import Tooltip from "@mui/material/Tooltip";
 import Fab from "@mui/material/Fab";
-
+import { useAppSelector } from "store/hooks/redux-hooks";
+import { checkPermission } from "modules/tokenPermission/utils/user-token.util";
 import { ReactComponent as AgentIcon } from "../Global/Icons/agent_icon.svg";
 
 const AGENT_FRONTEND_URL = process.env.REACT_APP_AGENT_FRONTEND_URL;
 
 const Agent = () => {
+
+  const { user } = useAppSelector((state) => state.UserPermissions);
+  const userPermissions = user.permissions;
+
   const handleClick = () => {
     if (!AGENT_FRONTEND_URL) return;
 
     window.open(AGENT_FRONTEND_URL, "_blank", "noopener,noreferrer");
   };
 
-  return (
+  return checkPermission(userPermissions, 'analytics-agent') ? (
     <Box>
       <Tooltip
         title={
@@ -146,7 +151,7 @@ const Agent = () => {
         </Fab>
       </Tooltip>
     </Box>
-  );
+  ) : null;
 };
 
 export default Agent;

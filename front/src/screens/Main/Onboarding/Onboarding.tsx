@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-
+import Agent from "components/Agent/Agent";
 import { ReactComponent as Download } from "components/Global/Icons/download.svg";
 import { ReactComponent as ArrowUp } from "components/Global/Icons/arrow-up.svg";
 import ManualUsuario from "assets/docs/Manual-Plataforma-Inteligente-de-Datos.pdf";
@@ -403,17 +403,17 @@ const OnboardingScreen = () => {
               o duda sobre el funcionamiento de la plataforma puedes gestionar tu solicitud en {" "}
               <span><a
                 href="https://portalti.cyt.conchaytoro.cl/asmscustomer"
+                rel="noreferrer"
                 className="text-sm md:text-base text-[--color-info] font-semibold hover:underline"
                 target="_blank"
               >
                 Aranda
               </a></span>
             </p>
-
-
           </div>
         </section>
       </div>
+      <Agent />
     </main>
   );
 };
