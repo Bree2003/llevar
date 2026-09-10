@@ -12,6 +12,7 @@ import { checkPermission } from "modules/tokenPermission/utils/user-token.util";
 import { ReactComponent as AgentIcon } from "../Global/Icons/agent_icon.svg";
 
 const AGENT_FRONTEND_URL = process.env.REACT_APP_AGENT_DOCS_FRONTEND_URL;
+// const AGENT_FRONTEND_URL = process.env.REACT_APP_AGENT_FRONTEND_URL;
 
 const Agent = () => {
   const { user } = useAppSelector((state) => state.UserPermissions);
