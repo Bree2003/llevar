@@ -83,10 +83,10 @@ const LinksAdminSection = ({
     setForm(
       linksData
         ? {
-            enlaceAccesoReporte: linksData.enlaceAccesoReporte ?? "",
-            enlaceSoporte: linksData.enlaceSoporte ?? "",
-            enlaceAccesoPlataforma: linksData.enlaceAccesoPlataforma ?? "",
-          }
+          enlaceAccesoReporte: linksData.enlaceAccesoReporte ?? "",
+          enlaceSoporte: linksData.enlaceSoporte ?? "",
+          enlaceAccesoPlataforma: linksData.enlaceAccesoPlataforma ?? "",
+        }
         : EMPTY_LINKS,
     );
   };
@@ -169,41 +169,8 @@ const LinksAdminSection = ({
           border-[--color-border]
         "
       >
-        <div className="max-w-3xl">
+        <div className="max-w-3xl text-left">
           <div className="flex items-center gap-3">
-            <div
-              className="
-                w-11
-                h-11
-
-                rounded-[10px]
-
-                bg-[--color-accent-light]
-                text-[--color-accent]
-
-                flex
-                items-center
-                justify-center
-
-                flex-shrink-0
-              "
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M10 13a5 5 0 0 0 7.07.07l2-2a5 5 0 0 0-7.07-7.07l-1.15 1.15" />
-                <path d="M14 11a5 5 0 0 0-7.07-.07l-2 2A5 5 0 0 0 12 20l1.15-1.15" />
-              </svg>
-            </div>
 
             <div>
               <h2
@@ -230,28 +197,6 @@ const LinksAdminSection = ({
             </div>
           </div>
         </div>
-
-        <span
-          className="
-            w-fit
-
-            px-3
-            py-1.5
-
-            rounded-md
-
-            bg-[--color-accent-light]
-
-            text-xs
-            font-semibold
-
-            text-[--color-accent]
-
-            whitespace-nowrap
-          "
-        >
-          Configuración global
-        </span>
       </div>
 
       {/* INFO */}
@@ -312,6 +257,7 @@ const LinksAdminSection = ({
         className="
           p-5
           md:p-6
+          text-left
 
           space-y-6
         "

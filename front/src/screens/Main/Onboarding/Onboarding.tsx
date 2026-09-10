@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import Agent from "components/Agent/Agent";
 import { ReactComponent as Download } from "components/Global/Icons/download.svg";
 import { ReactComponent as ArrowUp } from "components/Global/Icons/arrow-up.svg";
 import ManualUsuario from "assets/docs/Manual-Plataforma-Inteligente-de-Datos.pdf";
@@ -435,7 +434,6 @@ const OnboardingScreen = ({ links }: OnboardingScreenProps) => {
           </div>
         </section>
       </div>
-      <Agent />
     </main>
   );
 };

@@ -4,27 +4,27 @@ import BannerDeleteModal from "./BannerDeleteModal";
 import { BannerModel } from "models/Global/bannerModel";
 
 const BannersAdminSection = ({
-    bannerData,
-    isBusy,
-    isLoading,
-    handleBannerCreate,
-    handleBannerUpdate,
-    handleBannerDelete,
+  bannerData,
+  isBusy,
+  isLoading,
+  handleBannerCreate,
+  handleBannerUpdate,
+  handleBannerDelete,
 }: {
-    bannerData: BannerModel[] | undefined;
-    isBusy: boolean;
-    isLoading: boolean;
-    handleBannerCreate: (
-      banner: BannerModel,
-      file: File,
-      onProgress: (percent: number) => void,
-    ) => void;
-    handleBannerUpdate: (
-      banner: BannerModel,
-      file: File,
-      onProgress: (percent: number) => void,
-    ) => void;
-    handleBannerDelete: (banner: BannerModel) => void;
+  bannerData: BannerModel[] | undefined;
+  isBusy: boolean;
+  isLoading: boolean;
+  handleBannerCreate: (
+    banner: BannerModel,
+    file: File,
+    onProgress: (percent: number) => void,
+  ) => void;
+  handleBannerUpdate: (
+    banner: BannerModel,
+    file: File,
+    onProgress: (percent: number) => void,
+  ) => void;
+  handleBannerDelete: (banner: BannerModel) => void;
 }) => {
   const [search, setSearch] = useState<string>("");
   const [editingBanner, setEditingBanner] = useState<BannerModel | null>(null);
@@ -33,7 +33,7 @@ const BannersAdminSection = ({
   const filteredBanners = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    if(!bannerData) {
+    if (!bannerData) {
       return [];
     }
 
@@ -47,11 +47,11 @@ const BannersAdminSection = ({
   }, [bannerData, search]);
 
   const handleSave = (bannerData: BannerModel, file: File, onProgress: (percent: number) => void, kind: ActionKind) => {
-    if(kind === "Create") {
+    if (kind === "Create") {
       handleBannerCreate(bannerData, file, onProgress);
     }
 
-    if(kind === "Update") {
+    if (kind === "Update") {
       handleBannerUpdate(bannerData, file, onProgress);
     }
   };
@@ -79,6 +79,7 @@ const BannersAdminSection = ({
         {/* HEADER */}
         <div
           className="
+          text-left
             p-5
             md:p-6
 

@@ -4,17 +4,17 @@ import PermissionAdminTable from "components/Tables/PermissionAdminTable";
 import { PermissionModel } from 'models/Admin/permissionsModel';
 
 const PermissionAdminSection = ({
-    permissionData,
-    isBusy,
-    isLoading,
-    handlePermissionCreate,
-    handlePermissionUpdate,
+  permissionData,
+  isBusy,
+  isLoading,
+  handlePermissionCreate,
+  handlePermissionUpdate,
 }: {
-    permissionData: PermissionModel[] | undefined;
-    isBusy: boolean;
-    isLoading: boolean;
-    handlePermissionCreate: (permission: PermissionModel) => void;
-    handlePermissionUpdate: (permission: PermissionModel) => void;
+  permissionData: PermissionModel[] | undefined;
+  isBusy: boolean;
+  isLoading: boolean;
+  handlePermissionCreate: (permission: PermissionModel) => void;
+  handlePermissionUpdate: (permission: PermissionModel) => void;
 }) => {
   const [search, setSearch] = useState("");
 
@@ -61,6 +61,7 @@ const PermissionAdminSection = ({
         {/* HEADER */}
         <div
           className="
+          text-left
             p-5
             md:p-6
 

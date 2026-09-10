@@ -1,6 +1,4 @@
 import { useMemo, useState } from "react";
-
-import Agent from "../../../components/Agent/Agent";
 import { conceptIcons, conceptCategories } from "components/AdminPlatform/ConceptModal";
 import { ReactComponent as ArrowUp } from "components/Global/Icons/arrow-up.svg";
 import { ReactComponent as Danger } from "components/Global/Icons/danger.svg";
@@ -681,8 +679,6 @@ const ConceptosScreen = ({
             </div>
           )}
         </section>
-
-        <Agent />
       </div>
     </main>
   );

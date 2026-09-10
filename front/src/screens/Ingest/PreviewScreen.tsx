@@ -4,7 +4,6 @@ import {
   EndpointStatus,
   UploadStateModel,
 } from "controllers/Ingest/PreviewController";
-import Agent from "components/Agent/Agent";
 
 interface Props {
   model: Partial<UploadStateModel> | undefined;
@@ -89,7 +88,6 @@ const PreviewScreen = ({
         }}
         onSave={onSave}
       />
-      <Agent />
     </div>
   );
 };

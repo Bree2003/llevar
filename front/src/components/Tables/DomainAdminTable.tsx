@@ -53,7 +53,7 @@ export default function DomainAdminTable({
     };
 
     const paginatedData = useMemo(() => {
-        if(!domainData){
+        if (!domainData) {
             return [];
         }
 

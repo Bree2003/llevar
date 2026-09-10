@@ -5,7 +5,6 @@ import { checkDomain } from "modules/tokenPermission/utils/user-token.util";
 import { ReactComponent as PresentationChart } from "components/Global/Icons/presention-chart.svg";
 import { DomainModel } from "models/Global/domainsModel";
 import { ReportModel } from "models/Global/reportsModel";
-import Agent from "components/Agent/Agent";
 
 interface MarketplaceScreenProps {
   reports: ReportModel[];
@@ -187,7 +186,6 @@ const MarketplaceScreen = ({
           )}
         </section>
       </div>
-      <Agent />
     </main>
   );
 };

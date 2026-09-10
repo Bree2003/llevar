@@ -5,19 +5,19 @@ import ConceptDeleteModal from "./ConceptDeleteModal";
 import { DictionaryModel } from "models/Global/dictionaryModel";
 
 const ConceptsAdminSection = ({
-    dictionaryData,
-    isBusy,
-    isLoading,
-    handleDictionaryCreate,
-    handleDictionaryUpdate,
-    handleDictionaryDelete,
+  dictionaryData,
+  isBusy,
+  isLoading,
+  handleDictionaryCreate,
+  handleDictionaryUpdate,
+  handleDictionaryDelete,
 }: {
-    dictionaryData: DictionaryModel[] | undefined;
-    isBusy: boolean;
-    isLoading: boolean;
-    handleDictionaryCreate: (dictionary: DictionaryModel) => void;
-    handleDictionaryUpdate: (dictionary: DictionaryModel) => void;
-    handleDictionaryDelete: (dictionary: DictionaryModel) => void;
+  dictionaryData: DictionaryModel[] | undefined;
+  isBusy: boolean;
+  isLoading: boolean;
+  handleDictionaryCreate: (dictionary: DictionaryModel) => void;
+  handleDictionaryUpdate: (dictionary: DictionaryModel) => void;
+  handleDictionaryDelete: (dictionary: DictionaryModel) => void;
 }) => {
   const [search, setSearch] = useState("");
   const [editingConcept, setEditingConcept] = useState<DictionaryModel | null>(null);
@@ -25,7 +25,7 @@ const ConceptsAdminSection = ({
 
   const filteredConcepts = useMemo(() => {
     const query = search.trim().toLowerCase();
-  
+
     if (!dictionaryData) {
       return [];
     }
@@ -42,11 +42,11 @@ const ConceptsAdminSection = ({
   }, [dictionaryData, search]);
 
   const handleOnDictionaryChange = (dictionary: DictionaryModel, kind: ActionKind) => {
-    if(kind === "Create"){
+    if (kind === "Create") {
       handleDictionaryCreate(dictionary);
     }
 
-    if(kind === "Update"){
+    if (kind === "Update") {
       handleDictionaryUpdate(dictionary);
     }
 
@@ -77,6 +77,7 @@ const ConceptsAdminSection = ({
         {/* HEADER */}
         <div
           className="
+          text-left
             p-5
             md:p-6
 
@@ -289,8 +290,8 @@ const ConceptsAdminSection = ({
                       "
                   >
                     {/* ICONO */}
-                      <div
-                        className="
+                    <div
+                      className="
                             w-11
                             h-11
 
@@ -309,9 +310,9 @@ const ConceptsAdminSection = ({
 
                             flex-shrink-0
                           "
-                      >
-                        {conceptIcons.find((x) => x.name === concept.icon)?.element ?? <Danger className="w-5 h-5 md:w-6 md:h-6" />}
-                      </div>
+                    >
+                      {conceptIcons.find((x) => x.name === concept.icon)?.element ?? <Danger className="w-5 h-5 md:w-6 md:h-6" />}
+                    </div>
                   </td>
                   <td
                     className="

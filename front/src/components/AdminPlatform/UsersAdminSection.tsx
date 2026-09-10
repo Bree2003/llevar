@@ -5,21 +5,21 @@ import { DomainModel } from 'models/Global/domainsModel';
 import { PermissionModel } from 'models/Admin/permissionsModel';
 
 const UsersAdminSection = ({
-    userData,
-    domains,
-    permissions,
-    isBusy,
-    isLoading,
-    handleUserUpdate,
-    handleUserDelete,
+  userData,
+  domains,
+  permissions,
+  isBusy,
+  isLoading,
+  handleUserUpdate,
+  handleUserDelete,
 }: {
-    userData: UserModel[] | undefined;
-    domains: DomainModel[] | undefined;
-    permissions: PermissionModel[] | undefined;
-    isBusy: boolean;
-    isLoading: boolean;
-    handleUserUpdate: (user: UserModel) => void;
-    handleUserDelete: (user: UserModel) => void;
+  userData: UserModel[] | undefined;
+  domains: DomainModel[] | undefined;
+  permissions: PermissionModel[] | undefined;
+  isBusy: boolean;
+  isLoading: boolean;
+  handleUserUpdate: (user: UserModel) => void;
+  handleUserDelete: (user: UserModel) => void;
 }) => {
   const [search, setSearch] = useState("");
 
@@ -54,6 +54,7 @@ const UsersAdminSection = ({
         {/* HEADER */}
         <div
           className="
+          text-left
             p-5
             md:p-6
 

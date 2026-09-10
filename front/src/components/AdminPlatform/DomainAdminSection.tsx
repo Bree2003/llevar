@@ -4,17 +4,17 @@ import DomainAdminTable from "components/Tables/DomainAdminTable";
 import { DomainModel } from 'models/Global/domainsModel';
 
 const DomainAdminSection = ({
-    domainData,
-    isBusy,
-    isLoading,
-    handleDomainCreate,
-    handleDomainUpdate,
+  domainData,
+  isBusy,
+  isLoading,
+  handleDomainCreate,
+  handleDomainUpdate,
 }: {
-    domainData: DomainModel[] | undefined;
-    isBusy: boolean;
-    isLoading: boolean;
-    handleDomainCreate: (domain: DomainModel) => void;
-    handleDomainUpdate: (domain: DomainModel) => void;
+  domainData: DomainModel[] | undefined;
+  isBusy: boolean;
+  isLoading: boolean;
+  handleDomainCreate: (domain: DomainModel) => void;
+  handleDomainUpdate: (domain: DomainModel) => void;
 }) => {
   const [search, setSearch] = useState("");
 
@@ -61,6 +61,7 @@ const DomainAdminSection = ({
         {/* HEADER */}
         <div
           className="
+          text-left
             p-5
             md:p-6
 

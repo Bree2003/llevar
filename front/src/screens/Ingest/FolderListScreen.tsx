@@ -10,7 +10,6 @@ import ResumenProducto from "components/ResumenProducto/ResumenProducto";
 import FileUploadSection from "components/DataProduct/FileUploadSection";
 import WizardModal from "components/Ingest/Wizard/WizardModal";
 import PipelineButton from "components/DataProduct/PipelineButton";
-import Agent from "components/Agent/Agent";
 
 const FeedbackToast = ({ feedback }: { feedback: PipelineFeedback }) => {
   if (!feedback.message) return null;
@@ -668,7 +667,6 @@ const FolderListScreen = ({
             </div>
           </div>
         )}
-        <Agent />
     </div>
   );
 };

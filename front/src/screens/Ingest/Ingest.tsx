@@ -5,7 +5,6 @@ import {
 } from "controllers/Ingest/controller";
 import QuickAccess from "components/QuickAccess/QuickAccess";
 import DataProduct from "components/DataProduct/DataProduct";
-import Agent from "components/Agent/Agent";
 
 interface Props {
   model: Partial<IngestModel> | undefined;
@@ -45,7 +44,6 @@ const IngestScreen = ({ model, endpoints, onSelectEnvironment }: Props) => {
 
         <QuickAccess />
       </div>
-      <Agent />
     </div>
   );
 };

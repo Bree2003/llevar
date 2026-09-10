@@ -33,6 +33,7 @@ import {
   UnauthenticatedTemplate,
 } from "@azure/msal-react";
 import AppLayout from "AppLayout";
+import Agent from "components/Agent/Agent";
 import MainController from "controllers/Main/controller";
 import IngestController from "controllers/Ingest/controller";
 import BucketListController from "controllers/Ingest/BucketListController";
@@ -49,7 +50,7 @@ import FaqController from "controllers/Faq/controller";
 import ConceptosController from "controllers/Conceptos/controller";
 import AdminMarketplaceController from "controllers/Admin/AdminMarketplaceController";
 import AdminPlatformController from "controllers/Admin/AdminPlatformController";
-import DocsAgentController from "controllers/DocsAgent/DocsAgentController";
+import AgentController from "controllers/Agent/AgentController";
 
 const msalInstance = new PublicClientApplication(msalConfig as Configuration);
 
@@ -117,6 +118,7 @@ const Router = () => {
                     anchorOrigin={{ vertical: "top", horizontal: "right" }}
                   >
                     <div className="App App-background">
+                      <Agent />
                       <Routes>
                         <Route path="401" element={<NotAuthorizedScreen />} />
                         <Route path="403" element={<ForbiddenScreen />} />
@@ -125,8 +127,8 @@ const Router = () => {
                           <Route element={<AppLayout />}>
                             <Route path="/" element={<MainController />} />
                             <Route
-                              path="/docs_agent"
-                              element={<DocsAgentController />}
+                              path="/agent"
+                              element={<AgentController />}
                             />
                             <Route
                               path="/onboarding"

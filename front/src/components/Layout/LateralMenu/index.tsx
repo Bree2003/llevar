@@ -165,11 +165,11 @@ const LateralMenu = ({ isOpen, setIsOpen }: LateralMenuProps) => {
       onClick: () => navigate("/"),
     },
     {
-      label: "Agente Documental",
+      label: "Agente CEPiA",
       icon: SmartToyIcon,
-      path: "/docs_agent",
-      permission: "reader",
-      onClick: () => navigate("/docs_agent"),
+      path: "/agent",
+      permission: "analytics-agent",
+      onClick: () => navigate("/agent"),
     },
     {
       label: "Ingestas",

@@ -6,7 +6,6 @@ import { ReactComponent as Export } from "components/Global/Icons/export.svg";
 import { ReactComponent as Eye } from "components/Global/Icons/eye.svg";
 import { domainUnits } from "data/domain-units";
 import { ReportModel } from "models/Global/reportsModel";
-import Agent from "components/Agent/Agent";
 import { LinksModel } from "models/Global/linksModel";
 
 interface ReportScreenProps {
@@ -266,7 +265,6 @@ const ReportScreen = ({
           </div>
         </section>
       </div>
-      <Agent />
     </main>
   );
 };

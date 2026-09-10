@@ -7,7 +7,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "store/hooks/redux-hooks";
 import { checkPermission } from "modules/tokenPermission/utils/user-token.util";
-import Agent from "../../components/Agent/Agent";
 import { ReactComponent as Download } from "components/Global/Icons/download.svg";
 import { ReactComponent as ArrowUp } from "components/Global/Icons/arrow-up.svg";
 import BannerCarousel from "components/BannerCarousel/BannerCarousel";
@@ -508,7 +507,6 @@ const MainScreen = ({
             ))}
           </div>
         </section>
-        <Agent />
       </div>
     </main>
   );

@@ -76,6 +76,7 @@ const FaqAdminSection = ({
         {/* HEADER */}
         <div
           className="
+          text-left
             p-5
             md:p-6
 
